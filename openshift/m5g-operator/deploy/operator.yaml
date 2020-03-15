@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m5g-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: m5g-operator
+  template:
+    metadata:
+      labels:
+        name: m5g-operator
+    spec:
+      serviceAccountName: m5g-operator
+      containers:
+        - name: m5g-operator
+          # Replace this with the built image name
+          image: tig4605246/m5g_operator:0.1
+          command:
+          - m5g-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "m5g-operator"

@@ -1,0 +1,66 @@
+version: '2'
+
+services:
+  oaicn: # Domain name of container
+    image: mosaic5gecosys/oaicn:1.0 # image of the container
+    restart: always # Operation Policy
+    container_name: oaicn # Name of the container
+    hostname: ubuntu # hostname
+    privileged: true # Give the container the permission to manipulate the host
+    depends_on: # Before starting this container, what should be ready
+      - "mysql"
+    volumes: # Mounted from host
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /lib/modules:/lib/modules:ro
+      - ./conf.yaml:/root/conf.yaml:ro
+    networks: # the network this container attached to
+      - oai
+
+  oairan:
+    image: mosaic5gecosys/oairan:1.0
+    restart: always
+    container_name: oairan
+    hostname: oairan
+    privileged: true
+    depends_on:
+      - "oaicn"
+      - "flexran"
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /lib/modules:/lib/modules:ro
+      - /dev/bus/usb/:/dev/bus/usb/
+      - ./conf.yaml:/root/conf.yaml:ro
+    networks:
+      - oai
+
+  flexran:
+    image: mosaic5gecosys/flexran:0.1
+    restart: always
+    container_name: flexran
+    hostname: flexran
+    privileged: true
+    depends_on:
+      - "oaicn"
+    ports:
+      - 9999:9999
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /lib/modules:/lib/modules:ro
+      - ./conf.yaml:/root/conf.yaml:ro
+    networks:
+      - oai
+
+  mysql:
+    image: mysql:5.6
+    restart: always
+    container_name: mysql
+    environment: # shell variables
+      - MYSQL_ROOT_PASSWORD=linux
+    networks:
+      - oai
+
+networks: # Define our network here
+  oai:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 9000 # Configure mtu
