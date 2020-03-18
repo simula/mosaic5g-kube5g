@@ -4,10 +4,9 @@ mnc: "95"
 eutraBand: "7"             
 downlinkFrequency: "2685000000L"    
 uplinkFrequencyOffset: "-120000000"
-
-# eutraBand: "13"             
-# downlinkFrequency: "751000000L"    
-# uplinkFrequencyOffset: "31000000"
+NumberRbDl: "25"
+MaxRxGain: "110"
+ParallelConfig: "PARALLEL_SINGLE_THREAD"
 
 configurationPathofCN: "/var/snap/oai-cn/current/"
 configurationPathofRAN: "/var/snap/oai-ran/current/"
@@ -16,11 +15,7 @@ hssDomainName: "oaicn"
 mmeDomainName: "oaicn"
 spgwDomainName: "oaicn"
 mysqlDomainName: "mysql"
-dns: "172.24.2.4"
-
-NumberRbDl: "25"
-MaxRxGain: "110"
-ParallelConfig: "PARALLEL_SINGLE_THREAD"
+dns: "192.168.1.1"
 
 flexRAN: false
 flexRANDomainName: "flexran"

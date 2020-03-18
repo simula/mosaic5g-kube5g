@@ -70,17 +70,11 @@ func GetConfig() (*rest.Config, error) {
 		return c, nil
 	}
 	// If no in-cluster config, try the default location in the user's home directory
-	usr, err := user.Current()
-	if err == nil {
-		log.Info(fmt.Sprintf("err is nil"))
-		log.Info(fmt.Sprintf(usr.HomeDir))
+	if usr, err := user.Current(); err == nil {
 		if c, err := clientcmd.BuildConfigFromFlags(
 			"", filepath.Join(usr.HomeDir, ".kube", "config")); err == nil {
 			return c, nil
 		}
-
-	} else {
-		log.Info(fmt.Sprintf("err is not nil"))
 	}
 
 	return nil, fmt.Errorf("could not locate a kubeconfig")

@@ -1,12 +1,9 @@
 # Mosaic5g-Operator
 
-Mosaic5g-operator is built based one openshift [operator SDK](https://github.com/operator-framework/operator-sdk) 
-
-
-
+This current branch for the objective of suporting more config parameters for both oai-ran and oai-cn, in addition to support the functional slit for oai-ran, i.e. CU-DU fuctional split
 ## Requirement for Development
 
-- Operator SDK v0.15.2
+- Operator SDK v0.7.0
 - Golang 1.12+
 - Docker 17.03+
 - kubectl v1.11.3+

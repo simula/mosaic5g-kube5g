@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # prepare ENVs
-export KUBECONFIG=/home/agrion/kubernetes/aiyu
+#export KUBECONFIG=/home/agrion/kubernetes/aiyu
 export OPERATOR_NAME=m5g-operator
 export MYNAME=${USER}
-export MYDNS="192.168.106.12"
+export MYDNS="192.168.1.1"
 
 run_local(){
     operator-sdk up local --namespace=default

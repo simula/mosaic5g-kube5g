@@ -4,13 +4,21 @@ metadata:
   name: mosaic5g
 spec:
   # Add fields here
-  size: 1
+  # size: 1
+  mysqlSize: 1
+  oaicnsize: 1
+  oairansize: 1
+  mysqlImage: "mysql:5.6"
   cnImage: "mosaic5gecosys/oaicn:1.1"
-  ranImage: "mosaic5gecosys/oairan:1.1"
-  mcc: "208"                 
-  mnc: "95"                   
-  eutraBand: "7"             
-  downlinkFrequency: "2685000000L"    
+  oaiHssImage: "mosaic5gecosys/oaicn:1.1"
+  oaiMmeImage: "mosaic5gecosys/oaicn:1.1"
+  oaiSpgwImage: "mosaic5gecosys/oaicn:1.1"
+  ranImage: "arouk/oairan:1.0"
+  
+  mcc: "208"
+  mnc: "95"
+  eutraBand: "7"
+  downlinkFrequency: "2685000000L"
   uplinkFrequencyOffset: "-120000000"
   configurationPathofCN: "/var/snap/oai-cn/current/"
   configurationPathofRAN: "/var/snap/oai-ran/current/"
@@ -19,6 +27,165 @@ spec:
   mmeDomainName: "oaicn"
   spgwDomainName: "oaicn"
   mysqlDomainName: "mysql"
-  dns: "192.168.106.12"
+  dns: "192.168.1.1"
   flexRAN: false
   flexRANDomainName: "flexran"
+  
+  ## new config parameters
+  cuDomainName: "rancu"
+  duDomainName: "randu"
+  rccDomainName: "ranrcc"
+  rruDomainName: "ranrru"
+  #############################################
+  snap:
+    description: "snap indicates which channel to use for the installation hook."
+    name: "oai-ran"
+    channel: "edge"
+    devmode: true
+    Jailmode: false
+    # type: string
+  node_function: 
+    default: "enb"
+    description: "set the function of this BS node. Available Options: enb, cu and du, rcc and rru."
+    # type: string
+  mme_ip_addr: 
+    default: ""
+    description: "If the MME IP address is provided, the BS node connects to MME without waiting for S1-C relation. Default is an empty string."
+    # type: string  
+  eutra_band:
+    default: "7"
+    description: "Setting the LTE  EUTRA frequency band."
+    # type: int
+  downlink_frequency:
+    default: "2685000000L"
+    description: "Setting the downlink frequency band."
+    # type: string
+  uplink_frequency_offset:
+    default: "-120000000"
+    description: "Setting the uplink frequency offset."
+    # type: string
+  N_RB_DL:
+    default: "50"
+    description: "Setting the bandwidth in terms of number of available PRBS, 25 (5MHz), 50 (10MHz), and 100 (20MHz)."
+    # type: int
+  nb_antennas_tx:
+    default: "1"
+    description: "Setting the number of tx antennas."
+    # type: int
+  nb_antennas_rx:
+    default: "1"
+    description: "Setting the number of rx antennas."
+    # type: int
+  tx_gain:
+    default: "90"
+    description: "Setting the tx antenna gain."
+    # type: int
+  rx_gain:
+    default: "125"
+    description: "Setting the rx antenna gain."
+    # type: int
+  cu_ip_addr:
+    default: "127.0.0.1"
+    description: "The IP address of the CU module. Only valid if the node function is CU."
+    # type: string
+  du_ip_addr:
+    default: "127.0.0.1"
+    description: "The IP address of the DU module. Only valid if the node function is DU."
+    # type: string
+  cu_portc:
+    default: "501"
+    description: "The port number of the CU module for control plane. Only valid if the node function is CU."
+    # type: int
+  du_portc:
+    default: "500"
+    description: "The control port number of the DU module for control plane. Only valid if the node function is DU."
+    # type: int
+  cu_portd:
+    default: "601"
+    description: "The port number of the CU module for data plane. Only valid if the node function is CU."
+    # type: int
+  du_portd:
+    default: "600"
+    description: "The control port number of the DU module for data plane. Only valid if the node function is DU."
+    # type: int
+  fh_transport_mode:
+    default: "udp_if4p5"
+    description: "defines the I/Q sample transport mode between RRU and RCC. Available mode are raw, udp, raw_if4p5, and udp_if4p5."
+    # type: string
+  rcc_portc:
+    default: "50000"
+    description: "The port number of the RCC module for control plane. Only valid if the node function is RCC."
+    # type: int
+  rru_portc:
+    default: "50000"
+    description: "The control port number of the RRU module for control plane. Only valid if the node function is RRU."
+    # type: int
+  rcc_portd:
+    default: "50001"
+    description: "The port number of the RCC module for data plane. Only valid if the node function is RCC."
+    # type: int
+  rru_portd:
+    default: "50001"
+    description: "The control port number of the RRU module for data plane. Only valid if the node function is DU."
+    # type: int 
+  rcc_rru_tr_preference:
+    default: "udp_if4p5" 
+    description: " "
+    # type: string
+  TAC:
+    default: "1"
+    description: "Set this option to the tracking area code you want this eNB to belong. Possible values are...Tracking area code, 0x0000 and 0xfffe are reserved values."
+    # type: int
+  enb_name:
+    default: "eNB_Eurecom_LTEBox"
+    description: "Set this option with the name you want for this eNodeB deployment."
+    # type: string
+  enb_id:
+    default: "0xe00"
+    description: "Set this option with the id number you want for this eNodeB deployment. "
+    # type: string
+  frame_type:
+    default: "FDD"
+    description: "Setting the frame type, FDD or TDD."
+    # type: string
+  tdd_config:
+    default: "3"
+    description: "Setting the TDD frame configuration. Valid values, 0,1,2,3,4,5,6."
+    # type: int
+  tdd_config_s:
+    default: "0"
+    description: "Setting the TDD special subframe configuration. Valid values, 0-9."
+    # type: int
+
+  flexran_if_name:
+    default: "eth0"
+    description: "defines the network interface name to connect to the controller. "
+    # type: string
+  fh_if_name:
+    default: "eth0"
+    description: "defines the network interface name to connect to the RRU. This required a dedicated fronthaul link between eNB and RRU and must not use the same interface as for the EPC.  "
+    # type: string
+  fh_local_port: 
+    default: "50000"  
+    description: "defines the network interface port to connect to the RRU."
+    # type: int
+  rru_tx_shift: 
+    default: "4"  
+    description: "defines the shift in is samples in tx"
+    # type: int
+  rru_tx_sampleadvance:
+    default: "80"
+    description: "defines the tx i/q sample advace"
+    # type: int
+  rru_tx_schedadvance:
+    default: "9"
+    description: "defines the tx i/q scheduling advance"
+    # type: int
+  parallel_config:
+    default: "PARALLEL_SINGLE_THREAD"
+    description: "defines the level of parallelism. There are three available values; 'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
+    # type: string
+  max_rxgain:
+    default: "111"
+    description: "defines the maximum Rx gain"
+    # type: "int"

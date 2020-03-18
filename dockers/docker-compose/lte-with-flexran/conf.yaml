@@ -1,13 +1,22 @@
 mcc: "208"                 
-mnc: "95"                   
+mnc: "95"   
+
 eutraBand: "7"             
 downlinkFrequency: "2685000000L"    
 uplinkFrequencyOffset: "-120000000"
+NumberRbDl: "25"
+MaxRxGain: "110"
+ParallelConfig: "PARALLEL_SINGLE_THREAD"
+
 configurationPathofCN: "/var/snap/oai-cn/current/"
 configurationPathofRAN: "/var/snap/oai-ran/current/"
 snapBinaryPath: "/snap/bin/"
+hssDomainName: "oaicn"
 mmeDomainName: "oaicn"
-dns: "172.24.2.4"
+spgwDomainName: "oaicn"
+mysqlDomainName: "mysql"
+dns: "192.168.1.1"
+
 flexRAN: true
 flexRANDomainName: "flexran"
 test: false

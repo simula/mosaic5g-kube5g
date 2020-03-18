@@ -75,7 +75,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 var _ reconcile.Reconciler = &ReconcileMosaic5g{}
 
-
 // ReconcileMosaic5g reconciles a Mosaic5g object
 type ReconcileMosaic5g struct {
 	// This client, initialized using mgr.Client() above, is a split client
@@ -222,9 +221,22 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		reqLogger.Error(err, "RAN Failed to get Deployment")
 		return reconcile.Result{}, err
 	}
+	// Create an oairan service
+	service = &v1.Service{}
+	ranService := r.genRanService(instance)
+	// Check if the oai-cn service already exists, if not create a new one
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: ranService.GetName(), Namespace: instance.Namespace}, service)
+	if err != nil && errors.IsNotFound(err) {
+		err = r.client.Create(context.TODO(), ranService)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", ranService.Namespace, "Service.Name", ranService.Name)
+			return reconcile.Result{}, err
+		}
+	}
 
 	// Ensure the deployment size is the same as the spec
-	size := instance.Spec.Size
+	// size := instance.Spec.Size
+	size := instance.Spec.OaiCnSize
 	if *cn.Spec.Replicas != size {
 		cn.Spec.Replicas = &size
 		err = r.client.Update(context.TODO(), cn)
@@ -284,7 +296,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 	cnName := m.Spec.MmeDomainName
 	//ls := util.LabelsForMosaic5g(m.Name + cnName)
-	replicas := m.Spec.Size
+	replicas := m.Spec.OaiCnSize
 	labels := make(map[string]string)
 	labels["app"] = "oaicn"
 	Annotations := make(map[string]string)
@@ -362,8 +374,10 @@ func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv
 
 // deploymentForRAN returns a Core Network Deployment object
 func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
-	ls := util.LabelsForMosaic5g(m.Name)
-	replicas := m.Spec.Size
+	// ls := util.LabelsForMosaic5g(m.Name)
+	replicas := m.Spec.OaiRanSize
+	labels := make(map[string]string)
+	labels["app"] = "oaienb"
 	Annotations := make(map[string]string)
 	Annotations["container.apparmor.security.beta.kubernetes.io/"+m.Name+"-"+"oairan"] = "unconfined"
 	dep := &appsv1.Deployment{
@@ -375,11 +389,13 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: ls,
+				// MatchLabels: ls,
+				MatchLabels: labels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: ls,
+					// Labels: ls,
+					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
@@ -451,12 +467,12 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 	//ls := util.LabelsForMosaic5g(m.Name + cnName)
 	var replicas int32
-	replicas = 1
+	replicas = m.Spec.MysqlSize
 	labels := make(map[string]string)
 	labels["app"] = "oai"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "mysql",
+			Name:      m.Spec.MysqlDomainName,
 			Namespace: m.Namespace,
 			Labels:    labels,
 		},
@@ -471,7 +487,7 @@ func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *ap
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image: "mysql:5.6",
+						Image: m.Spec.MysqlImage,
 						Name:  "mysql",
 						Env: []corev1.EnvVar{
 							{Name: "MYSQL_ROOT_PASSWORD", Value: "linux"},
@@ -525,10 +541,39 @@ func (r *ReconcileMosaic5g) genCNService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Servi
 			{Name: "spgw-1", Port: 3870},
 			{Name: "spgw-2", Port: 5870},
 		},
-		Selector:  selectMap,
+		Selector: selectMap,
+		// Type:     "NodePort",
 		ClusterIP: "None",
 	}
 	service.Name = "oaicn"
+	service.Namespace = m.Namespace
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+// genRanService will generate a service for oaicn
+func (r *ReconcileMosaic5g) genRanService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	var service *v1.Service
+	selectMap := make(map[string]string)
+	selectMap["app"] = "oairan"
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		Ports: []v1.ServicePort{
+			{Name: "enb", Port: 2210},
+			{Name: "enb-1", Port: 2021},
+			{Name: "s1-u", Port: 2152}, //udp
+			{Name: "cu-1", Port: 22100},
+			{Name: "enb-3", Port: 50000}, //udp
+			{Name: "enb-4", Port: 50001}, //udp
+			{Name: "s1-c", Port: 36412},  //udp
+
+		},
+		Selector: selectMap,
+		// Type:     "NodePort",
+		ClusterIP: "None",
+	}
+	service.Name = "oairan"
 	service.Namespace = m.Namespace
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
@@ -545,10 +590,11 @@ func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Se
 		Ports: []v1.ServicePort{
 			{Name: "mysql-port", Port: 3306},
 		},
-		Selector:  selectMap,
+		Selector: selectMap,
+		// Type:     "NodePort",
 		ClusterIP: "None",
 	}
-	service.Name = "mysql"
+	service.Name = m.Spec.MysqlDomainName
 	service.Namespace = m.Namespace
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
