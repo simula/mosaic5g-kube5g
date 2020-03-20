@@ -6,6 +6,40 @@ export OPERATOR_NAME=m5g-operator
 export MYNAME=${USER}
 export MYDNS="192.168.1.1"
 
+
+###################################
+# colorful echos
+###################################
+
+black='\E[30m'
+red='\E[31m'
+green='\E[32m'
+yellow='\E[33m'
+blue='\E[1;34m'
+magenta='\E[35m'
+cyan='\E[36m'
+white='\E[37m'
+reset_color='\E[00m'
+COLORIZE=1
+
+cecho()  {  
+    # Color-echo
+    # arg1 = message
+    # arg2 = color
+    local default_msg="No Message."
+    message=${1:-$default_msg}
+    color=${2:-$green}
+    [ "$COLORIZE" = "1" ] && message="$color$message$reset_color"
+    echo -e "$message"
+    return
+}
+
+echo_error()   { cecho "$*" $red          ;}
+echo_fatal()   { cecho "$*" $red; exit -1 ;}
+echo_warn()    { cecho "$*" $yellow       ;}
+echo_success() { cecho "$*" $green        ;}
+echo_info()    { cecho "$*" $blue         ;}
+
 run_local(){
     operator-sdk up local --namespace=default
 }
@@ -66,36 +100,47 @@ break_down(){
 
 main() {
     case ${1} in
-        init)
+        -n | --init)
             init
         ;;
-        clean)
+        -c | --clean)
             clean
         ;;
-        local)
+        -l | --local)
             run_local
         ;;
         container)
             run_container ${2}
         ;;
-        from_clean_machine)
+        -i | --install)
             deploy_operator_from_clean_machine 
         ;;
-        break_down)
+        -r | --remove)
             break_down
         ;;
         *)
-            echo "Bring up M5G-Operator for you"
-            echo "[IMPORTANT] Please set up kubeconfig at the beginning of this script"
-            echo ""
-            echo "Usage:"
-            echo "      m5goperator.sh init - Apply CRD to k8s cluster (Required for Operator)"
-            echo "      m5goperator.sh clean - Remove CRD from cluster"
-            echo "      m5goperator.sh local - Run Operator as a Golang app at local"
-            echo "      m5goperator.sh container [start|stop] - Run Operator as a POD inside Kubernetes"
-            echo "      m5goperator.sh from_clean_machine - Install and run microk8s kubectl, then deploy operator on it (Tested with Ubuntu 18.04)"
-            echo ""
-            echo "Default operator image is tig4605246/m5g_operator:0.1"
+            echo_info '
+This program installs the requirements to run kubernets on one machine, 
+and run mosaic5g-operator as a pod inside kubernetes in order to manage
+the deployments and services of 4G/5G networks in cloud native environment.
+This program also allows to run mosaic5g-operator locally as Golang app.
+Options:
+-i | --install
+Install and run microk8s kubectl, then deploy operator on it"
+-n | --init
+Apply CRD to k8s cluster (Required for Operator)"
+-l | --local
+Run Operator as a Golang app at local"
+container [start|stop]
+Run Operator as a POD inside Kubernetes"
+-c | --clean 
+Remove CRD from cluster"
+-r | --remove
+remove the snap of kubectl and microk8s
+Usage:
+./m5goperator.sh -i 
+./m5goperator.sh container start
+            '
         ;;
     esac
 
