@@ -1,15 +1,15 @@
 package oai
 
 import (
+	"docker-hook/internal/pkg/util"
 	"errors"
 	"fmt"
-	"docker-hook/internal/pkg/util"
 	"os"
 	"strings"
 )
 
 // StartHss : Start HSS as a daemon
-func startHss(OaiObj Oai) error {
+func startHss(OaiObj Oai, CnAllInOneMode bool) error {
 	fmt.Println("hss.go Starting configuring HSS")
 	// Get working path, Hostname
 	hssConf := OaiObj.Conf.ConfigurationPathofCN + "hss.conf"
@@ -23,7 +23,13 @@ func startHss(OaiObj Oai) error {
 	// Strat configuring oai-hss
 	OaiObj.Logger.Print("Configure hss.conf")
 	//Replace MySQL address
-	retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", "s/127.0.0.1/"+OaiObj.Conf.MysqlDomainName+"/g", hssConf)
+	// Get mme ip
+	mysqlIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.MysqlDomainName)
+	if err != nil {
+		OaiObj.Logger.Print(err)
+		mysqlIP = OaiObj.Conf.MysqlDomainName
+	}
+	retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", "s/127.0.0.1/"+mysqlIP+"/g", hssConf)
 	fmt.Println("retStatus.Exit=", retStatus.Exit)
 	OaiObj.Logger.Print("retStatus.Exit=", retStatus.Exit)
 	if retStatus.Exit != 0 {

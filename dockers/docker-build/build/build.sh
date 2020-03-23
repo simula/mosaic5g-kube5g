@@ -83,8 +83,15 @@ build_target(){
     do
         sleep 5
         LIST=`docker exec ${BASE_CONTAINER} snap list`
-        echo "Waiting for snap to be installed..."
-        contains "${LIST}" "${1}"
+        # echo "Waiting for snap ${1} to be installed..."
+        if [ "${1}" = "oai-hss" ] || [ "${1}" = "oai-mme" ] || [ "${1}" = "oai-spgw" ] ; then
+            echo "Waiting for snap oai-cn to be installed..."
+            contains "${LIST}" "oai-cn"
+        else
+            echo "Waiting for snap ${1} to be installed..."
+            contains "${LIST}" "${1}"
+        fi
+        # contains "${LIST}" "${1}"
         RET=$?
         
     done
@@ -115,6 +122,21 @@ main() {
             TARGET_NAME="oaicn"
             build_target ${1}
         ;;
+        oai-hss)
+            DIR="oai-hss"
+            TARGET_NAME="oaihss"
+            build_target ${1}
+        ;;
+        oai-mme)
+            DIR="oai-mme"
+            TARGET_NAME="oaimme"
+            build_target ${1}
+        ;;
+        oai-spgw)
+            DIR="oai-spgw"
+            TARGET_NAME="oaispgw"
+            build_target ${1}
+        ;;
         oai-ran)
             DIR="oai-ran"
             TARGET_NAME="oairan"
@@ -141,11 +163,14 @@ main() {
             stop
         ;;
         *)
-            echo "Description:"
-            echo "This Script will remove the old docker snap image and build a new one"
-            echo "tested with 16.04 Ubuntu"
-            echo "./build_snap_docker.sh [oai-cn|oai-ran|flexran|ll-mec] [release tag(default is latest)]"
-            echo "Example: ./build_snap_docker.sh oai-cn mytest"
+            echo '
+Description:
+This Script will remove the old docker snap image and build a new one
+Usage:
+        ./build.sh [oai-cn|oai-hss|oai-mme|oai-spgw|oai-ran|flexran|ll-mec] [release tag(default is latest)]
+Example:
+        ./build.sh oai-cn mytest
+'
             exit 0
         ;;
     esac

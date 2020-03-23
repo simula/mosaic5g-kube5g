@@ -2,7 +2,7 @@ package main
 
 // This APP is made for installing snaps in docker and
 // handle the configurations
-// Author: Kevin Hsi-Ping Hsu
+// Author: Osama Arouk, Kevin Hsi-Ping Hsu
 import (
 	"docker-hook/internal/oai"
 	"flag"
@@ -37,13 +37,14 @@ func main() {
 	fmt.Println("Installing snap")
 	oai.InstallSnap(OaiObj)
 	// Decide actions based on flags
+	CnAllInOneMode := true
 	if *installCN {
 		OaiObj.Logger.Print("Installing CN")
 		fmt.Println("Installing CN")
 		oai.InstallCN(OaiObj)
 		OaiObj.Logger.Print("Starting CN")
 		fmt.Println("Starting CN")
-		oai.StartCN(OaiObj)
+		oai.StartCN(OaiObj, CnAllInOneMode)
 	} else if *installRAN {
 		OaiObj.Logger.Print("Installing RAN")
 		fmt.Println("Installing RAN")
@@ -53,13 +54,16 @@ func main() {
 		oai.StartENB(OaiObj)
 	} else if *installHSS {
 		oai.InstallCN(OaiObj)
-		oai.StartHSS(OaiObj)
+		CnAllInOneMode = false
+		oai.StartHSS(OaiObj, CnAllInOneMode)
 	} else if *installMME {
 		oai.InstallCN(OaiObj)
-		oai.StartMME(OaiObj)
+		CnAllInOneMode = false
+		oai.StartMME(OaiObj, CnAllInOneMode)
 	} else if *installSPGW {
 		oai.InstallCN(OaiObj)
-		oai.StartSPGW(OaiObj)
+		CnAllInOneMode = false
+		oai.StartSPGW(OaiObj, CnAllInOneMode)
 	} else if *installFlexRAN {
 		oai.InstallFlexRAN(OaiObj)
 		oai.StartFlexRAN(OaiObj)
