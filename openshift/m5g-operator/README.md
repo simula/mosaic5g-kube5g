@@ -56,6 +56,7 @@ The following figure illustrates the network that we will deploy. It is composed
             $ ./m5goperator.sh -i
             ```
 * Make sure that everything is fine by checking the status of ```microk8s```
+    
     ```bash
     $ microk8s.status 
         microk8s is running
@@ -74,12 +75,55 @@ The following figure illustrates the network that we will deploy. It is composed
         dashboard: disabled
         registry: disabled
     ```
+
+* Add the dns to the configuration of kubectl
+    
+    - get the dns of your network:
+        
+        ```bash
+        $ nmcli device show enp0s31f6 |grep -i dns
+        IP4.DNS[1]:                             192.168.1.1
+        ```
+        
+        where ```enp0s31f6``` is the interface name connected to the internet. 
+    - Add the dns of your network to the config of kubectl
+        
+        ```bash
+        microk8s.kubectl -n kube-system edit configmap/kube-dns
+        ```
+        and then add the dns. Here is an example:
+
+        ```bash
+        # Please edit the object below. Lines beginning with a '#' will be ignored,
+        # and an empty file will abort the edit. If an error occurs while saving this file will be
+        # reopened with the relevant failures.
+        #
+        apiVersion: v1
+        data:
+        upstreamNameservers: '["192.168.1.1", "8.8.8.8", "8.8.4.4"]'
+        kind: ConfigMap
+        metadata:
+        annotations:
+            kubectl.kubernetes.io/last-applied-configuration: |
+            {"apiVersion":"v1","data":{"upstreamNameservers":"[\"192.168.1.1\", \"8.8.8.8\", \"8.8.4.4\"]"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"addonmanager.kubernetes.io/mode":"EnsureExists"},"name":"kube-dns","namespace":"kube-system"}}
+        creationTimestamp: "2020-03-24T08:36:56Z"
+        labels:
+            addonmanager.kubernetes.io/mode: EnsureExists
+        name: kube-dns
+        namespace: kube-system
+        resourceVersion: "8703"
+        selfLink: /api/v1/namespaces/kube-system/configmaps/kube-dns
+        uid: 9f1c7876-6daa-11ea-93e1-ec21e5fc4532
+    ```
 * Run mosaic5g-operator as a pod in kubernetes
     - Go to ```mosaic5g_DIR/kube5g/openshift/m5g-operator```:
+        
         ```bash
         $ cd kube5g/openshift/m5g-operator
         ```
+
     - You can discover the capability provided by the script ```m5g-operator.sh```
+        
         ```bash
         $ ./m5goperator.sh 
             This program installs the requirements to run kubernets on one machine, 
@@ -106,33 +150,46 @@ The following figure illustrates the network that we will deploy. It is composed
     
 ### Bring the network up
 - Apply the Custom Resource Defintion (CRD) to k8s cluster
+    
     ```bash
     $ ./m5goperator.sh -n
     ```
+
 - Run mosaic5g-operator as a pod
+    
     ```bash
     $ ./m5goperator.sh container start
     ```
+
 * Now, Apply the custom resources to bring the LTE network up
+    
     ```bash
     $ kubectl apply -f deploy/crds/mosaic5g_v1alpha1_mosaic5g_cr.yaml
     ```
+
     After some time, the USRP will be on, and now you can connect the phone to the network.
 
 ### Bring the network down
 - After that, you can bring the network down by:
+    
     ```bash
     $ kubectl delete -f deploy/crds/mosaic5g_v1alpha1_mosaic5g_cr.yaml
     ```
+
 - If you wan to stop the mosaic5g-operator: 
+    
     ```bash
     $ ./m5goperator.sh container stop
     ```
+
 - If you want to remove the Custom Resource Defintion (CRD) from the k8s cluster
+    
     ```bash
     $ ./m5goperator.sh -c
     ```
+
 - If you want to clean your machine from the installed softwar:
+    
     ```bash
     $ ./m5goperator.sh -r
     ```

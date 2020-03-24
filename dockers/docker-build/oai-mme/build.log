@@ -1,59 +1,61 @@
-Sending build context to Docker daemon  4.256MB
-Step 1/18 : FROM ubuntu:16.04
+Sending build context to Docker daemon   4.26MB
+Step 1/19 : FROM ubuntu:16.04
  ---> 77be327e4b63
-Step 2/18 : ENV container docker
+Step 2/19 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
  ---> Using cache
- ---> 9bb2dad98455
-Step 3/18 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+ ---> db16c62bfe2a
+Step 3/19 : ENV container docker
  ---> Using cache
- ---> 15777ff9a12c
-Step 4/18 : ENV LANG C.UTF-8
+ ---> f2f95c35357a
+Step 4/19 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
  ---> Using cache
- ---> 0b4b2e44d146
-Step 5/18 : ENV LC_ALL C.UTF-8
+ ---> d41d62290d4a
+Step 5/19 : ENV LANG C.UTF-8
  ---> Using cache
- ---> 756205f492d1
-Step 6/18 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo &&  apt-get autoremove -y && apt-get autoclean -y && dpkg-divert --local --rename --add /sbin/udevadm && ln -s /bin/true /sbin/udevadm
+ ---> 16ea261b3d6c
+Step 6/19 : ENV LC_ALL C.UTF-8
  ---> Using cache
- ---> 079fb45f4f69
-Step 7/18 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim tcpdump
+ ---> ef9d4be2e11a
+Step 7/19 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo &&  apt-get autoremove -y && apt-get autoclean -y && dpkg-divert --local --rename --add /sbin/udevadm && ln -s /bin/true /sbin/udevadm
  ---> Using cache
- ---> 859a233ab9dd
-Step 8/18 : RUN mv /usr/sbin/tcpdump /usr/bin/
+ ---> a53cca5353a0
+Step 8/19 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim tcpdump
  ---> Using cache
- ---> 3f77e089f0a2
-Step 9/18 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
+ ---> a905d2f90d44
+Step 9/19 : RUN mv /usr/sbin/tcpdump /usr/bin/
  ---> Using cache
- ---> e6c2c8ce7ea7
-Step 10/18 : RUN chmod +x /etc/rc.local
+ ---> 8971bb0d5523
+Step 10/19 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
  ---> Using cache
- ---> 5c146067881e
-Step 11/18 : COPY ./init.sh /root/
+ ---> be8ce383a795
+Step 11/19 : RUN chmod +x /etc/rc.local
  ---> Using cache
- ---> 589acd1c6bd2
-Step 12/18 : COPY ./hook /root/
- ---> 2c5ca2a9eb1c
-Step 13/18 : RUN mkdir /root/config
- ---> Running in 29213ca0d3f1
-Removing intermediate container 29213ca0d3f1
- ---> deec59f97b7a
-Step 14/18 : COPY ./conf.yaml /root/config/
- ---> 3025c13dd0de
-Step 15/18 : RUN systemctl enable snapd
- ---> Running in 708212f8a12b
-Removing intermediate container 708212f8a12b
- ---> 071ddae0d3f6
-Step 16/18 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
- ---> Running in d7fc87ff3550
-Removing intermediate container d7fc87ff3550
- ---> 1f77cf984d8e
-Step 17/18 : VOLUME ["/sys/fs/cgroup"]
- ---> Running in b1cb1d5774ca
-Removing intermediate container b1cb1d5774ca
- ---> 1ff0e545377c
-Step 18/18 : CMD ["/sbin/init"]
- ---> Running in 40be0165eb1b
-Removing intermediate container 40be0165eb1b
- ---> d7a24420d547
-Successfully built d7a24420d547
+ ---> 9cce2d72b5ed
+Step 12/19 : COPY ./init.sh /root/
+ ---> f591a5c864ff
+Step 13/19 : COPY ./hook /root/
+ ---> ea2307198301
+Step 14/19 : RUN mkdir /root/config
+ ---> Running in 7c77e6f83b42
+Removing intermediate container 7c77e6f83b42
+ ---> 96cca6aa4bec
+Step 15/19 : COPY ./conf.yaml /root/config/
+ ---> 2e6ee67e1c48
+Step 16/19 : RUN systemctl enable snapd
+ ---> Running in d8ddaac0d2ec
+Removing intermediate container d8ddaac0d2ec
+ ---> f165627b8e49
+Step 17/19 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
+ ---> Running in a493d08e6b72
+Removing intermediate container a493d08e6b72
+ ---> dc03e924a14c
+Step 18/19 : VOLUME ["/sys/fs/cgroup"]
+ ---> Running in b3fb9440aca8
+Removing intermediate container b3fb9440aca8
+ ---> 3752a4dba2c9
+Step 19/19 : CMD ["/sbin/init"]
+ ---> Running in b9d09bcc5880
+Removing intermediate container b9d09bcc5880
+ ---> ddbc4c0df290
+Successfully built ddbc4c0df290
 Successfully tagged mosaic5gecosys/oaimme:base

@@ -5,7 +5,7 @@ eutraBand: "7"
 downlinkFrequency: "2685000000L"    
 uplinkFrequencyOffset: "-120000000"
 NumberRbDl: "25"
-MaxRxGain: "110"
+MaxRxGain: "111"
 ParallelConfig: "PARALLEL_SINGLE_THREAD"
 
 configurationPathofCN: "/var/snap/oai-cn/current/"

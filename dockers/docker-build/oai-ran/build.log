@@ -1,20 +1,23 @@
-Sending build context to Docker daemon  4.256MB
-Step 1/17 : FROM ubuntu:16.04
+Sending build context to Docker daemon   4.26MB
+Step 1/18 : FROM ubuntu:16.04
  ---> 77be327e4b63
-Step 2/17 : ENV container docker
+Step 2/18 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
  ---> Using cache
- ---> 9bb2dad98455
-Step 3/17 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+ ---> db16c62bfe2a
+Step 3/18 : ENV container docker
  ---> Using cache
- ---> 15777ff9a12c
-Step 4/17 : ENV LANG C.UTF-8
+ ---> f2f95c35357a
+Step 4/18 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
  ---> Using cache
- ---> 0b4b2e44d146
-Step 5/17 : ENV LC_ALL C.UTF-8
+ ---> d41d62290d4a
+Step 5/18 : ENV LANG C.UTF-8
  ---> Using cache
- ---> 756205f492d1
-Step 6/17 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo && apt-get autoremove -y && apt-get autoclean -y && dpkg-divert --local --rename --add /sbin/udevadm && ln -s /bin/true /sbin/udevadm
- ---> Running in 694ed716d4f1
+ ---> 16ea261b3d6c
+Step 6/18 : ENV LC_ALL C.UTF-8
+ ---> Using cache
+ ---> ef9d4be2e11a
+Step 7/18 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo && apt-get autoremove -y && apt-get autoclean -y && dpkg-divert --local --rename --add /sbin/udevadm && ln -s /bin/true /sbin/udevadm
+ ---> Running in cde2407f8f7f
 Get:1 http://archive.ubuntu.com/ubuntu xenial InRelease [247 kB]
 Get:2 http://security.ubuntu.com/ubuntu xenial-security InRelease [109 kB]
 Get:3 http://archive.ubuntu.com/ubuntu xenial-updates InRelease [109 kB]
@@ -27,13 +30,13 @@ Get:9 http://security.ubuntu.com/ubuntu xenial-security/multiverse amd64 Package
 Get:10 http://archive.ubuntu.com/ubuntu xenial/restricted amd64 Packages [14.1 kB]
 Get:11 http://archive.ubuntu.com/ubuntu xenial/universe amd64 Packages [9827 kB]
 Get:12 http://archive.ubuntu.com/ubuntu xenial/multiverse amd64 Packages [176 kB]
-Get:13 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 Packages [1443 kB]
+Get:13 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 Packages [1444 kB]
 Get:14 http://archive.ubuntu.com/ubuntu xenial-updates/restricted amd64 Packages [13.1 kB]
-Get:15 http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 Packages [1023 kB]
+Get:15 http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 Packages [1024 kB]
 Get:16 http://archive.ubuntu.com/ubuntu xenial-updates/multiverse amd64 Packages [19.3 kB]
 Get:17 http://archive.ubuntu.com/ubuntu xenial-backports/main amd64 Packages [7942 B]
 Get:18 http://archive.ubuntu.com/ubuntu xenial-backports/universe amd64 Packages [8807 B]
-Fetched 16.4 MB in 4s (3461 kB/s)
+Fetched 16.4 MB in 5s (3112 kB/s)
 Reading package lists...
 Reading package lists...
 Building dependency tree...
@@ -109,7 +112,7 @@ Get:43 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 snapd amd64 2.
 Get:44 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 snap-confine amd64 2.42.1 [1722 B]
 Get:45 http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 squashfuse amd64 0.1.100-0ubuntu1~ubuntu16.04.1 [17.4 kB]
 [91mdebconf: delaying package configuration, since apt-utils is not installed
-[0mFetched 24.5 MB in 5s (4586 kB/s)
+[0mFetched 24.5 MB in 5s (4122 kB/s)
 Selecting previously unselected package libssl1.0.0:amd64.
 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4781 files and directories currently installed.)
 Preparing to unpack .../libssl1.0.0_1.0.2g-1ubuntu4.15_amd64.deb ...
@@ -317,10 +320,10 @@ Reading package lists...
 Building dependency tree...
 Reading state information...
 Adding 'local diversion of /sbin/udevadm to /sbin/udevadm.distrib'
-Removing intermediate container 694ed716d4f1
- ---> 51517fe7efa7
-Step 7/17 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim virt-what
- ---> Running in d2cbb46a7dd6
+Removing intermediate container cde2407f8f7f
+ ---> c73b6af61d6b
+Step 8/18 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim virt-what
+ ---> Running in 0c5d8a389768
 Reading package lists...
 Building dependency tree...
 Reading state information...
@@ -342,7 +345,7 @@ The following NEW packages will be installed:
   libpython3.5 libtasn1-6 libxml2 net-tools sgml-base vim vim-common
   vim-runtime virt-what xml-core
 0 upgraded, 34 newly installed, 0 to remove and 0 not upgraded.
-Need to get 21.0 MB of archives.
+Need to get 20.9 MB of archives.
 After this operation, 86.2 MB of additional disk space will be used.
 Get:1 http://archive.ubuntu.com/ubuntu xenial/main amd64 sgml-base all 1.26+nmu4ubuntu1 [12.5 kB]
 Get:2 http://archive.ubuntu.com/ubuntu xenial/main amd64 libgpm2 amd64 1.20.4-6.1 [16.5 kB]
@@ -359,7 +362,7 @@ Get:12 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libgnutls30 am
 Get:13 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libgnutls-openssl27 amd64 3.4.10-4ubuntu1.7 [21.9 kB]
 Get:14 http://archive.ubuntu.com/ubuntu xenial/main amd64 iputils-ping amd64 3:20121221-5ubuntu2 [52.7 kB]
 Get:15 http://archive.ubuntu.com/ubuntu xenial/main amd64 net-tools amd64 1.60-26ubuntu1 [175 kB]
-Get:16 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 vim-common amd64 2:7.4.1689-3ubuntu1.3 [103 kB]
+Get:16 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 vim-common amd64 2:7.4.1689-3ubuntu1.4 [103 kB]
 Get:17 http://archive.ubuntu.com/ubuntu xenial/main amd64 libgeoip1 amd64 1.6.9-1 [70.1 kB]
 Get:18 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libicu55 amd64 55.1-7ubuntu0.5 [7650 kB]
 Get:19 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libxml2 amd64 2.9.3+dfsg1-1ubuntu0.7 [698 kB]
@@ -375,11 +378,11 @@ Get:28 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 dnsutils amd64
 Get:29 http://archive.ubuntu.com/ubuntu xenial/main amd64 geoip-database all 20160408-1 [1678 kB]
 Get:30 http://archive.ubuntu.com/ubuntu xenial/main amd64 xml-core all 0.13+nmu2 [23.3 kB]
 Get:31 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libpython3.5 amd64 3.5.2-2ubuntu0~16.04.9 [1360 kB]
-Get:32 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 vim-runtime all 2:7.4.1689-3ubuntu1.3 [5179 kB]
-Get:33 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 vim amd64 2:7.4.1689-3ubuntu1.3 [1036 kB]
+Get:32 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 vim-runtime all 2:7.4.1689-3ubuntu1.4 [5169 kB]
+Get:33 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 vim amd64 2:7.4.1689-3ubuntu1.4 [1036 kB]
 Get:34 http://archive.ubuntu.com/ubuntu xenial/universe amd64 virt-what amd64 1.14-1 [13.0 kB]
 [91mdebconf: delaying package configuration, since apt-utils is not installed
-[0mFetched 21.0 MB in 5s (4102 kB/s)
+[0mFetched 20.9 MB in 5s (4098 kB/s)
 Selecting previously unselected package sgml-base.
 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 6907 files and directories currently installed.)
 Preparing to unpack .../sgml-base_1.26+nmu4ubuntu1_all.deb ...
@@ -427,8 +430,8 @@ Selecting previously unselected package net-tools.
 Preparing to unpack .../net-tools_1.60-26ubuntu1_amd64.deb ...
 Unpacking net-tools (1.60-26ubuntu1) ...
 Selecting previously unselected package vim-common.
-Preparing to unpack .../vim-common_2%3a7.4.1689-3ubuntu1.3_amd64.deb ...
-Unpacking vim-common (2:7.4.1689-3ubuntu1.3) ...
+Preparing to unpack .../vim-common_2%3a7.4.1689-3ubuntu1.4_amd64.deb ...
+Unpacking vim-common (2:7.4.1689-3ubuntu1.4) ...
 Selecting previously unselected package libgeoip1:amd64.
 Preparing to unpack .../libgeoip1_1.6.9-1_amd64.deb ...
 Unpacking libgeoip1:amd64 (1.6.9-1) ...
@@ -475,13 +478,13 @@ Selecting previously unselected package libpython3.5:amd64.
 Preparing to unpack .../libpython3.5_3.5.2-2ubuntu0~16.04.9_amd64.deb ...
 Unpacking libpython3.5:amd64 (3.5.2-2ubuntu0~16.04.9) ...
 Selecting previously unselected package vim-runtime.
-Preparing to unpack .../vim-runtime_2%3a7.4.1689-3ubuntu1.3_all.deb ...
+Preparing to unpack .../vim-runtime_2%3a7.4.1689-3ubuntu1.4_all.deb ...
 Adding 'diversion of /usr/share/vim/vim74/doc/help.txt to /usr/share/vim/vim74/doc/help.txt.vim-tiny by vim-runtime'
 Adding 'diversion of /usr/share/vim/vim74/doc/tags to /usr/share/vim/vim74/doc/tags.vim-tiny by vim-runtime'
-Unpacking vim-runtime (2:7.4.1689-3ubuntu1.3) ...
+Unpacking vim-runtime (2:7.4.1689-3ubuntu1.4) ...
 Selecting previously unselected package vim.
-Preparing to unpack .../vim_2%3a7.4.1689-3ubuntu1.3_amd64.deb ...
-Unpacking vim (2:7.4.1689-3ubuntu1.3) ...
+Preparing to unpack .../vim_2%3a7.4.1689-3ubuntu1.4_amd64.deb ...
+Unpacking vim (2:7.4.1689-3ubuntu1.4) ...
 Selecting previously unselected package virt-what.
 Preparing to unpack .../virt-what_1.14-1_amd64.deb ...
 Unpacking virt-what (1.14-1) ...
@@ -503,7 +506,7 @@ Setting up libgnutls-openssl27:amd64 (3.4.10-4ubuntu1.7) ...
 Setting up iputils-ping (3:20121221-5ubuntu2) ...
 Setcap is not installed, falling back to setuid
 Setting up net-tools (1.60-26ubuntu1) ...
-Setting up vim-common (2:7.4.1689-3ubuntu1.3) ...
+Setting up vim-common (2:7.4.1689-3ubuntu1.4) ...
 Setting up libgeoip1:amd64 (1.6.9-1) ...
 Setting up libicu55:amd64 (55.1-7ubuntu0.5) ...
 Setting up libxml2:amd64 (2.9.3+dfsg1-1ubuntu0.7) ...
@@ -519,8 +522,8 @@ Setting up dnsutils (1:9.10.3.dfsg.P4-8ubuntu1.15) ...
 Setting up geoip-database (20160408-1) ...
 Setting up xml-core (0.13+nmu2) ...
 Setting up libpython3.5:amd64 (3.5.2-2ubuntu0~16.04.9) ...
-Setting up vim-runtime (2:7.4.1689-3ubuntu1.3) ...
-Setting up vim (2:7.4.1689-3ubuntu1.3) ...
+Setting up vim-runtime (2:7.4.1689-3ubuntu1.4) ...
+Setting up vim (2:7.4.1689-3ubuntu1.4) ...
 update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/vim (vim) in auto mode
 update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/vimdiff (vimdiff) in auto mode
 update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/rvim (rvim) in auto mode
@@ -532,41 +535,41 @@ update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/editor (editor
 Setting up virt-what (1.14-1) ...
 Processing triggers for libc-bin (2.23-0ubuntu11) ...
 Processing triggers for sgml-base (1.26+nmu4ubuntu1) ...
-Removing intermediate container d2cbb46a7dd6
- ---> 94ca0337ca92
-Step 8/17 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
- ---> Running in b1f16a6c0955
-Removing intermediate container b1f16a6c0955
- ---> 2f78ef74d86f
-Step 9/17 : RUN chmod +x /etc/rc.local
- ---> Running in 9acb47b712d6
-Removing intermediate container 9acb47b712d6
- ---> c75bea9145a6
-Step 10/17 : COPY ./init.sh /root/
- ---> 22cc5cdee64b
-Step 11/17 : COPY ./hook /root/
- ---> 45712d6464b4
-Step 12/17 : RUN mkdir /root/config
- ---> Running in 9ae393bd91f0
-Removing intermediate container 9ae393bd91f0
- ---> af9500721ef1
-Step 13/17 : COPY ./conf.yaml /root/config/
- ---> 256c2855f27e
-Step 14/17 : RUN systemctl enable snapd
- ---> Running in ff6dc3a99d72
-Removing intermediate container ff6dc3a99d72
- ---> dcb785b06cea
-Step 15/17 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
- ---> Running in b1fe7730039e
-Removing intermediate container b1fe7730039e
- ---> 1514134dd919
-Step 16/17 : VOLUME ["/sys/fs/cgroup"]
- ---> Running in 69e51d616358
-Removing intermediate container 69e51d616358
- ---> 9dc878f6c929
-Step 17/17 : CMD ["/sbin/init"]
- ---> Running in b557e774799a
-Removing intermediate container b557e774799a
- ---> 2898bb3fba06
-Successfully built 2898bb3fba06
+Removing intermediate container 0c5d8a389768
+ ---> a298b135bb00
+Step 9/18 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
+ ---> Running in 32666c8da203
+Removing intermediate container 32666c8da203
+ ---> 9c79c675967a
+Step 10/18 : RUN chmod +x /etc/rc.local
+ ---> Running in 8c2d0ffdbaf8
+Removing intermediate container 8c2d0ffdbaf8
+ ---> 2522f9efee12
+Step 11/18 : COPY ./init.sh /root/
+ ---> 42224b5db4b6
+Step 12/18 : COPY ./hook /root/
+ ---> 1bbb7b39926c
+Step 13/18 : RUN mkdir /root/config
+ ---> Running in bba752c44b2a
+Removing intermediate container bba752c44b2a
+ ---> a20f3f1ef509
+Step 14/18 : COPY ./conf.yaml /root/config/
+ ---> b373f31fab47
+Step 15/18 : RUN systemctl enable snapd
+ ---> Running in 983a95f2c454
+Removing intermediate container 983a95f2c454
+ ---> 55086e3a4b3d
+Step 16/18 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
+ ---> Running in 39fea50b0d51
+Removing intermediate container 39fea50b0d51
+ ---> e4919fcd61f4
+Step 17/18 : VOLUME ["/sys/fs/cgroup"]
+ ---> Running in f3b767fa7cf8
+Removing intermediate container f3b767fa7cf8
+ ---> be990d1fd3a8
+Step 18/18 : CMD ["/sbin/init"]
+ ---> Running in 88748eb8333b
+Removing intermediate container 88748eb8333b
+ ---> d349ddd6650b
+Successfully built d349ddd6650b
 Successfully tagged mosaic5gecosys/oairan:base

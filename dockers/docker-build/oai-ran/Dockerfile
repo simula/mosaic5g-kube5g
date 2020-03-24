@@ -1,5 +1,6 @@
 # Create an image that host oai-ran
 FROM ubuntu:16.04
+LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
 ENV container docker
 ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
 ENV LANG C.UTF-8
