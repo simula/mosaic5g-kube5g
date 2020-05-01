@@ -31,7 +31,9 @@ TARGET="${REPO_NAME}/${TARGET_NAME}" # The name of our image
 TAG_BASE="base" # The tag for the base image
 BASE_CONTAINER="build_base" # The name of the temporary container
 RELEASE_TAG="latest" # Default release tag
+SNAP_VERSION="v1" # Default snap version: allowed values; v1, v2
 DIR=""
+
 
 # contains(string, substring)
 #
@@ -83,12 +85,26 @@ build_target(){
     do
         sleep 5
         LIST=`docker exec ${BASE_CONTAINER} snap list`
-        echo "Waiting for snap to be installed..."
-        contains "${LIST}" "${1}"
+        # echo "Waiting for snap ${1} to be installed..."
+        
+        if [ "${SNAP_VERSION}" = "v1" ] ; then
+            if [ "${1}" = "oai-hss" ] || [ "${1}" = "oai-mme" ] || [ "${1}" = "oai-spgw" ] ; then
+                echo "Waiting for snap oai-cn to be installed..."
+                contains "${LIST}" "oai-cn"
+            else
+                echo "Waiting for snap ${1} to be installed..."
+                contains "${LIST}" "${1}"
+            fi
+        else
+            echo "Waiting for snap ${1} to be installed..."
+            contains "${LIST}" "${1}"
+        fi
         RET=$?
         
     done
     sleep 5
+    echo "copying init_deploy.sh to docker"
+    docker cp ../${DIR}/init_deploy.sh ${BASE_CONTAINER}:/root/init.sh
     docker commit ${BASE_CONTAINER} ${TARGET}:${RELEASE_TAG}
     docker stop ${BASE_CONTAINER}
     docker container rm ${BASE_CONTAINER} -f
@@ -108,11 +124,31 @@ clean_all(){
 }
 
 main() {
-    RELEASE_TAG=${2}
+    if [ "${2}" != "" ] ; then
+        RELEASE_TAG=${2}
+    fi
+    if [ "${3}" != "" ] ; then
+        SNAP_VERSION=${3}
+    fi
     case ${1} in
         oai-cn)
             DIR="oai-cn"
             TARGET_NAME="oaicn"
+            build_target ${1}
+        ;;
+        oai-hss)
+            DIR="oai-hss"
+            TARGET_NAME="oaihss"
+            build_target ${1}
+        ;;
+        oai-mme)
+            DIR="oai-mme"
+            TARGET_NAME="oaimme"
+            build_target ${1}
+        ;;
+        oai-spgw)
+            DIR="oai-spgw"
+            TARGET_NAME="oaispgw"
             build_target ${1}
         ;;
         oai-ran)
@@ -141,15 +177,18 @@ main() {
             stop
         ;;
         *)
-            echo "Description:"
-            echo "This Script will remove the old docker snap image and build a new one"
-            echo "tested with 16.04 Ubuntu"
-            echo "./build_snap_docker.sh [oai-cn|oai-ran|flexran|ll-mec] [release tag(default is latest)]"
-            echo "Example: ./build_snap_docker.sh oai-cn mytest"
+            echo '
+Description:
+This Script will remove the old docker snap image and build a new one
+Usage:
+        ./build.sh [oai-cn|oai-hss|oai-mme|oai-spgw|oai-ran|flexran|ll-mec] [release tag(default is latest)] [snap version(default is v1. alowed values: v1, v2)]
+Example:
+        ./build.sh oai-cn mytest v1
+'
             exit 0
         ;;
     esac
     echo "All done, please use docker push [IMAGE NAME]:[TAG] to push image to your repository"
-
+    
 }
 main ${1} ${2}

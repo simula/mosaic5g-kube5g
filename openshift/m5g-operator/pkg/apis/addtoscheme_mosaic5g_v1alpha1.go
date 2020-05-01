@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/tig4605246/m5g-operator/pkg/apis/mosaic5g/v1alpha1"
+	"github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1"
 )
 
 func init() {

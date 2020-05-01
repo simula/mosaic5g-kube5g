@@ -2,7 +2,7 @@ package main
 
 // This APP is made for installing snaps in docker and
 // handle the configurations
-// Author: Kevin Hsi-Ping Hsu
+// Author: Osama Arouk, Kevin Hsi-Ping Hsu
 import (
 	"docker-hook/internal/oai"
 	"flag"
@@ -31,19 +31,25 @@ func main() {
 	installSPGW := flag.Bool("installSPGW", false, "a bool")
 	installFlexRAN := flag.Bool("installFlexRAN", false, "a bool")
 	installMEC := flag.Bool("installMEC", false, "a bool")
+	buildImage := flag.Bool("build", false, "a bool value to define that the current setup is to build the docker image.")
 	flag.Parse()
 	//Install snap core
 	OaiObj.Logger.Print("Installing snap")
 	fmt.Println("Installing snap")
 	oai.InstallSnap(OaiObj)
 	// Decide actions based on flags
+	CnAllInOneMode := true
+	build := false
+	if *buildImage {
+		build = true
+	}
 	if *installCN {
 		OaiObj.Logger.Print("Installing CN")
 		fmt.Println("Installing CN")
 		oai.InstallCN(OaiObj)
 		OaiObj.Logger.Print("Starting CN")
 		fmt.Println("Starting CN")
-		oai.StartCN(OaiObj)
+		oai.StartCN(OaiObj, CnAllInOneMode, build)
 	} else if *installRAN {
 		OaiObj.Logger.Print("Installing RAN")
 		fmt.Println("Installing RAN")
@@ -53,13 +59,16 @@ func main() {
 		oai.StartENB(OaiObj)
 	} else if *installHSS {
 		oai.InstallCN(OaiObj)
-		oai.StartHSS(OaiObj)
+		CnAllInOneMode = false
+		oai.StartHSS(OaiObj, CnAllInOneMode, build)
 	} else if *installMME {
 		oai.InstallCN(OaiObj)
-		oai.StartMME(OaiObj)
+		CnAllInOneMode = false
+		oai.StartMME(OaiObj, CnAllInOneMode, build)
 	} else if *installSPGW {
 		oai.InstallCN(OaiObj)
-		oai.StartSPGW(OaiObj)
+		CnAllInOneMode = false
+		oai.StartSPGW(OaiObj, CnAllInOneMode)
 	} else if *installFlexRAN {
 		oai.InstallFlexRAN(OaiObj)
 		oai.StartFlexRAN(OaiObj)

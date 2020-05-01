@@ -13,9 +13,9 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/tig4605246/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5g":       schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5g(ref),
-		"github.com/tig4605246/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gSpec":   schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gSpec(ref),
-		"github.com/tig4605246/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gStatus": schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gStatus(ref),
+		"github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5g":       schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5g(ref),
+		"github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gSpec":   schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gSpec(ref),
+		"github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gStatus": schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5gStatus(ref),
 	}
 }
 
@@ -46,19 +46,19 @@ func schema_pkg_apis_mosaic5g_v1alpha1_Mosaic5g(ref common.ReferenceCallback) co
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/tig4605246/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gSpec"),
+							Ref: ref("github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/tig4605246/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gStatus"),
+							Ref: ref("github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/tig4605246/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gSpec", "github.com/tig4605246/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gSpec", "github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1.Mosaic5gStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 

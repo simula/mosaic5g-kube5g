@@ -1,68 +1,56 @@
-Sending build context to Docker daemon  4.243MB
-Step 1/21 : FROM ubuntu:16.04
- ---> 77be327e4b63
-Step 2/21 : ENV container docker
+Sending build context to Docker daemon   4.26MB
+Step 1/18 : FROM ubuntu:16.04
+ ---> 005d2078bdfa
+Step 2/18 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
  ---> Using cache
- ---> f03d2d5ae2e4
-Step 3/21 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+ ---> 89532ebb765e
+Step 3/18 : ENV container docker
  ---> Using cache
- ---> 8bed7a099b93
-Step 4/21 : ENV LANG C.UTF-8
+ ---> 59510aac61ca
+Step 4/18 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
  ---> Using cache
- ---> 92206940bf97
-Step 5/21 : ENV LC_ALL C.UTF-8
+ ---> c3bd67aaf3bf
+Step 5/18 : ENV LANG C.UTF-8
  ---> Using cache
- ---> 7543b6865e02
-Step 6/21 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo && apt-get clean && dpkg-divert --local --rename --add /sbin/udevadm && ln -s /bin/true /sbin/udevadm
+ ---> 62bea638cf12
+Step 6/18 : ENV LC_ALL C.UTF-8
  ---> Using cache
- ---> 7d3886432bab
-Step 7/21 : RUN apt-get install -y apt-utils
+ ---> 1b15b3391c25
+Step 7/18 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo && apt-get autoremove -y && apt-get autoclean -y && dpkg-divert --local --rename --add /sbin/udevadm && ln -s /bin/true /sbin/udevadm
  ---> Using cache
- ---> f7e4a30d1c39
-Step 8/21 : RUN apt-get install -y dnsutils
+ ---> 24f02d1c0f89
+Step 8/18 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim virt-what
  ---> Using cache
- ---> af79e5fce501
-Step 9/21 : RUN apt-get install -y net-tools
+ ---> 53b29d849eca
+Step 9/18 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
  ---> Using cache
- ---> cecfc5dca855
-Step 10/21 : RUN apt-get install -y iputils-ping
+ ---> aab3969aa709
+Step 10/18 : RUN chmod +x /etc/rc.local
  ---> Using cache
- ---> 5e9321f05f81
-Step 11/21 : RUN apt-get install -y vim
+ ---> 0681f32899a8
+Step 11/18 : COPY ./init.sh /root/
  ---> Using cache
- ---> 4e1f17942a17
-Step 12/21 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
+ ---> 50084007d532
+Step 12/18 : COPY ./hook /root/
  ---> Using cache
- ---> 99ed9ad1889e
-Step 13/21 : RUN chmod +x /etc/rc.local
+ ---> 1f6334b56b4e
+Step 13/18 : RUN mkdir /root/config
  ---> Using cache
- ---> 27806c88788d
-Step 14/21 : COPY ./init.sh /root/
+ ---> de54f232c53f
+Step 14/18 : COPY ./conf.yaml /root/config/
  ---> Using cache
- ---> 36f83bab37b0
-Step 15/21 : COPY ./hook /root/
- ---> 3706c19ee967
-Step 16/21 : RUN mkdir /root/config
- ---> Running in 7766ac010117
-Removing intermediate container 7766ac010117
- ---> e3fb43446cbc
-Step 17/21 : COPY ./conf.yaml /root/config/
- ---> 3caa74c04080
-Step 18/21 : RUN systemctl enable snapd
- ---> Running in 331f3171c781
-Removing intermediate container 331f3171c781
- ---> 299063c615a2
-Step 19/21 : VOLUME ["/sys/fs/cgroup"]
- ---> Running in 21c275819ee3
-Removing intermediate container 21c275819ee3
- ---> 94eec9ac704a
-Step 20/21 : STOPSIGNAL SIGRTMIN+3
- ---> Running in 849115ad5983
-Removing intermediate container 849115ad5983
- ---> 16fd1fd83763
-Step 21/21 : CMD ["/sbin/init"]
- ---> Running in 37531d8f9923
-Removing intermediate container 37531d8f9923
- ---> 14c335cca7c8
-Successfully built 14c335cca7c8
+ ---> 501f24296715
+Step 15/18 : RUN systemctl enable snapd
+ ---> Using cache
+ ---> d29004e887c0
+Step 16/18 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
+ ---> Using cache
+ ---> c7a803d57fd2
+Step 17/18 : VOLUME ["/sys/fs/cgroup"]
+ ---> Using cache
+ ---> fc3321754ba4
+Step 18/18 : CMD ["/sbin/init"]
+ ---> Using cache
+ ---> 26f9a93b9431
+Successfully built 26f9a93b9431
 Successfully tagged mosaic5gecosys/oairan:base

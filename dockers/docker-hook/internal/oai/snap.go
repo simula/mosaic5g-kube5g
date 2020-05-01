@@ -107,7 +107,7 @@ func installOairan(OaiObj Oai) {
 	//Wait a moment, cn is not ready yet !
 	OaiObj.Logger.Print("Wait 15 seconds... OK now cn should be ready")
 	fmt.Println("Wait 15 seconds... OK now cn should be ready")
-	time.Sleep(15 * time.Second)
+	// time.Sleep(15 * time.Second)
 
 }
 

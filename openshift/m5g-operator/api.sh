@@ -28,7 +28,7 @@ patch_12(){
       -H "Authorization: Bearer ${TOKEN}"\
       --insecure \
       -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
-      -d '[{"op":"replace","path":"/spec/cnImage","value":"mosaic5gecosys/oaicn:1.2"},{"op":"replace","path":"/spec/ranImage","value":"mosaic5gecosys/oairan:1.2"}]'
+      -d '[{"op":"replace","path":"/spec/cnImage","value":"mosaic5gecosys/oaicn:1.2"},{"op":"replace","path":"/spec/ranImage","value":"mosaic5gecosys/oairan:1.0"}]'
 }
 
 patch_11(){

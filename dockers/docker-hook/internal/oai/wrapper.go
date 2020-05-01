@@ -19,37 +19,37 @@ func InstallCN(OaiObj Oai) {
 }
 
 // StartCN is a wrapper for configuring and starting OAI CN services
-func StartCN(OaiObj Oai) {
+func StartCN(OaiObj Oai, CnAllInOneMode bool, build bool) {
 	// Start HSS
 	OaiObj.Logger.Print("Starting configuring HSS")
 	fmt.Println("Starting configuring HSS")
-	startHss(OaiObj)
+	startHss(OaiObj, CnAllInOneMode, build)
 	// Start MME
 	OaiObj.Logger.Print("Starting configuring MME")
 	fmt.Println("Starting configuring MME")
-	startMme(OaiObj)
+	startMme(OaiObj, CnAllInOneMode, build)
 	// Start SPGW
 	OaiObj.Logger.Print("Starting configuring SPGW")
 	fmt.Println("Starting configuring SPGW")
-	startSpgw(OaiObj)
+	startSpgw(OaiObj, CnAllInOneMode)
 }
 
 // StartHSS is a wrapper for startHss
-func StartHSS(OaiObj Oai) {
+func StartHSS(OaiObj Oai, CnAllInOneMode bool, build bool) {
 	// Start HSS
-	startHss(OaiObj)
+	startHss(OaiObj, CnAllInOneMode, build)
 }
 
 // StartMME is a wrapper for startMme
-func StartMME(OaiObj Oai) {
+func StartMME(OaiObj Oai, CnAllInOneMode bool, build bool) {
 	// Start Mme
-	startMme(OaiObj)
+	startMme(OaiObj, CnAllInOneMode, build)
 }
 
 // StartSPGW is a wrapper for startSpgw
-func StartSPGW(OaiObj Oai) {
+func StartSPGW(OaiObj Oai, CnAllInOneMode bool) {
 	// Start Mme
-	startSpgw(OaiObj)
+	startSpgw(OaiObj, CnAllInOneMode)
 }
 
 //InstallRAN is a wrapper for installing OAI RAN

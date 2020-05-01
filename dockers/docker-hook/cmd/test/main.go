@@ -54,7 +54,6 @@ func main() {
 	var c conf
 	c.getConf()
 
-	fmt.Println("Hellow\n sdfs")
 	fmt.Println(c.Bar)
 	fmt.Println(c.Bar.Default)
 
@@ -67,7 +66,7 @@ func main() {
 		fmt.Println("values[", i, "]=", values[i])
 		if i == 16 {
 			fmt.Println("HELLO WORLD")
-			//fmt.Printf("Value: %#v \n", c.Bar)
+			fmt.Printf("Value: %#v \n", c.Bar)
 		}
 	}
 
