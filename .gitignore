@@ -1,0 +1,6 @@
+.vscode/
+openshift/m5g-operator/go.sum
+openshift/m5g-operator/go.mod
+dockers/docker-build/oai-cn/hook
+dockers/docker-build/oai-cn/build.log
+openshift/m5g-operator/build/_output/

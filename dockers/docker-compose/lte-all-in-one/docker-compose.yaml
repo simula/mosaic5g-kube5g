@@ -2,10 +2,10 @@ version: '2'
 
 services:
   oaicn: # Domain name of container
-    image: mosaic5gecosys/oaicn:mytest
+    image: mosaic5gecosys/oaicn:1.0
     restart: always # Operation Policy
     container_name: oaicn # Name of the container
-    hostname: oai-cn # hostname
+    hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
       - "mysql"
@@ -19,7 +19,7 @@ services:
       - oai
 
   oairan:
-    image: mosaic5gecosys/oairan:mytest
+    image: mosaic5gecosys/oairan:1.0
     restart: always
     container_name: oairan
     hostname: oairan
