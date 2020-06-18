@@ -10,12 +10,14 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"github.com/m5g-operator/pkg/apis"
-	"github.com/m5g-operator/pkg/controller"
+	"mosaic5g/m5g-operator/pkg/apis"
+	"mosaic5g/m5g-operator/pkg/controller"
+
+	"github.com/operator-framework/operator-sdk/pkg/metrics"
+
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	"github.com/operator-framework/operator-sdk/pkg/metrics"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"

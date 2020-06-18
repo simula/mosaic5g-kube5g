@@ -3,11 +3,7 @@
 # prepare ENVs
 #export KUBECONFIG=/home/agrion/kubernetes/aiyu
 export OPERATOR_NAME=m5g-operator
-export MYNAME=${USER}
 export MYDNS="192.168.1.1"
-
-APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
-TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
 
 ###################################
 # colorful echos
@@ -81,6 +77,9 @@ apply_cr(){
 }
 
 downgrade_image(){
+    APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
+    TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
+
     curl \
     -H "content-Type: application/json-patch+json" \
     -H "Authorization: Bearer ${TOKEN}"\
@@ -92,6 +91,9 @@ downgrade_image(){
 }
 
 upgrade_image(){
+    APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
+    TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
+
     curl \
     -H "content-Type: application/json-patch+json" \
     -H "Authorization: Bearer ${TOKEN}"\
@@ -108,14 +110,32 @@ delete_cr(){
 }
 
 deploy_operator_from_clean_machine(){
+    case ${1} in
+        local)
+            install_k8s_local
+        ;;
+        cluster)
+            install_k8s_cluster ${2}
+        ;;
+        '')
+            install_k8s_local
+        ;;
+        *)
+            echo_error "Unkown option '${1}' for installing Kubernetes, and thus it will be installed as local K8S using microk8s"
+            install_k8s_local
+    esac
+}
+
+install_k8s_local(){
     echo "Start a fresh microk8s and deploy operator on it, tested with Ubuntu 18.04"
     echo "sudo without password is recommended"
     sudo snap install microk8s --classic --channel=1.14/stable
     sudo snap install kubectl --classic
     microk8s.start
+    sudo usermod -a -G microk8s $USER
     microk8s.enable dns
     # kubeconfig is used by operator
-    sudo chown ${MYNAME} -R $HOME/.kube
+    sudo chown ${USER} -R $HOME/.kube
     microk8s.kubectl config view --raw > $HOME/.kube/config
     # enable privileged
     sudo bash -c 'echo "--allow-privileged=true" >> /var/snap/microk8s/current/args/kubelet'
@@ -125,9 +145,28 @@ deploy_operator_from_clean_machine(){
     sudo systemctl restart snap.microk8s.daemon-apiserver.service
     # Configure DNS if it's not working 
     # microk8s.kubectl -n kube-system edit configmap/coredns
+}
+install_k8s_cluster(){
+    echo "Start the installation of Kubernetes cluster"
+    case ${1} in
+        master)
+            install_k8s_cluster_master
+        ;;
+        cluster)
+            install_k8s_cluster_node
+        ;;
+        *)
+            echo_error "Unkown option '${1}' for installing Kubernetes, and thus Master K8S will be installed"
+            
+    esac
+}
+install_k8s_cluster_master(){
+    echo_error "Installing Master K8S"
 
 }
-
+install_k8s_cluster_node(){
+    echo_error "Installing node K8S"
+}
 init(){
     echo "Applying crd..."
     kubectl apply -f deploy/crds/mosaic5g_v1alpha1_mosaic5g_crd.yaml
@@ -173,7 +212,7 @@ main() {
             delete_cr 
         ;;
         -i | --install)
-            deploy_operator_from_clean_machine 
+            deploy_operator_from_clean_machine ${2} ${3}
         ;;
         -r | --remove)
             break_down

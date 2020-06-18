@@ -7,8 +7,9 @@ import (
 
 	Err "errors"
 
-	"github.com/m5g-operator/internal/util"
-	mosaic5gv1alpha1 "github.com/m5g-operator/pkg/apis/mosaic5g/v1alpha1"
+	"mosaic5g/m5g-operator/internal/util"
+	mosaic5gv1alpha1 "mosaic5g/m5g-operator/pkg/apis/mosaic5g/v1alpha1"
+
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -89,7 +90,7 @@ type ReconcileMosaic5g struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 // How to reconcile Mosaic5g:
-// 1. Create MySQL, OAI-CN and OAI-RAN in order
+// 1. Create CASSANDRA, OAI-CN and OAI-RAN in order
 // 2. If the configuration changed, restart all OAI PODs
 func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// time.Now().Format("2006-01-02 15:04:05"),
@@ -137,37 +138,37 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	// Define a new MySQL deployment
-	mysql := &appsv1.Deployment{}
-	mysqlDeployment := r.deploymentForMySQL(instance)
-	// Check if MySQL deployment already exists, if not create a new one
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: mysqlDeployment.GetName(), Namespace: instance.Namespace}, mysql)
+	// Define a new CASSANDRA deployment
+	cassandraDb := &appsv1.Deployment{}
+	cassandraDeployment := r.deploymentForCassandra(instance)
+	// Check if CASSANDRA deployment already exists, if not create a new one
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: cassandraDeployment.GetName(), Namespace: instance.Namespace}, cassandraDb)
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", mysqlDeployment.Namespace, "Deployment.Name", mysqlDeployment.Name)
-		err = r.client.Create(context.TODO(), mysqlDeployment)
+		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", cassandraDeployment.Namespace, "Deployment.Name", cassandraDeployment.Name)
+		err = r.client.Create(context.TODO(), cassandraDeployment)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", mysqlDeployment.Namespace, "Deployment.Name", mysqlDeployment.Name)
+			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", cassandraDeployment.Namespace, "Deployment.Name", cassandraDeployment.Name)
 			return reconcile.Result{}, err
 		}
-		// Define a new mysql service
-		mysqlService := r.genMySQLService(instance)
-		err = r.client.Create(context.TODO(), mysqlService)
+		// Define a new cassandraDb service
+		cassandraService := r.genCassandraService(instance)
+		err = r.client.Create(context.TODO(), cassandraService)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", mysqlService.Namespace, "Service.Name", mysqlService.Name)
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", cassandraService.Namespace, "Service.Name", cassandraService.Name)
 			return reconcile.Result{}, err
 		}
 
 		// Deployment created successfully - return and requeue
 		return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
-		reqLogger.Error(err, "MySQL Failed to get Deployment")
+		reqLogger.Error(err, "CASSANDRA Failed to get Deployment")
 		return reconcile.Result{}, err
 	}
 
-	cnDeployment := r.deploymentForCN(instance)
-	hssDeployment := r.deploymentForHssV1(instance)
-	mmeDeployment := r.deploymentForMmeV1(instance)
-	spgwDeployment := r.deploymentForSpgwV1(instance)
+	cnDeployment := r.deploymentForCnV2(instance)
+	hssDeployment := r.deploymentForHssV2(instance)
+	mmeDeployment := r.deploymentForMmeV2(instance)
+	spgwDeployment := r.deploymentForSpgwcV2(instance)
 	cn := &appsv1.Deployment{}
 	hss := &appsv1.Deployment{}
 	mme := &appsv1.Deployment{}
@@ -180,12 +181,12 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	if instance.Spec.CoreNetworkAllInOne == true {
 		// Creat an oaicn deployment
 		// cn := &appsv1.Deployment{}
-		// cnDeployment := r.deploymentForCN(instance)
+		// cnDeployment := r.deploymentForCnV2(instance)
 		// Check if the oai-cn deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: cnDeployment.GetName(), Namespace: instance.Namespace}, cn)
 		if err != nil && errors.IsNotFound(err) {
-			if mysql.Status.ReadyReplicas == 0 {
-				return reconcile.Result{Requeue: true}, Err.New("No mysql POD is ready")
+			if cassandraDb.Status.ReadyReplicas == 0 {
+				return reconcile.Result{Requeue: true}, Err.New("No cassandraDb POD is ready")
 			}
 			reqLogger.Info("MME domain name " + instance.Spec.MmeDomainName)
 			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", cnDeployment.Namespace, "Deployment.Name", cnDeployment.Name)
@@ -195,6 +196,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
+			// d, _ := time.ParseDuration("20s")
 			d, _ := time.ParseDuration("30s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
@@ -218,12 +220,12 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		//time.Sleep(15 * time.Second)
 		// Creat an oaihss deployment
 		// hss := &appsv1.Deployment{}
-		// hssDeployment := r.deploymentForHssV1(instance)
+		// hssDeployment := r.deploymentForHssV2(instance)
 		// Check if the oai-hss deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: hssDeployment.GetName(), Namespace: instance.Namespace}, hss)
 		if err != nil && errors.IsNotFound(err) {
-			if mysql.Status.ReadyReplicas == 0 {
-				return reconcile.Result{Requeue: true}, Err.New("No mysql POD is ready")
+			if cassandraDb.Status.ReadyReplicas == 0 {
+				return reconcile.Result{Requeue: true}, Err.New("No cassandraDb POD is ready")
 			}
 			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", hssDeployment.Namespace, "Deployment.Name", hssDeployment.Name)
 			err = r.client.Create(context.TODO(), hssDeployment)
@@ -256,7 +258,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		//time.Sleep(15 * time.Second)
 		// Creat an oaispgw deployment
 		// spgw := &appsv1.Deployment{}
-		// spgwDeployment := r.deploymentForSpgwV1(instance)
+		// spgwDeployment := r.deploymentForSpgwcV2(instance)
 		// Check if the oai-mme deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: spgwDeployment.GetName(), Namespace: instance.Namespace}, spgw)
 		if err != nil && errors.IsNotFound(err) {
@@ -293,7 +295,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		time.Sleep(15 * time.Second)
 		// Creat an oaimme deployment
 		// mme := &appsv1.Deployment{}
-		// mmeDeployment := r.deploymentForMmeV1(instance)
+		// mmeDeployment := r.deploymentForMmeV2(instance)
 		// Check if the oai-mme deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: mmeDeployment.GetName(), Namespace: instance.Namespace}, mme)
 		if err != nil && errors.IsNotFound(err) {
@@ -341,11 +343,13 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		// }
 		if instance.Spec.CoreNetworkAllInOne == true {
 			if cn.Status.ReadyReplicas == 0 {
+				// d, _ := time.ParseDuration("5s")
 				d, _ := time.ParseDuration("10s")
 				return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-cn POD is ready, 10 seconds backoff")
 			}
 		} else {
 			if mme.Status.ReadyReplicas == 0 {
+				// d, _ := time.ParseDuration("5s")
 				d, _ := time.ParseDuration("10s")
 				return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-mme POD is ready, 10 seconds backoff")
 			}
@@ -461,14 +465,14 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			err = r.client.Update(context.TODO(), new)
 			//Should only kill the POD
 			/////////////////////////////////////////////////////////////////
-			err = r.client.Delete(context.TODO(), cnDeployment)
-			err = r.client.Delete(context.TODO(), cnService)
-			err = r.client.Delete(context.TODO(), hssDeployment)
-			err = r.client.Delete(context.TODO(), hssService)
-			err = r.client.Delete(context.TODO(), mmeDeployment)
-			err = r.client.Delete(context.TODO(), mmeService)
-			err = r.client.Delete(context.TODO(), spgwDeployment)
-			err = r.client.Delete(context.TODO(), spgwService)
+			// err = r.client.Delete(context.TODO(), cnDeployment)
+			// err = r.client.Delete(context.TODO(), cnService)
+			// err = r.client.Delete(context.TODO(), hssDeployment)
+			// err = r.client.Delete(context.TODO(), hssService)
+			// err = r.client.Delete(context.TODO(), mmeDeployment)
+			// err = r.client.Delete(context.TODO(), mmeService)
+			// err = r.client.Delete(context.TODO(), spgwDeployment)
+			// err = r.client.Delete(context.TODO(), spgwService)
 			err = r.client.Delete(context.TODO(), ranDeployment)
 			err = r.client.Delete(context.TODO(), ranService)
 			/////////////////////////////////////////////////////////////////
@@ -522,6 +526,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			// }
 			/////////////////////////////////////////////////////////////////
 			// Spec updated - return and requeue
+			// d, _ := time.ParseDuration("5s")
 			d, _ := time.ParseDuration("10s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		}
@@ -531,8 +536,8 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	return reconcile.Result{}, nil
 }
 
-// deploymentForHssV1 returns a HSS Network Deployment object
-func (r *ReconcileMosaic5g) deploymentForHssV1(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+// deploymentForHssV2 returns a HSS Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForHssV2(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 
 	hssName := m.Spec.HssDomainName
 	//ls := util.LabelsForMosaic5g(m.Name + hssName)
@@ -635,8 +640,8 @@ func (r *ReconcileMosaic5g) deploymentForHssV1(m *mosaic5gv1alpha1.Mosaic5g) *ap
 	return dep
 }
 
-// deploymentForMmeV1 returns a MME Network Deployment object
-func (r *ReconcileMosaic5g) deploymentForMmeV1(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+// deploymentForMmeV2 returns a MME Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForMmeV2(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 
 	mmeName := m.Spec.MmeDomainName
 	//ls := util.LabelsForMosaic5g(m.Name + mmeName)
@@ -736,19 +741,19 @@ func (r *ReconcileMosaic5g) deploymentForMmeV1(m *mosaic5gv1alpha1.Mosaic5g) *ap
 	return dep
 }
 
-// deploymentForSpgwV1 returns a SPGW Network Deployment object
-func (r *ReconcileMosaic5g) deploymentForSpgwV1(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+// deploymentForSpgwcV2 returns a SPGWC Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForSpgwcV2(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 
-	spgwName := m.Spec.SpgwDomainName
-	//ls := util.LabelsForMosaic5g(m.Name + spgwName)
-	replicas := m.Spec.OaiSpgwSize
+	spgwcName := m.Spec.SpgwcDomainName
+	//ls := util.LabelsForMosaic5g(m.Name + spgwcName)
+	replicas := m.Spec.OaiSpgwcSize
 	labels := make(map[string]string)
-	labels["app"] = "oaispgw"
+	labels["app"] = "oaispgwc"
 	Annotations := make(map[string]string)
-	Annotations["container.apparmor.security.beta.kubernetes.io/oaispgw"] = "unconfined"
+	Annotations["container.apparmor.security.beta.kubernetes.io/oaispgwc"] = "unconfined"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.GetName() + "-" + spgwName,
+			Name:        m.GetName() + "-" + spgwcName,
 			Namespace:   m.Namespace,
 			Labels:      labels,
 			Annotations: Annotations,
@@ -767,8 +772,8 @@ func (r *ReconcileMosaic5g) deploymentForSpgwV1(m *mosaic5gv1alpha1.Mosaic5g) *a
 					// 	"usrp": "false"},
 					Hostname: "ubuntu",
 					Containers: []corev1.Container{{
-						Image:           m.Spec.OaiSpgwImage,
-						Name:            "oaispgw",
+						Image:           m.Spec.OaiSpgwcImage,
+						Name:            "oaispgwc",
 						Command:         []string{"/sbin/init"},
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
 						VolumeMounts: []corev1.VolumeMount{{
@@ -839,8 +844,111 @@ func (r *ReconcileMosaic5g) deploymentForSpgwV1(m *mosaic5gv1alpha1.Mosaic5g) *a
 	return dep
 }
 
-// deploymentForCN returns a Core Network Deployment object
-func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+// deploymentForSpgwuV2 returns a SPGWU Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForSpgwuV2(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+
+	spgwuName := m.Spec.SpgwuDomainName
+	//ls := util.LabelsForMosaic5g(m.Name + spgwuName)
+	replicas := m.Spec.OaiSpgwuSize
+	labels := make(map[string]string)
+	labels["app"] = "oaispgwu"
+	Annotations := make(map[string]string)
+	Annotations["container.apparmor.security.beta.kubernetes.io/oaispgwu"] = "unconfined"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        m.GetName() + "-" + spgwuName,
+			Namespace:   m.Namespace,
+			Labels:      labels,
+			Annotations: Annotations,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					// NodeSelector: map[string]string{
+					// 	"usrp": "false"},
+					Hostname: "ubuntu",
+					Containers: []corev1.Container{{
+						Image:           m.Spec.OaiSpgwuImage,
+						Name:            "oaispgwu",
+						Command:         []string{"/sbin/init"},
+						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						VolumeMounts: []corev1.VolumeMount{{
+							Name:      "cgroup",
+							ReadOnly:  true,
+							MountPath: "/sys/fs/cgroup/",
+						}, {
+							Name:      "module",
+							ReadOnly:  true,
+							MountPath: "/lib/modules/",
+						}, {
+							Name:      "mosaic5g-config",
+							MountPath: "/root/config",
+						}},
+						Ports: []corev1.ContainerPort{
+							{
+								ContainerPort: 80,
+								Name:          "mosaic5g-cn",
+							}, {
+								ContainerPort: 2152,
+								Name:          "spgw-1",
+							}, {
+								ContainerPort: 3868,
+								Name:          "spgw-2",
+							}, {
+								ContainerPort: 5868,
+								Name:          "spgw-3",
+							}, {
+								ContainerPort: 2123,
+								Name:          "spgw-4",
+							}, {
+								ContainerPort: 3870,
+								Name:          "spgw-5",
+							}, {
+								ContainerPort: 5870,
+								Name:          "spgw-6",
+							}},
+					}},
+					Affinity: util.GenAffinity("cn"),
+					Volumes: []corev1.Volume{{
+						Name: "cgroup",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/sys/fs/cgroup/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "module",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/lib/modules/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "mosaic5g-config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "mosaic5g-config"},
+							},
+						}},
+					},
+				},
+			},
+		},
+	}
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
+// deploymentForCnV2 returns a Core Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForCnV2(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 
 	cnName := m.Spec.MmeDomainName
 	//ls := util.LabelsForMosaic5g(m.Name + cnName)
@@ -948,8 +1056,8 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					// NodeSelector: map[string]string{
-					// 	"usrp": "true"},
+					NodeSelector: map[string]string{
+						"usrp": "true"},
 					Hostname: "ubuntu",
 					Containers: []corev1.Container{{
 						Image:           m.Spec.RANImage,
@@ -1035,16 +1143,16 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 	return dep
 }
 
-// deploymentForMySQL returns a Core Network Deployment object
-func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+// deploymentForCassandra returns a Core Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForCassandra(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 	//ls := util.LabelsForMosaic5g(m.Name + cnName)
 	var replicas int32
-	replicas = m.Spec.MysqlSize
+	replicas = m.Spec.CassandraSize
 	labels := make(map[string]string)
 	labels["app"] = "oai"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Spec.MysqlDomainName,
+			Name:      m.Spec.CassandraDomainName,
 			Namespace: m.Namespace,
 			Labels:    labels,
 		},
@@ -1061,14 +1169,27 @@ func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *ap
 					// NodeSelector: map[string]string{
 					// 	"usrp": "false"},
 					Containers: []corev1.Container{{
-						Image: m.Spec.MysqlImage,
-						Name:  "mysql",
-						Env: []corev1.EnvVar{
-							{Name: "MYSQL_ROOT_PASSWORD", Value: "linux"},
-						},
+						Image: m.Spec.CassandraImage,
+						Name:  "cassandraDb",
+						// Env: []corev1.EnvVar{
+						// 	{Name: "MYSQL_ROOT_PASSWORD", Value: "linux"},
+						// },
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 3306,
-							Name:          "mysql",
+							Name:          "cassandra-1",
+							ContainerPort: 7000 - 7001,
+							Protocol:      corev1.ProtocolTCP,
+						}, {
+							Name:          "cassandra-2",
+							ContainerPort: 7199,
+							Protocol:      corev1.ProtocolTCP,
+						}, {
+							Name:          "cassandra-3",
+							ContainerPort: 9042,
+							Protocol:      corev1.ProtocolTCP,
+						}, {
+							Name:          "cassandra-3",
+							ContainerPort: 9160,
+							Protocol:      corev1.ProtocolTCP,
 						}},
 					}},
 					Affinity: util.GenAffinity("cn"),
@@ -1096,6 +1217,7 @@ func (r *ReconcileMosaic5g) genConfigMap(m *mosaic5gv1alpha1.Mosaic5g) *v1.Confi
 	}
 	cm.Name = "mosaic5g-config"
 	cm.Namespace = m.Namespace
+
 	genLogger.Info("Done")
 	return &cm
 }
@@ -1258,21 +1380,36 @@ func (r *ReconcileMosaic5g) genRanService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Serv
 	return service
 }
 
-// genMySQLService will generate a service for oaicn
-func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+// genCassandraService will generate a service for oaicn
+func (r *ReconcileMosaic5g) genCassandraService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
 	var service *v1.Service
 	selectMap := make(map[string]string)
 	selectMap["app"] = "oai"
 	service = &v1.Service{}
 	service.Spec = v1.ServiceSpec{
 		Ports: []v1.ServicePort{
-			{Name: "mysql-port", Port: 3306},
+			{Name: "cassandra-port-1",
+				Protocol: corev1.ProtocolTCP,
+				Port:     7000 - 7001,
+			}, {
+				Name:     "cassandra-2",
+				Port:     7199,
+				Protocol: corev1.ProtocolTCP,
+			}, {
+				Name:     "cassandra-3",
+				Port:     9042,
+				Protocol: corev1.ProtocolTCP,
+			}, {
+				Name:     "cassandra-3",
+				Port:     9160,
+				Protocol: corev1.ProtocolTCP,
+			},
 		},
 		Selector: selectMap,
 		// Type:     "NodePort",
 		ClusterIP: "None",
 	}
-	service.Name = m.Spec.MysqlDomainName
+	service.Name = m.Spec.CassandraDomainName
 	service.Namespace = m.Namespace
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)

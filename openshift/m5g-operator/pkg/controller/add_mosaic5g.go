@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/m5g-operator/pkg/controller/mosaic5g"
+	"mosaic5g/m5g-operator/pkg/controller/mosaic5g"
 )
 
 func init() {

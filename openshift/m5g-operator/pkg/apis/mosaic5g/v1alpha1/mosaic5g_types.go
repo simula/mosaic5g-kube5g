@@ -16,16 +16,22 @@ type Mosaic5gSpec struct {
 	// Size         int32  `json:"size" yaml:"size"`
 	CoreNetworkAllInOne bool   `json:"coreNetworkAllInOne" yaml:"coreNetworkAllInOne"`
 	MysqlSize           int32  `json:"mysqlSize" yaml:"mysqlSize"`
+	CassandraSize       int32  `json:"cassandraSize" yaml:"cassandraSize"`
 	OaiCnSize           int32  `json:"oaicnsize" yaml:"oaicnsize"`
 	OaiHssSize          int32  `json:"oaihsssize" yaml:"oaihsssize"`
 	OaiMmeSize          int32  `json:"oaimmesize" yaml:"oaimmesize"`
 	OaiSpgwSize         int32  `json:"oaispgwsize" yaml:"oaispgwsize"`
+	OaiSpgwcSize        int32  `json:"oaispgwcsize" yaml:"oaispgwcsize"`
+	OaiSpgwuSize        int32  `json:"oaispgwusize" yaml:"oaispgwusize"`
 	OaiRanSize          int32  `json:"oairansize" yaml:"oairansize"`
 	MysqlImage          string `json:"mysqlImage" yaml:"mysqlImage"`
+	CassandraImage      string `json:"cassandraImage" yaml:"cassandraImage"`
 	CNImage             string `json:"cnImage" yaml:"cnImage"`
 	OaiHssImage         string `json:"oaiHssImage" yaml:"oaiHssImage"`
 	OaiMmeImage         string `json:"oaiMmeImage" yaml:"oaiMmeImage"`
 	OaiSpgwImage        string `json:"oaiSpgwImage" yaml:"oaiSpgwImage"`
+	OaiSpgwcImage       string `json:"oaiSpgwcImage" yaml:"oaiSpgwcImage"`
+	OaiSpgwuImage       string `json:"oaiSpgwuImage" yaml:"oaiSpgwuImage"`
 	RANImage            string `json:"ranImage" yaml:"ranImage"`
 
 	MCC string `json:"mcc" yaml:"mcc"`
@@ -41,12 +47,15 @@ type Mosaic5gSpec struct {
 	HssDomainName          string `json:"hssDomainName" yaml:"hssDomainName"`
 	MmeDomainName          string `json:"mmeDomainName" yaml:"mmeDomainName"`
 	SpgwDomainName         string `json:"spgwDomainName" yaml:"spgwDomainName"`
+	SpgwcDomainName        string `json:"spgwcDomainName" yaml:"spgwcDomainName"`
+	SpgwuDomainName        string `json:"spgwuDomainName" yaml:"spgwuDomainName"`
 	MysqlDomainName        string `json:"mysqlDomainName" yaml:"mysqlDomainName"`
+	CassandraDomainName    string `json:"cassandraDomainName" yaml:"cassandraDomainName"`
 	FlexRANDomainName      string `json:"flexRANDomainName" yaml:"flexRANDomainName"`
 	// New Configurations of ENB
 	Snap         SnapDescription    `json:"snap" yaml:"snap"`
 	NodeFunction GeneralDescription `json:"node_function" yaml:"node_function"`
-	MmeIpAddr    GeneralDescription `json:"mme_ip_addr" yaml:"mme_ip_addr"`
+	// MmeIpAddr    GeneralDescription `json:"mme_ip_addr" yaml:"mme_ip_addr"`
 
 	EutraBand             GeneralDescription `json:"eutra_band" yaml:"eutra_band"`
 	DownlinkFrequency     GeneralDescription `json:"downlink_frequency" yaml:"downlink_frequency"`
@@ -57,8 +66,8 @@ type Mosaic5gSpec struct {
 	TxGain                GeneralDescription `json:"tx_gain" yaml:"tx_gain"`
 	RxGain                GeneralDescription `json:"rx_gain" yaml:"rx_gain"`
 	EnbName               GeneralDescription `json:"enb_name" yaml:"enb_name"`
-	EnbId                 GeneralDescription `json:"enb_id" yaml:"enb_id"`
-	ParallelConfig        GeneralDescription `json:"parallel_config" yaml:"parallel_config"`
+	// EnbId                 GeneralDescription `json:"enb_id" yaml:"enb_id"`
+	ParallelConfig GeneralDescription `json:"parallel_config" yaml:"parallel_config"`
 
 	MaxRxGain GeneralDescription `json:"max_rxgain" yaml:"max_rxgain"`
 

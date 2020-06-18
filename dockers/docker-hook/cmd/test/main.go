@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"reflect"
+	"mosaic5g/docker-hook/internal/pkg/common"
+	"mosaic5g/docker-hook/internal/pkg/util"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -33,6 +35,9 @@ type conf struct {
 		Description string `yaml:"description"`
 		Type        string `yaml:"type"`
 	} `yaml:"bar"`
+	logFile *os.File    // File for log to write something
+	Logger  *log.Logger // Collect log
+	Conf    *common.Cfg // config files
 }
 
 func (c *conf) getConf() *conf {
@@ -47,6 +52,7 @@ func (c *conf) getConf() *conf {
 		log.Fatalf("Unmarshal: %v", err)
 	}
 	fmt.Println("yamlFile=", c)
+
 	return c
 }
 
@@ -57,17 +63,25 @@ func main() {
 	fmt.Println(c.Bar)
 	fmt.Println(c.Bar.Default)
 
-	v := reflect.ValueOf(c)
+	// v := reflect.ValueOf(c)
 
-	values := make([]interface{}, v.NumField())
+	// values := make([]interface{}, v.NumField())
 
-	for i := 0; i < v.NumField(); i++ {
-		values[i] = v.Field(i).Interface()
-		fmt.Println("values[", i, "]=", values[i])
-		if i == 16 {
-			fmt.Println("HELLO WORLD")
-			fmt.Printf("Value: %#v \n", c.Bar)
-		}
+	// for i := 0; i < v.NumField(); i++ {
+	// 	values[i] = v.Field(i).Interface()
+	// 	fmt.Println("values[", i, "]=", values[i])
+	// 	if i == 16 {
+	// 		fmt.Println("HELLO WORLD")
+	// 		fmt.Printf("Value: %#v \n", c.Bar)
+	// 	}
+	// }
+
+	retStatus := util.RunCmd(c.Logger, "which", "oai-ran.enb-status")
+	if len(retStatus.Stderr) == 0 {
+		fmt.Println("retStatus.Stderr=", retStatus.Stderr)
+		fmt.Println("retStatus.Stdout[0]=", retStatus.Stdout[0])
+	} else {
+		fmt.Println("retStatus.Stdout[0]=", retStatus.Stdout[0])
 	}
 
 }

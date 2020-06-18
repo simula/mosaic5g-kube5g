@@ -67,6 +67,7 @@ init() {
 
 # Recreate base image
 build_base(){
+    
     cd ../${DIR}/
     cp ../build/hook ./
     cp ../build/conf.yaml ./
@@ -96,13 +97,24 @@ build_target(){
                 contains "${LIST}" "${1}"
             fi
         else
-            echo "Waiting for snap ${1} to be installed..."
-            contains "${LIST}" "${1}"
+            if [ "${1}" = "oai-hss" ] || [ "${1}" = "oai-mme" ] || [ "${1}" = "oai-spgwc" ] || [ "${1}" = "oai-spgwu" ] ; then
+                echo "Waiting for snap ${1} to be installed..."
+                contains "${LIST}" "${1}"
+            elif [ "${1}" = "oai-ran" ] ; then
+                (contains "${LIST}" "${1}")
+            else
+               echo "Waiting for snaps oai-hss, oai-mme, oai-spgwc, oai-spgwu to be installed..."
+                (contains "${LIST}" "oai-hss") && (contains "${LIST}" "oai-mme") && (contains "${LIST}" "oai-spgwc") && (contains "${LIST}" "oai-spgwu")
+                # echo "Waiting for snaps oai-hss, oai-mme to be installed..."
+                # (contains "${LIST}" "oai-hss") && (contains "${LIST}" "oai-mme")
+            fi
+            # echo "Waiting for snap ${1} to be installed..."
+            # contains "${LIST}" "${1}"
         fi
         RET=$?
         
     done
-    sleep 5
+    sleep 15
     echo "copying init_deploy.sh to docker"
     docker cp ../${DIR}/init_deploy.sh ${BASE_CONTAINER}:/root/init.sh
     docker commit ${BASE_CONTAINER} ${TARGET}:${RELEASE_TAG}
@@ -132,17 +144,29 @@ main() {
     fi
     case ${1} in
         oai-cn)
-            DIR="oai-cn"
+            if [ "${SNAP_VERSION}" = "v1" ] ; then
+                DIR="oai-cn"
+            else
+                DIR="oai-cn-v2"
+            fi
             TARGET_NAME="oaicn"
             build_target ${1}
         ;;
         oai-hss)
-            DIR="oai-hss"
+            if [ "${SNAP_VERSION}" = "v1" ] ; then
+                DIR="oai-hss"
+            else
+                DIR="oai-hss-v2"
+            fi
             TARGET_NAME="oaihss"
             build_target ${1}
         ;;
         oai-mme)
-            DIR="oai-mme"
+            if [ "${SNAP_VERSION}" = "v1" ] ; then
+                DIR="oai-mme"
+            else
+                DIR="oai-mme-v2"
+            fi
             TARGET_NAME="oaimme"
             build_target ${1}
         ;;
@@ -151,8 +175,23 @@ main() {
             TARGET_NAME="oaispgw"
             build_target ${1}
         ;;
+        oai-spgwc)
+            DIR="oai-spgwc-v2"
+            TARGET_NAME="oaispgwc"
+            build_target ${1}
+        ;;
+        oai-spgwu)
+            DIR="oai-spgwu-v2"
+            TARGET_NAME="oaispgwu"
+            build_target ${1}
+        ;;
         oai-ran)
-            DIR="oai-ran"
+            if [ "${SNAP_VERSION}" = "v1" ] ; then
+                DIR="oai-ran"
+            else
+                DIR="oai-ran-v2"
+            fi
+            # DIR="oai-ran"
             TARGET_NAME="oairan"
             build_target ${1}
         ;;
@@ -191,4 +230,4 @@ Example:
     echo "All done, please use docker push [IMAGE NAME]:[TAG] to push image to your repository"
     
 }
-main ${1} ${2}
+main ${1} ${2} ${3} 

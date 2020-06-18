@@ -1,17 +1,19 @@
 package main
 
 import (
+	"io"
+	"os"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
-	"io"
-	"os"
 )
 
 func main() {
 	ctx := context.Background()
-	cli, err := client.NewEnvClient()
+	// cli, err := client.NewEnvClient()
+	cli, err := client.NewClientWithOpts(client.WithVersion("1.37"))
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +28,7 @@ func main() {
 		Image: "alpine",
 		Cmd:   []string{"echo", "hello world"},
 		Tty:   true,
-	}, nil, nil, "")
+	}, nil, nil, nil, "hello-container")
 	if err != nil {
 		panic(err)
 	}

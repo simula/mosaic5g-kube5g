@@ -1,8 +1,9 @@
 package oai
 
 import (
-	"docker-hook/internal/pkg/util"
 	"errors"
+	"fmt"
+	"mosaic5g/docker-hook/internal/pkg/util"
 	"net"
 	"os"
 	"time"
@@ -190,5 +191,35 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 		OaiObj.Logger.Print("start mme as daemon")
 		util.RunCmd(OaiObj.Logger, mmeBin+"-start")
 	}
+	return nil
+}
+
+// RestartMme : Restart MME as a daemon
+func restartMme(OaiObj Oai) error {
+	OaiObj.Logger.Print("Restart oai-mme daemon")
+	for {
+		retStatus := util.RunCmd(OaiObj.Logger, "/snap/bin/oai-cn.mme-restart")
+		if len(retStatus.Stderr) == 0 {
+			break
+		}
+		OaiObj.Logger.Print("Restart oai-mme failed, try again later")
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Println("oai-mme is successfully restarted")
+	return nil
+}
+
+// stopMme : Stop MME as a daemon
+func stopMme(OaiObj Oai) error {
+	OaiObj.Logger.Print("Stop oai-mme daemon")
+	for {
+		retStatus := util.RunCmd(OaiObj.Logger, "/snap/bin/oai-cn.mme-stop")
+		if len(retStatus.Stderr) == 0 {
+			break
+		}
+		OaiObj.Logger.Print("Stop oai-mme failed, try again later")
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Println("oai-mme is successfully stopped")
 	return nil
 }

@@ -17,7 +17,7 @@ RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim virt-what
 # Use rc.local to help
 RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
 RUN chmod +x /etc/rc.local
-COPY ./init.sh /root/
+COPY ./init_build.sh /root/init.sh
 COPY ./hook /root/
 RUN mkdir /root/config
 COPY ./conf.yaml /root/config/

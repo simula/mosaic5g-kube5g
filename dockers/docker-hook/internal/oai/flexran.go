@@ -1,7 +1,7 @@
 package oai
 
 import (
-	"docker-hook/internal/pkg/util"
+	"mosaic5g/docker-hook/internal/pkg/util"
 	"time"
 )
 

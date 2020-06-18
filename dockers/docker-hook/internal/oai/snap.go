@@ -1,8 +1,9 @@
 package oai
 
 import (
-	"docker-hook/internal/pkg/util"
 	"fmt"
+	"mosaic5g/docker-hook/internal/pkg/util"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -21,10 +22,7 @@ func installSnapCore(OaiObj Oai) {
 		retStatus := util.RunCmd(OaiObj.Logger, "snap", "install", "core", "--channel=edge")
 		Snapfail := false
 		for {
-			OaiObj.Logger.Print("loop for")
 			OaiObj.Logger.Print("retStatus.Stderr=", retStatus.Stderr)
-			//OaiObj.Logger.Print("retStatus.Stderr[0]=", retStatus.Stderr[0])
-			//OaiObj.Logger.Print("len(retStatus.Stderr[0])=", len(retStatus.Stderr[0]))
 
 			if len(retStatus.Stderr) > 0 {
 				if len(retStatus.Stderr[0]) > 0 {
@@ -58,30 +56,53 @@ func installSnapCore(OaiObj Oai) {
 }
 
 // installOaicn : Install oai-cn snap
-func installOaicn(OaiObj Oai) {
-	OaiObj.Logger.Print("Configure hostname before installing ")
-	fmt.Println("Configure hostname before installing ")
-	// Copy hosts
-	util.RunCmd(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_new")
-	hostname, _ := os.Hostname()
-	fullDomainName := "1s/^/127.0.0.1 " + hostname + ".openair4G.eur " + hostname + " hss\\n127.0.0.1 " + hostname + ".openair4G.eur " + hostname + " mme \\n/"
-	util.RunCmd(OaiObj.Logger, "sed", "-i", fullDomainName, "./hosts_new")
+func installOaicn(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion string) {
 
-	fmt.Println("hostname=", hostname)
-	fmt.Println("fullDomainName=", fullDomainName)
-	// Replace hosts
-	util.RunCmd(OaiObj.Logger, "cp", "-f", "./hosts_new", "/etc/hosts")
 	// Install oai-cn snap
-	OaiObj.Logger.Print("Installing oai-cn")
-	fmt.Println("Installing oai-cn")
-	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-cn")
-	if err != nil {
-		OaiObj.Logger.Print(err)
-		fmt.Println("error=", err)
-	}
-	if !ret {
-		util.RunCmd(OaiObj.Logger, "snap", "install", "oai-cn", "--channel=edge", "--devmode")
-		fmt.Println("snap install oai-cn")
+	if snapVersion == "v1" {
+		// realm := "openair4G.eur"
+		realm := OaiObj.Conf.Realm.Default
+		// realm := OaiObj.ConfOai.Realm.Default
+
+		OaiObj.Logger.Print("the realm of OAI is: ", realm)
+		fmt.Println("the realm of OAI is: ", realm)
+
+		OaiObj.Logger.Print("Configure hostname before installing ")
+		fmt.Println("Configure hostname before installing ")
+		// Copy hosts
+		util.RunCmd(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_new")
+		hostname, _ := os.Hostname()
+		fullDomainName := "1s/^/127.0.0.1 " + hostname + "." + realm + " " + hostname + " mme\\n" +
+			"127.0.0.1 " + hostname + "." + realm + " " + hostname + " hss \\n/"
+		util.RunCmd(OaiObj.Logger, "sed", "-i", fullDomainName, "./hosts_new")
+
+		OaiObj.Logger.Print("hostname=", hostname)
+		OaiObj.Logger.Print("fullDomainName=", fullDomainName)
+
+		// Replace hosts
+		util.RunCmd(OaiObj.Logger, "cp", "-f", "./hosts_new", "/etc/hosts")
+
+		OaiObj.Logger.Print("Installing oai-cn")
+		fmt.Println("Installing oai-cn")
+		ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-cn")
+		if err != nil {
+			OaiObj.Logger.Print(err)
+			fmt.Println("error=", err)
+		}
+		if !ret {
+			util.RunCmd(OaiObj.Logger, "snap", "install", "oai-cn", "--channel=edge", "--devmode")
+			OaiObj.Logger.Print("Installing oai-cn")
+			fmt.Println("Installing oai-cn")
+		}
+	} else if snapVersion == "v2" {
+		installOaiHssV2(OaiObj, CnAllInOneMode, buildSnap)
+		installOaiMmeV2(OaiObj, CnAllInOneMode, buildSnap)
+		installOaiSpgwcV2(OaiObj)
+		installOaiSpgwuV2(OaiObj)
+	} else {
+		OaiObj.Logger.Print("Error while trying to install oai core entity: snap version", snapVersion, " is not recognized")
+		OaiObj.Logger.Print("The allowed values of ", snapVersion, " are: v1, v2")
+		os.Exit(1)
 	}
 
 }
@@ -97,18 +118,274 @@ func installOairan(OaiObj Oai) {
 		OaiObj.Logger.Print("err", err)
 		fmt.Println("err", err)
 	}
+	// if !ret {
+	// 	OaiObj.Logger.Print("installing oairan devmode")
+	// 	fmt.Println("installing oairan devmode")
+	// 	util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--devmode")
+	// 	OaiObj.Logger.Print("oairan devmode is installed")
+	// 	fmt.Println("oairan devmode is installed")
+	// }
+	///////////////////////////
 	if !ret {
-		OaiObj.Logger.Print("installing oairan devmode")
-		fmt.Println("installing oairan devmode")
-		util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--devmode")
-		OaiObj.Logger.Print("oairan devmode is installed")
-		fmt.Println("oairan devmode is installed")
+		if OaiObj.Conf.Snap.Channel == "stable" {
+			util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran")
+			OaiObj.Logger.Print("oairan stable is installed")
+			fmt.Println("oairan stable is installed")
+		} else {
+			if OaiObj.Conf.Snap.Devmode == true {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--devmode")
+				OaiObj.Logger.Print("oairan devmode is installed")
+			} else {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--jailmode")
+				OaiObj.Logger.Print("oairan jailmode is installed")
+			}
+		}
 	}
+	///////////////////////////
 	//Wait a moment, cn is not ready yet !
 	OaiObj.Logger.Print("Wait 15 seconds... OK now cn should be ready")
 	fmt.Println("Wait 15 seconds... OK now cn should be ready")
 	// time.Sleep(15 * time.Second)
 
+}
+
+// installOaiHssV2 : Install oai-hss v2 snap
+func installOaiHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) {
+	// Install oai-hss v2 snap
+	OaiObj.Logger.Print("Installing oai-hss v2")
+	fmt.Println("Installing oai-hss v2")
+
+	realm := OaiObj.Conf.Realm.Default
+	OaiObj.Logger.Print("the realm of OAI is: ", realm)
+	fmt.Println("the realm of OAI is: ", realm)
+
+	OaiObj.Logger.Print("Configure hostname before installing ")
+	fmt.Println("Configure hostname before installing ")
+
+	// Copy hosts
+	if buildSnap == true {
+		retStatus := util.RunCmd(OaiObj.Logger, "test", "-f", "./hosts_original")
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("File does not exist")
+			fmt.Println("File does not exist")
+			util.RunCmd(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_original")
+			util.RunCmd(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_new")
+
+		} else {
+			OaiObj.Logger.Print("File ./hosts_original already exist")
+			fmt.Println("File ./hosts_original already exist")
+			util.RunCmd(OaiObj.Logger, "cp", "./hosts_original", "./hosts_new")
+		}
+		hostname, _ := os.Hostname()
+		fullDomainName := "1s/^/127.0.0.1 " + hostname + "." + realm + " " + hostname + " mme\\n" +
+			"127.0.0.1 " + hostname + "." + realm + " " + hostname + " hss \\n/"
+		util.RunCmd(OaiObj.Logger, "sed", "-i", fullDomainName, "./hosts_new")
+
+		OaiObj.Logger.Print("hostname=", hostname)
+		OaiObj.Logger.Print("fullDomainName=", fullDomainName)
+		// Replace hosts
+		util.RunCmd(OaiObj.Logger, "cp", "-f", "./hosts_new", "/etc/hosts")
+
+	} else {
+		/////////////////////////////////////////////
+		retStatus := util.RunCmd(OaiObj.Logger, "test", "-f", "./hosts_original")
+		if retStatus.Exit != 0 {
+			fmt.Println("File does not exist")
+			util.RunCmd(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_original")
+			util.RunCmd(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_new")
+		} else {
+			fmt.Println("File ./hosts_original already exist")
+			util.RunCmd(OaiObj.Logger, "cp", "./hosts_original", "./hosts_new")
+		}
+		/////////////////////////////////////////////
+		mmeIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.MmeDomainName)
+		if CnAllInOneMode == true {
+			mmeIP = "127.0.0.1"
+		} else {
+			for {
+				if err != nil {
+					OaiObj.Logger.Print(err)
+				} else {
+					hostNameMme, err := net.LookupHost(mmeIP)
+					if len(hostNameMme) > 0 {
+						break
+					} else {
+						OaiObj.Logger.Print(err)
+					}
+				}
+				OaiObj.Logger.Print("Valid ip address for mme not yet retreived")
+				time.Sleep(1 * time.Second)
+				mmeIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.MmeDomainName)
+			}
+		}
+		hostname, _ := os.Hostname()
+		fullDomainName := "1s/^/" + mmeIP + " " + hostname + "." + realm + " " + hostname + " mme\\n" +
+			"127.0.0.1 " + hostname + "." + realm + " " + hostname + " hss \\n/"
+		util.RunCmd(OaiObj.Logger, "sed", "-i", fullDomainName, "./hosts_new")
+
+		OaiObj.Logger.Print("hostname=", hostname)
+		OaiObj.Logger.Print("fullDomainName=", fullDomainName)
+		// Replace hosts
+		util.RunCmd(OaiObj.Logger, "cp", "-f", "./hosts_new", "/etc/hosts")
+	}
+	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-hss")
+	if err != nil {
+		OaiObj.Logger.Print(err)
+	}
+	if !ret {
+		if OaiObj.Conf.Snap.Channel == "stable" {
+			util.RunCmd(OaiObj.Logger, "snap", "install", "oai-hss")
+			OaiObj.Logger.Print("oai-hss stable is installed")
+			fmt.Println("oai-hss stable is installed")
+		} else {
+			if OaiObj.Conf.Snap.Devmode == true {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-hss", "--channel=edge", "--devmode")
+				OaiObj.Logger.Print("oai-hss devmode is installed")
+			} else {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-hss", "--channel=edge", "--jailmode")
+				OaiObj.Logger.Print("oai-hss jailmode is installed")
+			}
+		}
+	}
+}
+
+// installOaiMmeV2 : Install oai-hss v2 snap
+func installOaiMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) {
+	// Install oai-hss v2 snap
+	OaiObj.Logger.Print("Installing oai-mme v2")
+	fmt.Println("Installing oai-mme v2")
+
+	realm := OaiObj.Conf.Realm.Default
+	OaiObj.Logger.Print("the realm of OAI is: ", realm)
+	fmt.Println("the realm of OAI is: ", realm)
+
+	OaiObj.Logger.Print("Configure hostname before installing ")
+	fmt.Println("Configure hostname before installing ")
+
+	// Copy hosts
+	if CnAllInOneMode == false {
+		retStatus := util.RunCmd(OaiObj.Logger, "test", "-f", "./hosts_original")
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_original")
+			fmt.Println("File does not exist")
+			util.RunCmd(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_original")
+			util.RunCmd(OaiObj.Logger, "cp", "/etc/hosts", "./hosts_new")
+		} else {
+			OaiObj.Logger.Print("File ./hosts_original already exist")
+			fmt.Println("File ./hosts_original already exist")
+			util.RunCmd(OaiObj.Logger, "cp", "./hosts_original", "./hosts_new")
+		}
+		/////////////////////////////////////////////
+		hssIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.HssDomainName)
+		if buildSnap == true {
+			hssIP = "127.0.0.1"
+		} else {
+			for {
+				if err != nil {
+					OaiObj.Logger.Print(err)
+					fmt.Println(err)
+				} else {
+					hostNameHss, err := net.LookupHost(hssIP)
+					if len(hostNameHss) > 0 {
+						break
+					} else {
+						OaiObj.Logger.Print(err)
+						fmt.Println(err)
+					}
+				}
+				OaiObj.Logger.Print("Valid ip address for hss not yet retreived")
+				fmt.Println("Valid ip address for hss not yet retreived")
+				time.Sleep(1 * time.Second)
+				hssIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.HssDomainName)
+			}
+		}
+		/////////////////////////////////////////////
+		hostname, _ := os.Hostname()
+		fullDomainName := "1s/^/" + "127.0.0.1" + " " + hostname + "." + realm + " " + hostname + " mme\\n" +
+			hssIP + " " + hostname + "." + realm + " " + hostname + " hss \\n/"
+		util.RunCmd(OaiObj.Logger, "sed", "-i", fullDomainName, "./hosts_new")
+
+		OaiObj.Logger.Print("hostname=", hostname)
+		OaiObj.Logger.Print("fullDomainName=", fullDomainName)
+		// Replace hosts
+		util.RunCmd(OaiObj.Logger, "cp", "-f", "./hosts_new", "/etc/hosts")
+
+	}
+	// Install oai-mme v2 snap
+	OaiObj.Logger.Print("Installing oai-mme v2")
+	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-mme")
+	if err != nil {
+		OaiObj.Logger.Print(err)
+	}
+	if !ret {
+		if OaiObj.Conf.Snap.Channel == "stable" {
+			util.RunCmd(OaiObj.Logger, "snap", "install", "oai-mme")
+			OaiObj.Logger.Print("oai-mme stable is installed")
+			fmt.Println("oai-mme stable is installed")
+		} else {
+			if OaiObj.Conf.Snap.Devmode == true {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-mme", "--channel=edge", "--devmode")
+				OaiObj.Logger.Print("oai-mme devmode is installed")
+			} else {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-mme", "--channel=edge", "--jailmode")
+				OaiObj.Logger.Print("oai-mme jailmode is installed")
+			}
+		}
+	}
+}
+
+// installOaiSpgwcV2 : Install oai-hss v2 snap
+func installOaiSpgwcV2(OaiObj Oai) {
+	// Install oai-spgwc v2 snap
+	OaiObj.Logger.Print("Installing oai-spgwc v2")
+	fmt.Println("Installing oai-spgwc v2")
+
+	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-spgwc")
+	if err != nil {
+		OaiObj.Logger.Print(err)
+	}
+	if !ret {
+		if OaiObj.Conf.Snap.Channel == "stable" {
+			util.RunCmd(OaiObj.Logger, "snap", "install", "oai-spgwc")
+			OaiObj.Logger.Print("oai-spgwc stable is installed")
+			fmt.Println("oai-spgwc stable is installed")
+		} else {
+			if OaiObj.Conf.Snap.Devmode == true {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-spgwc", "--channel=edge", "--devmode")
+				OaiObj.Logger.Print("oai-spgwc devmode is installed")
+			} else {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-spgwc", "--channel=edge", "--jailmode")
+				OaiObj.Logger.Print("oai-spgwc jailmode is installed")
+			}
+		}
+	}
+}
+
+// installOaiSpgwuV2 : Install oai-spgwu v2 snap
+func installOaiSpgwuV2(OaiObj Oai) {
+	// Install oai-spgwu v2 snap
+	OaiObj.Logger.Print("Installing oai-spgwu v2")
+	fmt.Println("Installing oai-spgwu v2")
+
+	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-spgwu")
+	if err != nil {
+		OaiObj.Logger.Print(err)
+	}
+	if !ret {
+		if OaiObj.Conf.Snap.Channel == "stable" {
+			util.RunCmd(OaiObj.Logger, "snap", "install", "oai-spgwu")
+			OaiObj.Logger.Print("oai-spgwu stable is installed")
+			fmt.Println("oai-spgwu stable is installed")
+		} else {
+			if OaiObj.Conf.Snap.Devmode == true {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-spgwu", "--channel=edge", "--devmode")
+				OaiObj.Logger.Print("oai-spgwu devmode is installed")
+			} else {
+				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-spgwu", "--channel=edge", "--jailmode")
+				OaiObj.Logger.Print("oai-spgwu jailmode is installed")
+			}
+		}
+	}
 }
 
 // installFlexRAN : Install FlexRAN snap

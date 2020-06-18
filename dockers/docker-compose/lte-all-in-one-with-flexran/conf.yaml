@@ -17,6 +17,6 @@ spgwDomainName: "oaicn"
 mysqlDomainName: "mysql"
 dns: "192.168.1.1"
 
-flexRAN: false
+flexRAN: true
 flexRANDomainName: "flexran"
 test: false

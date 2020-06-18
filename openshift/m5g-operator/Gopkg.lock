@@ -54,7 +54,7 @@
   packages = ["."]
   pruneopts = "NT"
   revision = "7c0e3b262f30165a8ec3d0b4c6059fd92703bfb2"
-  version = "1.0.0"
+  version = "v3.0.1"
 
 [[projects]]
   digest = "1:c819830f4f5ef85874a90ac3cbcc96cd322c715f5c96fbe4722eacd3dafbaa07"

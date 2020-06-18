@@ -1,12 +1,24 @@
 package oai
 
 import (
-	"docker-hook/internal/pkg/util"
 	"errors"
+	"fmt"
+	"mosaic5g/docker-hook/internal/pkg/util"
+	"time"
 )
 
+// initSpgw : Init SPGW
+func initSpgw(OaiObj Oai) error {
+	return nil
+}
+
+// configSpgw : Config oai-spgw
+func configSpgw(OaiObj Oai) error {
+	return nil
+}
+
 // StartSpgw : Start SPGW as a daemon
-func startSpgw(OaiObj Oai, CnAllInOneMode bool) error {
+func startSpgw(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	spgwConf := OaiObj.Conf.ConfigurationPathofCN + "spgw.conf"
 	spgwBin := OaiObj.Conf.SnapBinaryPath + "oai-cn.spgw"
 	// Init spgw
@@ -88,5 +100,35 @@ func startSpgw(OaiObj Oai, CnAllInOneMode bool) error {
 		OaiObj.Logger.Print("start spgw as daemon")
 		util.RunCmd(OaiObj.Logger, spgwBin+"-start")
 	}
+	return nil
+}
+
+// RestartSpgw : Restart SPGW as a daemon
+func restartSpgw(OaiObj Oai) error {
+	OaiObj.Logger.Print("Restart oai-spgw daemon")
+	for {
+		retStatus := util.RunCmd(OaiObj.Logger, "/snap/bin/oai-cn.spgw-restart")
+		if len(retStatus.Stderr) == 0 {
+			break
+		}
+		OaiObj.Logger.Print("Restart oai-spgw failed, try again later")
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Println("oai-spgw is successfully restarted")
+	return nil
+}
+
+// stopSpgw : Stop SPGW as a daemon
+func stopSpgw(OaiObj Oai) error {
+	OaiObj.Logger.Print("Stop oai-spgw daemon")
+	for {
+		retStatus := util.RunCmd(OaiObj.Logger, "/snap/bin/oai-cn.spgw-stop")
+		if len(retStatus.Stderr) == 0 {
+			break
+		}
+		OaiObj.Logger.Print("Stop oai-spgw failed, try again later")
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Println("oai-spgw is successfully stopped")
 	return nil
 }

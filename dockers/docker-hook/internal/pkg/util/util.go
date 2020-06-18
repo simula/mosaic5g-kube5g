@@ -13,18 +13,37 @@ import (
 // RunCmd will run external commands in sync. Return stdout[0].
 func RunCmd(logger *log.Logger, cmdName string, args ...string) cmd.Status {
 	fmt.Println("cmdName=", cmdName)
-	logger.Print("cmdName=", cmdName)
+	// logger.Print("cmdName=", cmdName)
 	for i := 0; i < len(args); i++ {
 		fmt.Println("args[", i, "]=", args[i])
-		logger.Print("args[", i, "]=", args[i])
+		// logger.Print("args[", i, "]=", args[i])
 	}
 	installSnap := cmd.NewCmd(cmdName, args...)
 	finalStatus := <-installSnap.Start() // block and wait
-	// logger.Print(finalStatus.Cmd)
-	logger.Print(finalStatus)
-	fmt.Println("19 installSnap=", installSnap)
-	fmt.Println("20 finalStatus=", finalStatus)
+	logger.Print("finalStatus=", finalStatus)
+	logger.Print("finalStatus.Cmd=", finalStatus.Cmd)
 	return finalStatus
+
+	// logger.Print(finalStatus.Cmd)
+	// logger.Print(finalStatus)
+
+}
+
+// RunCmdNonBlocking will run external commands in sync. Return stdout[0].
+func RunCmdNonBlocking(logger *log.Logger, cmdName string, args ...string) {
+	fmt.Println("cmdName=", cmdName)
+	// logger.Print("cmdName=", cmdName)
+	for i := 0; i < len(args); i++ {
+		fmt.Println("args[", i, "]=", args[i])
+		// logger.Print("args[", i, "]=", args[i])
+	}
+	installSnap := cmd.NewCmd(cmdName, args...)
+	finalStatus := installSnap.Start() // do not wait
+	logger.Print("finalStatus=", finalStatus)
+
+	// logger.Print(finalStatus.Cmd)
+	// logger.Print(finalStatus)
+
 }
 
 //CheckSnapPackageExist will return if this package is already exist or not
