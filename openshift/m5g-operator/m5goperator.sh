@@ -3,11 +3,7 @@
 # prepare ENVs
 #export KUBECONFIG=/home/agrion/kubernetes/aiyu
 export OPERATOR_NAME=m5g-operator
-export MYNAME=${USER}
 export MYDNS="192.168.1.1"
-
-APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
-TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
 
 ###################################
 # colorful echos
@@ -81,6 +77,9 @@ apply_cr(){
 }
 
 downgrade_image(){
+    APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
+    TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
+    
     curl \
     -H "content-Type: application/json-patch+json" \
     -H "Authorization: Bearer ${TOKEN}"\
@@ -92,6 +91,9 @@ downgrade_image(){
 }
 
 upgrade_image(){
+    APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
+    TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
+
     curl \
     -H "content-Type: application/json-patch+json" \
     -H "Authorization: Bearer ${TOKEN}"\
@@ -115,7 +117,7 @@ deploy_operator_from_clean_machine(){
     microk8s.start
     microk8s.enable dns
     # kubeconfig is used by operator
-    sudo chown ${MYNAME} -R $HOME/.kube
+    sudo chown $USER -R $HOME/.kube
     microk8s.kubectl config view --raw > $HOME/.kube/config
     # enable privileged
     sudo bash -c 'echo "--allow-privileged=true" >> /var/snap/microk8s/current/args/kubelet'

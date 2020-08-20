@@ -14,6 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -564,6 +565,16 @@ func (r *ReconcileMosaic5g) deploymentForHssV1(m *mosaic5gv1alpha1.Mosaic5g) *ap
 						Name:            "oaihss",
 						Command:         []string{"/sbin/init"},
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						Resources: corev1.ResourceRequirements{
+							Limits: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("2500Mi"),
+							},
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("10m"),
+								corev1.ResourceMemory: resource.MustParse("250Mi"),
+							},
+						},
 						VolumeMounts: []corev1.VolumeMount{
 							{
 								Name:      "cgroup",
@@ -668,6 +679,16 @@ func (r *ReconcileMosaic5g) deploymentForMmeV1(m *mosaic5gv1alpha1.Mosaic5g) *ap
 						Name:            "oaimme",
 						Command:         []string{"/sbin/init"},
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						Resources: corev1.ResourceRequirements{
+							Limits: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("2500Mi"),
+							},
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("10m"),
+								corev1.ResourceMemory: resource.MustParse("250Mi"),
+							},
+						},
 						VolumeMounts: []corev1.VolumeMount{{
 							Name:      "cgroup",
 							ReadOnly:  true,
@@ -771,6 +792,16 @@ func (r *ReconcileMosaic5g) deploymentForSpgwV1(m *mosaic5gv1alpha1.Mosaic5g) *a
 						Name:            "oaispgw",
 						Command:         []string{"/sbin/init"},
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						Resources: corev1.ResourceRequirements{
+							Limits: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("2500Mi"),
+							},
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("10m"),
+								corev1.ResourceMemory: resource.MustParse("250Mi"),
+							},
+						},
 						VolumeMounts: []corev1.VolumeMount{{
 							Name:      "cgroup",
 							ReadOnly:  true,
@@ -873,6 +904,16 @@ func (r *ReconcileMosaic5g) deploymentForCN(m *mosaic5gv1alpha1.Mosaic5g) *appsv
 						Name:            "oaicn",
 						Command:         []string{"/sbin/init"},
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						Resources: corev1.ResourceRequirements{
+							Limits: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("2500Mi"),
+							},
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("10m"),
+								corev1.ResourceMemory: resource.MustParse("250Mi"),
+							},
+						},
 						VolumeMounts: []corev1.VolumeMount{{
 							Name:      "cgroup",
 							ReadOnly:  true,
@@ -956,6 +997,16 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 						Name:            "oairan",
 						Command:         []string{"/sbin/init"},
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						Resources: corev1.ResourceRequirements{
+							Limits: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("2500Mi"),
+							},
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("10m"),
+								corev1.ResourceMemory: resource.MustParse("250Mi"),
+							},
+						},
 						VolumeMounts: []corev1.VolumeMount{{
 							Name:      "cgroup",
 							ReadOnly:  true,
