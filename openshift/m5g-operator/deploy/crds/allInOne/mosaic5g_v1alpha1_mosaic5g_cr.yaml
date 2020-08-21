@@ -7,12 +7,14 @@ spec:
   # Add fields here
   # size: 1
   mysqlSize: 1
+  flexranSize: 1
   oaicnsize: 1
   oaihsssize: 1
   oaimmesize: 1
   oaispgwsize: 1
-  oairansize: 1
+  oairansize: 2
   mysqlImage: "mysql:5.6"
+  flexranImage: "mosaic5gecosys/flexran:0.1"
   cnImage: "mosaic5gecosys/oaicn:1.0"
   oaiHssImage: "mosaic5gecosys/oaihss:1.0"
   oaiMmeImage: "mosaic5gecosys/oaimme:1.0"
@@ -31,8 +33,8 @@ spec:
   mmeDomainName: "oaicn"
   spgwDomainName: "oaicn"
   mysqlDomainName: "mysql"
-  dns: "192.168.1.1"
-  flexRAN: false
+  dns: "192.168.106.12"
+  flexRAN: true
   flexRANDomainName: "flexran"
   
   ## new config parameters

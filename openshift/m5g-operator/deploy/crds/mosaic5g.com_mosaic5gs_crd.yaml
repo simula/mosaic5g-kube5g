@@ -165,6 +165,11 @@ spec:
                 type: boolean
               flexRANDomainName:
                 type: string
+              flexranImage:
+                type: string
+              flexranSize:
+                format: int32
+                type: integer
               hssDomainName:
                 type: string
               max_rxgain:
@@ -418,6 +423,8 @@ spec:
             - eutra_band
             - flexRAN
             - flexRANDomainName
+            - flexranImage
+            - flexranSize
             - hssDomainName
             - max_rxgain
             - mcc

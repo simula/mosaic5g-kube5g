@@ -1,9 +1,12 @@
 #!/bin/bash
 
+#go mod init
+# go get ./...
+
 # prepare ENVs
 #export KUBECONFIG=/home/agrion/kubernetes/aiyu
 export OPERATOR_NAME=m5g-operator
-export MYDNS="192.168.1.1"
+export MYDNS="192.168.106.12"
 
 ###################################
 # colorful echos
@@ -125,8 +128,9 @@ deploy_operator_from_clean_machine(){
     # Restart kube
     sudo systemctl restart snap.microk8s.daemon-kubelet.service
     sudo systemctl restart snap.microk8s.daemon-apiserver.service
-    # Configure DNS if it's not working 
+    # Configure DNS if it's not working
     # microk8s.kubectl -n kube-system edit configmap/coredns
+
 
 }
 

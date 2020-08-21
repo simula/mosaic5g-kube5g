@@ -169,15 +169,20 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	hssDeployment := r.deploymentForHssV1(instance)
 	mmeDeployment := r.deploymentForMmeV1(instance)
 	spgwDeployment := r.deploymentForSpgwV1(instance)
+	flexranDeployment := r.deploymentForFlexRANV2(instance)
+
 	cn := &appsv1.Deployment{}
 	hss := &appsv1.Deployment{}
 	mme := &appsv1.Deployment{}
 	spgw := &appsv1.Deployment{}
+	flexran := &appsv1.Deployment{}
+
 	cnService := r.genCNService(instance)
 	hssService := r.genHssV1Service(instance)
 	spgwService := r.genSpgwV1Service(instance)
 	mmeService := r.genMmeV1Service(instance)
 	ranService := r.genRanService(instance)
+	flexranService := r.genFlexranService(instance)
 	if instance.Spec.CoreNetworkAllInOne == true {
 		// Creat an oaicn deployment
 		// cn := &appsv1.Deployment{}
@@ -329,6 +334,47 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 		////////////////////////////////////////////////////////////////////////////////////////////
 	}
+
+	/////////////////////////////////////////////////////////////////////////////
+	if instance.Spec.FlexRAN == true {
+		// Check if the flexran deployment already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: flexranDeployment.GetName(), Namespace: instance.Namespace}, flexran)
+		if err != nil && errors.IsNotFound(err) {
+
+			// if mme.Status.ReadyReplicas == 0 {
+			// 	d, _ := time.ParseDuration("10s")
+			// 	return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-mme POD is ready, 10 seconds backoff")
+			// }
+
+			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", flexranDeployment.Namespace, "Deployment.Name", flexranDeployment.Name)
+			err = r.client.Create(context.TODO(), flexranDeployment)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", flexranDeployment.Namespace, "Deployment.Name", flexranDeployment.Name)
+				return reconcile.Result{}, err
+			}
+			// Deployment created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "FlexRAN Failed to get Deployment")
+			return reconcile.Result{}, err
+		}
+
+		// Create an FlexRAN service
+		service := &v1.Service{}
+		// Check if the flexran service already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: flexranService.GetName(), Namespace: instance.Namespace}, service)
+		if err != nil && errors.IsNotFound(err) {
+			err = r.client.Create(context.TODO(), flexranService)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", flexranService.Namespace, "Service.Name", flexranService.Name)
+				return reconcile.Result{}, err
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+	}
+	/////////////////////////////////////////////////////////////////////////////////
+
 	//time.Sleep(15 * time.Second)
 	// Create an oairan deployment
 	ran := &appsv1.Deployment{}
@@ -430,6 +476,22 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{Requeue: true}, nil
 		}
 	}
+
+	if instance.Spec.FlexRAN == true {
+		// flexran
+		size := instance.Spec.FlexranSize
+		if *flexran.Spec.Replicas != size {
+			flexran.Spec.Replicas = &size
+			err = r.client.Update(context.TODO(), flexran)
+			if err != nil {
+				reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", flexran.Namespace, "Deployment.Name", flexran.Name)
+				return reconcile.Result{}, err
+			}
+			// Spec updated - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		}
+	}
+
 	// Update the Mosaic5g status with the pod names
 	// List the pods for this instance's deployment
 	podList := &corev1.PodList{}
@@ -1132,6 +1194,107 @@ func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *ap
 	return dep
 }
 
+// deploymentForFlexRANV2 returns a FlexRAN Deployment object
+func (r *ReconcileMosaic5g) deploymentForFlexRANV2(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	var replicas int32
+	replicas = m.Spec.FlexranSize
+	labels := make(map[string]string)
+	// labels["app"] = m.Spec.FlexRANDomainName
+	labels["app"] = "flexran"
+	Annotations := make(map[string]string)
+	Annotations["container.apparmor.security.beta.kubernetes.io/flexran"] = "unconfined"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        m.GetName() + "-" + m.Spec.FlexRANDomainName,
+			Namespace:   m.Namespace,
+			Labels:      labels,
+			Annotations: Annotations,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					// NodeSelector: map[string]string{
+					// 	"usrp": "false"},
+					Hostname: "ubuntu",
+					Containers: []corev1.Container{{
+						Image:           m.Spec.FlexranImage,
+						Name:            "flexran",
+						Command:         []string{"/sbin/init"},
+						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						Resources: corev1.ResourceRequirements{
+							Limits: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("10m"),
+								corev1.ResourceMemory: resource.MustParse("250Mi"),
+							},
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("10m"),
+								corev1.ResourceMemory: resource.MustParse("250Mi"),
+							},
+						},
+						VolumeMounts: []corev1.VolumeMount{{
+							Name:      "cgroup",
+							ReadOnly:  true,
+							MountPath: "/sys/fs/cgroup/",
+						}, {
+							Name:      "module",
+							ReadOnly:  true,
+							MountPath: "/lib/modules/",
+						}, {
+							Name:      "mosaic5g-config",
+							MountPath: "/root/config",
+						}},
+						// Env: []corev1.EnvVar{
+						// 	{Name: "MYSQL_ROOT_PASSWORD", Value: "linux"},
+						// },
+						Ports: []corev1.ContainerPort{{
+							Name:          "sbi-port",
+							ContainerPort: 2210,
+							// Protocol:      corev1.ProtocolTCP,
+						}, {
+							Name:          "nbi-port",
+							ContainerPort: 9999,
+							// Protocol:      corev1.ProtocolTCP,
+						}},
+					}},
+					Affinity: util.GenAffinity("cn"),
+					Volumes: []corev1.Volume{{
+						Name: "cgroup",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/sys/fs/cgroup/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "module",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/lib/modules/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "mosaic5g-config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "mosaic5g-config"},
+							},
+						}},
+					},
+				},
+			},
+		},
+	}
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
 // genConfigMap will generate a configmap from ReconcileMosaic5g's spec
 func (r *ReconcileMosaic5g) genConfigMap(m *mosaic5gv1alpha1.Mosaic5g) *v1.ConfigMap {
 	genLogger := log.WithValues("Mosaic5g", "genConfigMap")
@@ -1324,6 +1487,38 @@ func (r *ReconcileMosaic5g) genMySQLService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Se
 		ClusterIP: "None",
 	}
 	service.Name = m.Spec.MysqlDomainName
+	service.Namespace = m.Namespace
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+// genFlexranService
+// genFlexranService will generate a service for flexran
+func (r *ReconcileMosaic5g) genFlexranService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	var service *v1.Service
+	selectMap := make(map[string]string)
+	selectMap["app"] = "flexran"
+	// selectMap["app"] = m.Spec.FlexRANDomainName
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		Ports: []v1.ServicePort{
+			{
+				Name: "sbi-port",
+				Port: 2210,
+				// Protocol:      corev1.ProtocolTCP,
+			}, {
+				Name: "nbi-port",
+				Port: 9999,
+				// Protocol:      corev1.ProtocolTCP,
+			},
+		},
+		Selector: selectMap,
+		Type:     "NodePort",
+		// ClusterIP: "None",
+	}
+	service.Name = "flexran"
+	// service.Name = m.Spec.FlexRANDomainName
 	service.Namespace = m.Namespace
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)

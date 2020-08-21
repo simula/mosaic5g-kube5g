@@ -82,7 +82,7 @@ The following figure illustrates the network that we will deploy. It is composed
         
         ```bash
         $ nmcli device show enp0s31f6 |grep -i dns
-        IP4.DNS[1]:                             192.168.1.1
+        IP4.DNS[1]:                             192.168.106.12
         ```
         
         where ```enp0s31f6``` is the interface name connected to the internet. 
@@ -100,12 +100,12 @@ The following figure illustrates the network that we will deploy. It is composed
         #
         apiVersion: v1
         data:
-        upstreamNameservers: '["192.168.1.1", "8.8.8.8", "8.8.4.4"]'
+        upstreamNameservers: '["192.168.106.12", "8.8.8.8", "8.8.4.4"]'
         kind: ConfigMap
         metadata:
         annotations:
             kubectl.kubernetes.io/last-applied-configuration: |
-            {"apiVersion":"v1","data":{"upstreamNameservers":"[\"192.168.1.1\", \"8.8.8.8\", \"8.8.4.4\"]"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"addonmanager.kubernetes.io/mode":"EnsureExists"},"name":"kube-dns","namespace":"kube-system"}}
+            {"apiVersion":"v1","data":{"upstreamNameservers":"[\"192.168.106.12\", \"8.8.8.8\", \"8.8.4.4\"]"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"addonmanager.kubernetes.io/mode":"EnsureExists"},"name":"kube-dns","namespace":"kube-system"}}
         creationTimestamp: "2020-03-24T08:36:56Z"
         labels:
             addonmanager.kubernetes.io/mode: EnsureExists

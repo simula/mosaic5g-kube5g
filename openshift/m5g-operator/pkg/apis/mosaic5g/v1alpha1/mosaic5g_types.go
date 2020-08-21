@@ -14,19 +14,22 @@ type Mosaic5gSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	// Size         int32  `json:"size" yaml:"size"`
-	CoreNetworkAllInOne bool   `json:"coreNetworkAllInOne" yaml:"coreNetworkAllInOne"`
-	MysqlSize           int32  `json:"mysqlSize" yaml:"mysqlSize"`
-	OaiCnSize           int32  `json:"oaicnsize" yaml:"oaicnsize"`
-	OaiHssSize          int32  `json:"oaihsssize" yaml:"oaihsssize"`
-	OaiMmeSize          int32  `json:"oaimmesize" yaml:"oaimmesize"`
-	OaiSpgwSize         int32  `json:"oaispgwsize" yaml:"oaispgwsize"`
-	OaiRanSize          int32  `json:"oairansize" yaml:"oairansize"`
-	MysqlImage          string `json:"mysqlImage" yaml:"mysqlImage"`
-	CNImage             string `json:"cnImage" yaml:"cnImage"`
-	OaiHssImage         string `json:"oaiHssImage" yaml:"oaiHssImage"`
-	OaiMmeImage         string `json:"oaiMmeImage" yaml:"oaiMmeImage"`
-	OaiSpgwImage        string `json:"oaiSpgwImage" yaml:"oaiSpgwImage"`
-	RANImage            string `json:"ranImage" yaml:"ranImage"`
+	CoreNetworkAllInOne bool  `json:"coreNetworkAllInOne" yaml:"coreNetworkAllInOne"`
+	MysqlSize           int32 `json:"mysqlSize" yaml:"mysqlSize"`
+	FlexranSize         int32 `json:"flexranSize" yaml:"flexranSize"`
+	OaiCnSize           int32 `json:"oaicnsize" yaml:"oaicnsize"`
+	OaiHssSize          int32 `json:"oaihsssize" yaml:"oaihsssize"`
+	OaiMmeSize          int32 `json:"oaimmesize" yaml:"oaimmesize"`
+	OaiSpgwSize         int32 `json:"oaispgwsize" yaml:"oaispgwsize"`
+	OaiRanSize          int32 `json:"oairansize" yaml:"oairansize"`
+
+	MysqlImage   string `json:"mysqlImage" yaml:"mysqlImage"`
+	CNImage      string `json:"cnImage" yaml:"cnImage"`
+	FlexranImage string `json:"flexranImage" yaml:"flexranImage"`
+	OaiHssImage  string `json:"oaiHssImage" yaml:"oaiHssImage"`
+	OaiMmeImage  string `json:"oaiMmeImage" yaml:"oaiMmeImage"`
+	OaiSpgwImage string `json:"oaiSpgwImage" yaml:"oaiSpgwImage"`
+	RANImage     string `json:"ranImage" yaml:"ranImage"`
 
 	MCC string `json:"mcc" yaml:"mcc"`
 	MNC string `json:"mnc" yaml:"mnc"`

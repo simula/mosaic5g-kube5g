@@ -16,10 +16,11 @@ spec:
       containers:
         - name: m5g-operator
           # Replace this with the built image name mosaic5gecosys/m5g_operator:mytest  mosaic5gecosys/m5g_operator:1.0
-          image: mosaic5gecosys/m5g_operator:mytest
+          image: arouk/m5g_operator:mytest
           command:
           - m5g-operator
-          imagePullPolicy: Always
+          imagePullPolicy: Never
+          # imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
