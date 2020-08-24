@@ -1415,8 +1415,8 @@ func (r *ReconcileMosaic5g) deploymentForFlexRANV2(m *mosaic5gv1alpha1.Mosaic5g)
 						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
 						Resources: corev1.ResourceRequirements{
 							Limits: corev1.ResourceList{
-								corev1.ResourceCPU:    resource.MustParse("10m"),
-								corev1.ResourceMemory: resource.MustParse("250Mi"),
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("2500Mi"),
 							},
 							Requests: corev1.ResourceList{
 								corev1.ResourceCPU:    resource.MustParse("10m"),
