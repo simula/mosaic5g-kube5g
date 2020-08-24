@@ -182,6 +182,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 	spgwService := r.genSpgwV1Service(instance)
 	mmeService := r.genMmeV1Service(instance)
 	ranService := r.genRanService(instance)
+	ranPhantomService := r.genRanPhantomService(instance)
 	flexranService := r.genFlexranService(instance)
 	if instance.Spec.CoreNetworkAllInOne == true {
 		// Creat an oaicn deployment
@@ -423,7 +424,59 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 	}
+	/////////////////////////////////////////////////////////////////////////////////
 
+	/////////////////////////////////////////////////////////////////////////////////
+
+	//time.Sleep(15 * time.Second)
+	// Create an oairan deployment
+	ranPhantom := &appsv1.Deployment{}
+	ranPhantomDeployment := r.deploymentForRANPhantom(instance)
+	// Check if the oai-ran-Phantom deployment already exists, if not create a new one
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: ranPhantomDeployment.GetName(), Namespace: instance.Namespace}, ranPhantom)
+	if err != nil && errors.IsNotFound(err) {
+		// if mme.Status.ReadyReplicas == 0 {
+		// 	d, _ := time.ParseDuration("10s")
+		// 	return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-mme POD is ready, 10 seconds backoff")
+		// }
+		if instance.Spec.CoreNetworkAllInOne == true {
+			if cn.Status.ReadyReplicas == 0 {
+				d, _ := time.ParseDuration("10s")
+				return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-cn POD is ready, 10 seconds backoff")
+			}
+		} else {
+			if mme.Status.ReadyReplicas == 0 {
+				d, _ := time.ParseDuration("10s")
+				return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No oai-mme POD is ready, 10 seconds backoff")
+			}
+		}
+		reqLogger.Info("Sheeps are ready")
+		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", ranPhantomDeployment.Namespace, "Deployment.Name", ranPhantomDeployment.Name)
+		err = r.client.Create(context.TODO(), ranPhantomDeployment)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", ranPhantomDeployment.Namespace, "Deployment.Name", ranPhantomDeployment.Name)
+			return reconcile.Result{}, err
+		}
+		// Deployment created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "RAN-Phantom Failed to get Deployment")
+		return reconcile.Result{}, err
+	}
+	////////////////////////////////////////////
+	// Create an oairan service
+	service = &v1.Service{}
+	// ranService := r.genRanService(instance)
+	// Check if the oai-cn service already exists, if not create a new one
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: ranPhantomService.GetName(), Namespace: instance.Namespace}, service)
+	if err != nil && errors.IsNotFound(err) {
+		err = r.client.Create(context.TODO(), ranPhantomService)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", ranPhantomService.Namespace, "Service.Name", ranPhantomService.Name)
+			return reconcile.Result{}, err
+		}
+	}
+	/////////////////////////////////////////////////////////////////////////////////
 	// Ensure the deployment size is the same as the spec
 	// size := instance.Spec.Size
 	if instance.Spec.CoreNetworkAllInOne == true {
@@ -534,6 +587,12 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			err = r.client.Delete(context.TODO(), spgwService)
 			err = r.client.Delete(context.TODO(), ranDeployment)
 			err = r.client.Delete(context.TODO(), ranService)
+			err = r.client.Delete(context.TODO(), flexranDeployment)
+			err = r.client.Delete(context.TODO(), flexranService)
+
+			err = r.client.Delete(context.TODO(), ranPhantomDeployment)
+			err = r.client.Delete(context.TODO(), ranPhantomService)
+
 			/////////////////////////////////////////////////////////////////
 			// var sizeReset int32 = 0
 			// if instance.Spec.CoreNetworkAllInOne == true {
@@ -1051,8 +1110,9 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					// NodeSelector: map[string]string{
-					// 	"usrp": "true"},
+					NodeSelector: map[string]string{
+						"usrp":      "true",
+						"node-name": "pou"},
 					Hostname: "ubuntu",
 					Containers: []corev1.Container{{
 						Image:           m.Spec.RANImage,
@@ -1110,6 +1170,131 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 							}},
 					}},
 					Affinity: util.GenAffinity("ran"),
+					Volumes: []corev1.Volume{{
+						Name: "cgroup",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/sys/fs/cgroup/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "module",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/lib/modules/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "mosaic5g-config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "mosaic5g-config"},
+							},
+						}}, {
+						Name: "usrp",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/dev/bus/usb/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}},
+					},
+				},
+			},
+		},
+	}
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
+// deploymentForRANPhantom returns a Core Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForRANPhantom(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	// ls := util.LabelsForMosaic5g(m.Name)
+	replicas := m.Spec.OaiRanSize
+	labels := make(map[string]string)
+	labels["app"] = "oaienb"
+	Annotations := make(map[string]string)
+	Annotations["container.apparmor.security.beta.kubernetes.io/"+m.Name+"-"+"oairanphantom"] = "unconfined"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			// Name:        m.GetName() + "-" + "oairanphantom",
+			Name:        "m5g-ranphantom",
+			Namespace:   m.Namespace,
+			Annotations: Annotations,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				// MatchLabels: ls,
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					// Labels: ls,
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					NodeSelector: map[string]string{
+						"usrp":      "true",
+						"node-name": "perle"},
+					Hostname: "ubuntu",
+					Containers: []corev1.Container{{
+						Image:           m.Spec.RANImage,
+						Name:            "oairanphantom",
+						Command:         []string{"/sbin/init"},
+						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						Resources: corev1.ResourceRequirements{
+							Limits: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("1000m"),
+								corev1.ResourceMemory: resource.MustParse("2500Mi"),
+							},
+							Requests: corev1.ResourceList{
+								corev1.ResourceCPU:    resource.MustParse("10m"),
+								corev1.ResourceMemory: resource.MustParse("250Mi"),
+							},
+						},
+						VolumeMounts: []corev1.VolumeMount{{
+							Name:      "cgroup",
+							ReadOnly:  true,
+							MountPath: "/sys/fs/cgroup/",
+						}, {
+							Name:      "module",
+							ReadOnly:  true,
+							MountPath: "/lib/modules/",
+						}, {
+							Name:      "usrp",
+							ReadOnly:  true,
+							MountPath: "/dev/bus/usb/",
+						}, {
+							Name:      "mosaic5g-config",
+							MountPath: "/root/config",
+						}},
+						Ports: []corev1.ContainerPort{
+							{
+								ContainerPort: 80,
+								Name:          "m5g-ranphantom",
+							}, {
+								ContainerPort: 2210,
+								Name:          "ran-1",
+							}, {
+								ContainerPort: 22100,
+								Name:          "ran-2",
+							}, {
+								ContainerPort: 2152,
+								Name:          "ran-3",
+							}, {
+								ContainerPort: 50000,
+								Name:          "ran-4",
+							}, {
+								ContainerPort: 50001,
+								Name:          "ran-5",
+							}, {
+								ContainerPort: 36412,
+								Name:          "ran-6",
+							}},
+					}},
+					Affinity: util.GenAffinity("ranphantom"),
 					Volumes: []corev1.Volume{{
 						Name: "cgroup",
 						VolumeSource: corev1.VolumeSource{
@@ -1466,6 +1651,33 @@ func (r *ReconcileMosaic5g) genRanService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Serv
 		ClusterIP: "None",
 	}
 	service.Name = "oairan"
+	service.Namespace = m.Namespace
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+// genRanPhantomService will generate a service for oaicn
+func (r *ReconcileMosaic5g) genRanPhantomService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	var service *v1.Service
+	selectMap := make(map[string]string)
+	selectMap["app"] = "m5g-ranphantom"
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		Ports: []v1.ServicePort{
+			{Name: "enb-enb-5", Port: 80, Protocol: v1.ProtocolTCP},    //tcp
+			{Name: "enb-enb", Port: 2210, Protocol: v1.ProtocolTCP},    //tcp
+			{Name: "enb-enb-1", Port: 22100, Protocol: v1.ProtocolTCP}, //tcp
+			{Name: "enb-s1-u", Port: 2152, Protocol: v1.ProtocolUDP},   //udp
+			{Name: "enb-enb-3", Port: 50000, Protocol: v1.ProtocolUDP}, //udp
+			{Name: "enb-enb-4", Port: 50001, Protocol: v1.ProtocolUDP}, //udp
+			{Name: "enb-s1-c", Port: 36412, Protocol: v1.ProtocolTCP},  //tcp
+		},
+		Selector: selectMap,
+		// Type:     "NodePort",
+		ClusterIP: "None",
+	}
+	service.Name = "oairanphantom"
 	service.Namespace = m.Namespace
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
