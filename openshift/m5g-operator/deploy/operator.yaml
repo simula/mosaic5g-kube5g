@@ -19,8 +19,8 @@ spec:
           image: arouk/m5g_operator:mytest
           command:
           - m5g-operator
-          imagePullPolicy: Never
-          # imagePullPolicy: Always
+          # imagePullPolicy: Never
+          imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
               valueFrom:

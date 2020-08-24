@@ -88,7 +88,7 @@ downgrade_image(){
     -H "Authorization: Bearer ${TOKEN}"\
     --insecure \
     -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
-    -d '[{"op":"replace","path":"/spec/cnImage","value":"arouk/oaicn:1.0"},{"op":"replace","path":"/spec/ranImage","value":"arouk/oairan:1.0"}]'
+    -d '[{"op":"replace","path":"/spec/cnImage","value":"arouk/oaicn:1.0"},{"op":"replace","path":"/spec/ranImage","value":"arouk/oairan:mytest"}]'
     echo " "
     echo "Core Network is downgraded to version 1.0, and RAN network is downgraded to 1.0"
 }
@@ -102,7 +102,7 @@ upgrade_image(){
     -H "Authorization: Bearer ${TOKEN}"\
     --insecure \
     -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
-    -d '[{"op":"replace","path":"/spec/cnImage","value":"arouk/oaicn:1.1"},{"op":"replace","path":"/spec/ranImage","value":"arouk/oairan:1.1"}]'
+    -d '[{"op":"replace","path":"/spec/cnImage","value":"arouk/oaicn:1.1"},{"op":"replace","path":"/spec/ranImage","value":"arouk/oairan:mytest"}]'
     echo " "
     echo "Core Network is upgraded to version 1.1, and RAN network is upgraded to 1.1"
 }
