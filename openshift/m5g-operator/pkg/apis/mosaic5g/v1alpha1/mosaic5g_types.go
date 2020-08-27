@@ -54,6 +54,7 @@ type Mosaic5gSpec struct {
 	ThirdPartyCoreNetwork thirdPartyCNDescription `json:"3rd_party_cn" yaml:"3rd_party_cn"`
 	Snap                  SnapDescription         `json:"snap" yaml:"snap"`
 	NodeFunction          GeneralDescription      `json:"node_function" yaml:"node_function"`
+	Realm                 GeneralDescription      `json:"realm" yaml:"realm"`
 	MmeIpAddr             GeneralDescription      `json:"mme_ip_addr" yaml:"mme_ip_addr"`
 
 	EutraBand             GeneralDescription `json:"eutra_band" yaml:"eutra_band"`
@@ -111,7 +112,7 @@ type SnapDescription struct {
 // 3rdPartyCNDescription
 type thirdPartyCNDescription struct {
 	Description string `json:"description" yaml:"description"`
-	Enable      string `json:"enable" yaml:"enable"`
+	Enable      bool   `json:"enable" yaml:"enable"`
 	CNIPAddr    string `json:"cn_ip_addr" yaml:"cn_ip_addr"`
 }
 

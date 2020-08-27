@@ -18,7 +18,7 @@ spec:
   cassandraImage: "mosaic5gecosys/cassandra-m5g:1.1"
   mysqlImage: "mysql:5.6"
   flexranImage: "mosaic5gecosys/flexran:0.1"
-  cnImage: "mosaic5gecosys/oaicn:1.0"
+  cnImage: "mosaic5gecosys/oaicn:2.0"
   oaiHssImage: "mosaic5gecosys/oaihss:1.0"
   oaiMmeImage: "mosaic5gecosys/oaimme:1.0"
   oaiSpgwImage: "mosaic5gecosys/oaispgw:1.0"
@@ -51,6 +51,11 @@ spec:
     description: "It indicates whether to use remote core network not running as pod in K8S. Tu use it, put enable to true"
     enable: false
     cn_ip_addr: "127.0.0.1"
+    #############################################
+  realm: 
+    default: "openair5G.eur"
+    description: "Realm of oai"
+    # type: string
   snap:
     description: "snap indicates which channel to use for the installation hook."
     name: "oai-ran"

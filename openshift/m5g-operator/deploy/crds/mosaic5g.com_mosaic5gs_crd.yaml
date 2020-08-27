@@ -39,7 +39,7 @@ spec:
                   description:
                     type: string
                   enable:
-                    type: string
+                    type: boolean
                 required:
                 - cn_ip_addr
                 - description
@@ -341,6 +341,18 @@ spec:
                 type: object
               rccDomainName:
                 type: string
+              realm:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
               rru_portc:
                 description: GeneralDescription This is general description for every
                   parameters defined above
@@ -480,6 +492,7 @@ spec:
             - rcc_portc
             - rcc_portd
             - rcc_rru_tr_preference
+            - realm
             - rruDomainName
             - rru_portc
             - rru_portd

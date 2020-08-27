@@ -91,6 +91,7 @@ func (in *Mosaic5gSpec) DeepCopyInto(out *Mosaic5gSpec) {
 	out.ThirdPartyCoreNetwork = in.ThirdPartyCoreNetwork
 	out.Snap = in.Snap
 	out.NodeFunction = in.NodeFunction
+	out.Realm = in.Realm
 	out.MmeIpAddr = in.MmeIpAddr
 	out.EutraBand = in.EutraBand
 	out.DownlinkFrequency = in.DownlinkFrequency
