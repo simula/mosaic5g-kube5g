@@ -26,9 +26,9 @@ spec:
   
   mcc: "208"
   mnc: "95"
-  eutraBand: "7"
-  downlinkFrequency: "2685000000L"
-  uplinkFrequencyOffset: "-120000000"
+  eutraBand: "13"
+  downlinkFrequency: "751000000L"
+  uplinkFrequencyOffset: "31000000"
   configurationPathofCN: "/var/snap/oai-cn/current/"
   configurationPathofRAN: "/var/snap/oai-ran/current/"
   snapBinaryPath: "/snap/bin/"
@@ -72,19 +72,19 @@ spec:
     description: "If the MME IP address is provided, the BS node connects to MME without waiting for S1-C relation. Default is an empty string."
     # type: string  
   eutra_band:
-    default: "7"
+    default: "13"
     description: "Setting the LTE  EUTRA frequency band."
     # type: int
   downlink_frequency:
-    default: "2685000000L"
+    default: "751000000L"
     description: "Setting the downlink frequency band."
     # type: string
   uplink_frequency_offset:
-    default: "-120000000"
+    default: "31000000"
     description: "Setting the uplink frequency offset."
     # type: string
   N_RB_DL:
-    default: "50"
+    default: "25"
     description: "Setting the bandwidth in terms of number of available PRBS, 25 (5MHz), 50 (10MHz), and 100 (20MHz)."
     # type: int
   nb_antennas_tx:
