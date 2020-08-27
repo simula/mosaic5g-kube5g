@@ -31,6 +31,20 @@ spec:
           spec:
             description: Mosaic5gSpec defines the desired state of Mosaic5g
             properties:
+              3rd_party_cn:
+                description: New Configurations of ENB
+                properties:
+                  cn_ip_addr:
+                    type: string
+                  description:
+                    type: string
+                  enable:
+                    type: string
+                required:
+                - cn_ip_addr
+                - description
+                - enable
+                type: object
               N_RB_DL:
                 description: GeneralDescription This is general description for every
                   parameters defined above
@@ -43,6 +57,13 @@ spec:
                 - default
                 - description
                 type: object
+              cassandraDomainName:
+                type: string
+              cassandraImage:
+                type: string
+              cassandraSize:
+                format: int32
+                type: integer
               cnImage:
                 type: string
               configurationPathofCN:
@@ -81,6 +102,8 @@ spec:
                 - description
                 type: object
               cuDomainName:
+                type: string
+              database:
                 type: string
               dns:
                 type: string
@@ -357,7 +380,8 @@ spec:
                 - description
                 type: object
               snap:
-                description: New Configurations of ENB
+                description: SnapDescription this type is to descripe the details
+                  of the snap to be used for the current application
                 properties:
                   channel:
                     type: string
@@ -405,7 +429,11 @@ spec:
                 - description
                 type: object
             required:
+            - 3rd_party_cn
             - N_RB_DL
+            - cassandraDomainName
+            - cassandraImage
+            - cassandraSize
             - cnImage
             - configurationPathofCN
             - configurationPathofRAN
@@ -413,6 +441,7 @@ spec:
             - cuDomainName
             - cu_portc
             - cu_portd
+            - database
             - dns
             - downlink_frequency
             - duDomainName

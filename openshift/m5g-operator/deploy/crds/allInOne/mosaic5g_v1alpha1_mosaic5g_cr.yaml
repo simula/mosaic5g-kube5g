@@ -6,6 +6,8 @@ spec:
   coreNetworkAllInOne: true
   # Add fields here
   # size: 1
+  database: "cassandra" # caqssandra or mysql
+  cassandraSize: 1
   mysqlSize: 1
   flexranSize: 1
   oaicnsize: 1
@@ -13,6 +15,7 @@ spec:
   oaimmesize: 1
   oaispgwsize: 1
   oairansize: 1
+  cassandraImage: "mosaic5gecosys/cassandra-m5g:1.1"
   mysqlImage: "mysql:5.6"
   flexranImage: "mosaic5gecosys/flexran:0.1"
   cnImage: "mosaic5gecosys/oaicn:1.0"
@@ -32,6 +35,7 @@ spec:
   hssDomainName: "oaicn"
   mmeDomainName: "oaicn"
   spgwDomainName: "oaicn"
+  cassandraDomainName: "cassandra"
   mysqlDomainName: "mysql"
   dns: "192.168.106.12"
   flexRAN: true
@@ -43,6 +47,10 @@ spec:
   rccDomainName: "ranrcc"
   rruDomainName: "ranrru"
   #############################################
+  3rd_party_cn:
+    description: "It indicates whether to use remote core network not running as pod in K8S. Tu use it, put enable to true"
+    enable: false
+    cn_ip_addr: "127.0.0.1"
   snap:
     description: "snap indicates which channel to use for the installation hook."
     name: "oai-ran"

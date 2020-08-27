@@ -15,6 +15,7 @@ type Mosaic5gSpec struct {
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	// Size         int32  `json:"size" yaml:"size"`
 	CoreNetworkAllInOne bool  `json:"coreNetworkAllInOne" yaml:"coreNetworkAllInOne"`
+	CassandraSize       int32 `json:"cassandraSize" yaml:"cassandraSize"`
 	MysqlSize           int32 `json:"mysqlSize" yaml:"mysqlSize"`
 	FlexranSize         int32 `json:"flexranSize" yaml:"flexranSize"`
 	OaiCnSize           int32 `json:"oaicnsize" yaml:"oaicnsize"`
@@ -23,13 +24,15 @@ type Mosaic5gSpec struct {
 	OaiSpgwSize         int32 `json:"oaispgwsize" yaml:"oaispgwsize"`
 	OaiRanSize          int32 `json:"oairansize" yaml:"oairansize"`
 
-	MysqlImage   string `json:"mysqlImage" yaml:"mysqlImage"`
-	CNImage      string `json:"cnImage" yaml:"cnImage"`
-	FlexranImage string `json:"flexranImage" yaml:"flexranImage"`
-	OaiHssImage  string `json:"oaiHssImage" yaml:"oaiHssImage"`
-	OaiMmeImage  string `json:"oaiMmeImage" yaml:"oaiMmeImage"`
-	OaiSpgwImage string `json:"oaiSpgwImage" yaml:"oaiSpgwImage"`
-	RANImage     string `json:"ranImage" yaml:"ranImage"`
+	Database       string `json:"database" yaml:"database"`
+	CassandraImage string `json:"cassandraImage" yaml:"cassandraImage"`
+	MysqlImage     string `json:"mysqlImage" yaml:"mysqlImage"`
+	CNImage        string `json:"cnImage" yaml:"cnImage"`
+	FlexranImage   string `json:"flexranImage" yaml:"flexranImage"`
+	OaiHssImage    string `json:"oaiHssImage" yaml:"oaiHssImage"`
+	OaiMmeImage    string `json:"oaiMmeImage" yaml:"oaiMmeImage"`
+	OaiSpgwImage   string `json:"oaiSpgwImage" yaml:"oaiSpgwImage"`
+	RANImage       string `json:"ranImage" yaml:"ranImage"`
 
 	MCC string `json:"mcc" yaml:"mcc"`
 	MNC string `json:"mnc" yaml:"mnc"`
@@ -44,12 +47,14 @@ type Mosaic5gSpec struct {
 	HssDomainName          string `json:"hssDomainName" yaml:"hssDomainName"`
 	MmeDomainName          string `json:"mmeDomainName" yaml:"mmeDomainName"`
 	SpgwDomainName         string `json:"spgwDomainName" yaml:"spgwDomainName"`
+	CassandraDomainName    string `json:"cassandraDomainName" yaml:"cassandraDomainName"`
 	MysqlDomainName        string `json:"mysqlDomainName" yaml:"mysqlDomainName"`
 	FlexRANDomainName      string `json:"flexRANDomainName" yaml:"flexRANDomainName"`
 	// New Configurations of ENB
-	Snap         SnapDescription    `json:"snap" yaml:"snap"`
-	NodeFunction GeneralDescription `json:"node_function" yaml:"node_function"`
-	MmeIpAddr    GeneralDescription `json:"mme_ip_addr" yaml:"mme_ip_addr"`
+	ThirdPartyCoreNetwork thirdPartyCNDescription `json:"3rd_party_cn" yaml:"3rd_party_cn"`
+	Snap                  SnapDescription         `json:"snap" yaml:"snap"`
+	NodeFunction          GeneralDescription      `json:"node_function" yaml:"node_function"`
+	MmeIpAddr             GeneralDescription      `json:"mme_ip_addr" yaml:"mme_ip_addr"`
 
 	EutraBand             GeneralDescription `json:"eutra_band" yaml:"eutra_band"`
 	DownlinkFrequency     GeneralDescription `json:"downlink_frequency" yaml:"downlink_frequency"`
@@ -101,6 +106,13 @@ type SnapDescription struct {
 	Devmode     bool   `json:"devmode" yaml:"devmode"`
 	Jailmode    bool   `json:"jailmode" yaml:"jailmode"`
 	// Type        string `json:"type" yaml:"type"`
+}
+
+// 3rdPartyCNDescription
+type thirdPartyCNDescription struct {
+	Description string `json:"description" yaml:"description"`
+	Enable      string `json:"enable" yaml:"enable"`
+	CNIPAddr    string `json:"cn_ip_addr" yaml:"cn_ip_addr"`
 }
 
 // Mosaic5gStatus defines the observed state of Mosaic5g

@@ -138,30 +138,39 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
+	databaseName := instance.Spec.Database
+	database := &appsv1.Deployment{}
+	databaseDeployment := r.deploymentForMySQL(instance)
+	databaseService := r.genMySQLService(instance)
+	if databaseName == "cassandra" {
+		databaseDeployment = r.deploymentForCassandra(instance)
+		databaseService = r.genCassandraService(instance)
+	}
+
 	// Define a new MySQL deployment
-	mysql := &appsv1.Deployment{}
-	mysqlDeployment := r.deploymentForMySQL(instance)
+	// mysql := &appsv1.Deployment{}
+	// mysqlDeployment := r.deploymentForMySQL(instance)
 	// Check if MySQL deployment already exists, if not create a new one
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: mysqlDeployment.GetName(), Namespace: instance.Namespace}, mysql)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: databaseDeployment.GetName(), Namespace: instance.Namespace}, database)
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", mysqlDeployment.Namespace, "Deployment.Name", mysqlDeployment.Name)
-		err = r.client.Create(context.TODO(), mysqlDeployment)
+		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", databaseDeployment.Namespace, "Deployment.Name", databaseDeployment.Name)
+		err = r.client.Create(context.TODO(), databaseDeployment)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", mysqlDeployment.Namespace, "Deployment.Name", mysqlDeployment.Name)
+			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", databaseDeployment.Namespace, "Deployment.Name", databaseDeployment.Name)
 			return reconcile.Result{}, err
 		}
 		// Define a new mysql service
-		mysqlService := r.genMySQLService(instance)
-		err = r.client.Create(context.TODO(), mysqlService)
+		// mysqlService := r.genMySQLService(instance)
+		err = r.client.Create(context.TODO(), databaseService)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", mysqlService.Namespace, "Service.Name", mysqlService.Name)
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", databaseService.Namespace, "Service.Name", databaseService.Name)
 			return reconcile.Result{}, err
 		}
 
 		// Deployment created successfully - return and requeue
 		return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
-		reqLogger.Error(err, "MySQL Failed to get Deployment")
+		reqLogger.Error(err, databaseName, " Failed to get Deployment")
 		return reconcile.Result{}, err
 	}
 
@@ -191,8 +200,8 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		// Check if the oai-cn deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: cnDeployment.GetName(), Namespace: instance.Namespace}, cn)
 		if err != nil && errors.IsNotFound(err) {
-			if mysql.Status.ReadyReplicas == 0 {
-				return reconcile.Result{Requeue: true}, Err.New("No mysql POD is ready")
+			if database.Status.ReadyReplicas == 0 {
+				return reconcile.Result{Requeue: true}, Err.New("No " + databaseName + " POD is ready")
 			}
 			reqLogger.Info("MME domain name " + instance.Spec.MmeDomainName)
 			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", cnDeployment.Namespace, "Deployment.Name", cnDeployment.Name)
@@ -229,8 +238,8 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		// Check if the oai-hss deployment already exists, if not create a new one
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: hssDeployment.GetName(), Namespace: instance.Namespace}, hss)
 		if err != nil && errors.IsNotFound(err) {
-			if mysql.Status.ReadyReplicas == 0 {
-				return reconcile.Result{Requeue: true}, Err.New("No mysql POD is ready")
+			if database.Status.ReadyReplicas == 0 {
+				return reconcile.Result{Requeue: true}, Err.New("No " + databaseName + " POD is ready")
 			}
 			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", hssDeployment.Namespace, "Deployment.Name", hssDeployment.Name)
 			err = r.client.Create(context.TODO(), hssDeployment)
@@ -1333,6 +1342,57 @@ func (r *ReconcileMosaic5g) deploymentForRANPhantom(m *mosaic5gv1alpha1.Mosaic5g
 	return dep
 }
 
+// deploymentForCassandra returns a Core Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForCassandra(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	//ls := util.LabelsForMosaic5g(m.Name + cnName)
+	var replicas int32
+	replicas = m.Spec.CassandraSize
+	labels := make(map[string]string)
+	labels["app"] = "database"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      m.Spec.CassandraDomainName,
+			Namespace: m.Namespace,
+			Labels:    labels,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					// NodeSelector: map[string]string{
+					// 	"usrp": "false"},
+					// 				docker run --name cassandra-docker -d -e CASSANDRA_CLUSTER_NAME="OAI HSS Cluster" \
+					//   -e CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch \
+					//   mosaic5gecosys/cassandra-m5g:1.0  # Create a cassandra container for the HSS
+
+					Containers: []corev1.Container{{
+						Image: m.Spec.CassandraImage,
+						Name:  "cassandra-docker",
+						Env: []corev1.EnvVar{
+							{Name: "CASSANDRA_CLUSTER_NAME", Value: "OAI HSS Cluster"},
+							{Name: "CASSANDRA_ENDPOINT_SNITCH", Value: "GossipingPropertyFileSnitch"},
+						},
+						// Ports: []corev1.ContainerPort{{
+						// 	ContainerPort: 3306,
+						// 	Name:          "cassandra",
+						// }},
+					}},
+					Affinity: util.GenAffinity("cn"),
+				},
+			},
+		},
+	}
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
 // deploymentForMySQL returns a Core Network Deployment object
 func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 	//ls := util.LabelsForMosaic5g(m.Name + cnName)
@@ -1678,6 +1738,27 @@ func (r *ReconcileMosaic5g) genRanPhantomService(m *mosaic5gv1alpha1.Mosaic5g) *
 		ClusterIP: "None",
 	}
 	service.Name = "oairanphantom"
+	service.Namespace = m.Namespace
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+// genCassandraService will generate a service for oaicn
+func (r *ReconcileMosaic5g) genCassandraService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	var service *v1.Service
+	selectMap := make(map[string]string)
+	selectMap["app"] = "database"
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		// Ports: []v1.ServicePort{
+		// 	{Name: "cassandra-port", Port: 3306},
+		// },
+		Selector: selectMap,
+		// Type:     "NodePort",
+		ClusterIP: "None",
+	}
+	service.Name = m.Spec.CassandraDomainName
 	service.Namespace = m.Namespace
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
