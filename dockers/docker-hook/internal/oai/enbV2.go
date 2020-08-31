@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func startENB(OaiObj Oai, buildSnap bool) error {
+func startENBV2(OaiObj Oai, buildSnap bool) error {
 	// get the configuration
 	c := OaiObj.Conf
 	// config filename of the snap
@@ -174,9 +174,10 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 		sedCommand = "175s:\".*;:\"" + mmeIP + "\";:g"
 		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
-		// OaiObj.Logger.Print("Start waiting for 60 seconds before running oai-enb")
-		// time.Sleep(180 * time.Second)
-		// OaiObj.Logger.Print("Finish waiting for 60 seconds before running oai-enb")
+		OaiObj.Logger.Print("Start waiting for 25 seconds before running oai-enb")
+		time.Sleep(170 * time.Second) // 170
+		// time.Sleep(150 * time.Second)
+		OaiObj.Logger.Print("Finish waiting for 25 seconds before running oai-enb")
 
 		OaiObj.Logger.Print("Start enb daemon")
 		// util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
@@ -184,6 +185,7 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 
 		retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
 		counter := 0
+		maxCounter := 5 //30
 		for {
 			if len(retStatus.Stderr) == 0 {
 				time.Sleep(5 * time.Second)
@@ -192,7 +194,7 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 				oairanStatus := strings.Join(retStatus.Stdout, " ")
 				checkInactive := strings.Contains(oairanStatus, "inactive")
 				if checkInactive != true {
-					if counter >= 30 {
+					if counter >= maxCounter {
 						break
 					}
 				} else {

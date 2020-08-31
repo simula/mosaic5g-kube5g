@@ -29,7 +29,7 @@ services:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules:ro
-      - /dev/bus/usb:/dev/bus/usb
+      - /dev/bus/usb/001/034:/dev/bus/usb/001/034
       - ./conf.yaml:/root/config/conf.yaml:ro
     networks:
       - oai
@@ -48,3 +48,8 @@ networks: # Define our network here
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 9000 # Configure mtu
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1

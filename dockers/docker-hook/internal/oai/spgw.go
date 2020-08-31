@@ -30,8 +30,8 @@ func startSpgw(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	OaiObj.Logger.Print("Configure spgw.conf")
 
 	// Get interface IP and outbound interface
-	interfaceIP := util.GetOutboundIP()
-	outInterface, _ := util.GetInterfaceByIP(interfaceIP)
+	interfaceIP := util.GetOutboundIP(OaiObj.Logger)
+	outInterface, _ := util.GetInterfaceByIP(OaiObj.Logger, interfaceIP)
 
 	if CnAllInOneMode == true {
 		// S-GW binded interface for S11 communication (GTPV2-C): interface name

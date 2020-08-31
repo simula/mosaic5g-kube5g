@@ -1,0 +1,17 @@
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:22 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:60: Star Initializing the database Cassandra
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:22 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:78: Database cassandra ip address is 127.0.0.1
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:22 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:115: cmdName=nodetool
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:22 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:117: args[0]=status
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:22 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:85: Error of getting the status of database cassandra: exec: "nodetool": executable file not found in $PATH
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:23 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:115: cmdName=nodetool
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:23 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:117: args[0]=status
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:23 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:85: Error of getting the status of database cassandra: exec: "nodetool": executable file not found in $PATH
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:24 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:115: cmdName=nodetool
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:24 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:117: args[0]=status
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:24 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:85: Error of getting the status of database cassandra: exec: "nodetool": executable file not found in $PATH
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:25 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:115: cmdName=nodetool
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:25 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:117: args[0]=status
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:25 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:85: Error of getting the status of database cassandra: exec: "nodetool": executable file not found in $PATH
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:26 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:115: cmdName=nodetool
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:26 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:117: args[0]=status
+[Mosaic5G-Cassandra DB] 2020/08/29 16:55:26 /home/cigarier/go/src/mosaic5g/docker-hook/cmd/cassandra/main.go:85: Error of getting the status of database cassandra: exec: "nodetool": executable file not found in $PATH

@@ -3,7 +3,8 @@
 # prepare ENVs
 #export KUBECONFIG=/home/agrion/kubernetes/aiyu
 export OPERATOR_NAME=m5g-operator
-export MYDNS="192.168.1.1"
+export MYDNS="192.168.106.10"
+export WATCH_NAMESPACE=default
 
 ###################################
 # colorful echos
@@ -130,7 +131,7 @@ install_k8s_local(){
     echo "Start a fresh microk8s and deploy operator on it, tested with Ubuntu 18.04"
     echo "sudo without password is recommended"
     sudo snap install microk8s --classic --channel=1.14/stable
-    sudo snap install kubectl --classic
+    sudo snap install kubectl --classic # --channel=1.15/stable
     microk8s.start
     sudo usermod -a -G microk8s $USER
     microk8s.enable dns
@@ -143,8 +144,51 @@ install_k8s_local(){
     # Restart kube
     sudo systemctl restart snap.microk8s.daemon-kubelet.service
     sudo systemctl restart snap.microk8s.daemon-apiserver.service
+
+    
     # Configure DNS if it's not working 
     # microk8s.kubectl -n kube-system edit configmap/coredns
+    # image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller-amd64:0.25.1
+# 
+}
+enable_dashboard(){
+    microk8s.enable dns
+    kubectl taint nodes cigarier node.kubernetes.io/unreachable-
+    microk8s.enable dashboard
+    token=$(microk8s kubectl -n kube-system get secret | grep default-token | cut -d " " -f1)
+    microk8s kubectl -n kube-system describe secret $token
+    # http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#/login
+
+
+}
+kubeflow_install(){
+    # The following command is optional. It adds the kfctl binary to your path.
+    # If you don't add kfctl to your path, you must use the full path
+    # each time you run kfctl.
+    # Use only alphanumeric characters or - in the directory name.
+    export PATH=$PATH:"/usr/bin/kfctl"
+
+    # Set KF_NAME to the name of your Kubeflow deployment. You also use this
+    # value as directory name when creating your configuration directory.
+    # For example, your deployment name can be 'my-kubeflow' or 'kf-test'.
+    export KF_NAME=mosaic5g-kubeflow
+
+    # Set the path to the base directory where you want to store one or more 
+    # Kubeflow deployments. For example, /opt/.
+    # Then set the Kubeflow application directory for this deployment.
+    export BASE_DIR=/opt/.
+    export KF_DIR=${BASE_DIR}/${KF_NAME}
+
+    # Set the configuration file to use when deploying Kubeflow.
+    # The following configuration installs Istio by default. Comment out 
+    # the Istio components in the config file to skip Istio installation. 
+    # See https://github.com/kubeflow/kubeflow/pull/3663
+    export CONFIG_URI="https://raw.githubusercontent.com/kubeflow/manifests/v1.0-branch/kfdef/kfctl_k8s_istio.v1.0.2.yaml"  
+
+    sudo mkdir -p ${KF_DIR}
+    cd ${KF_DIR}
+    sudo kfctl apply -V -f ${CONFIG_URI}  
+
 }
 install_k8s_cluster(){
     echo "Start the installation of Kubernetes cluster"

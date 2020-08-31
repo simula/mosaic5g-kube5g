@@ -1,3 +1,30 @@
+/*
+# Copyright (c) 2020 Eurecom
+################################################################################
+# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The OpenAirInterface Software Alliance licenses this file to You under
+# the Apache License, Version 2.0  (the "License"); you may not use this file
+# except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+# For more information about the OpenAirInterface (OAI) Software Alliance:
+#      contact@openairinterface.org
+################################################################################
+
+// This file is for installing the snaps inside docker images
+// Author: Osama Arouk, Kevin Hsi-Ping Hsu
+*/
+
 package oai
 
 import (
@@ -12,10 +39,10 @@ import (
 // installSnapCore : Install Core
 func installSnapCore(OaiObj Oai) {
 	//Install Core
-	OaiObj.Logger.Print("Installing core")
+	util.PrintFunc(OaiObj.Logger, "Installing core")
 	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "core")
 	if err != nil {
-		OaiObj.Logger.Print(err)
+		util.PrintFunc(OaiObj.Logger, err)
 	}
 	//Loop until package is installed
 	if !ret {
@@ -110,43 +137,26 @@ func installOaicn(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion s
 // installOairan : Install oai-ran snap
 func installOairan(OaiObj Oai) {
 	// Install oai-ran snap
-	OaiObj.Logger.Print("Installing oai-ran")
-	fmt.Println("Installing oai-ran")
+	util.PrintFunc(OaiObj.Logger, "Installing oai-ran")
 	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-ran")
 	if err != nil {
-		OaiObj.Logger.Print(err)
-		OaiObj.Logger.Print("err", err)
-		fmt.Println("err", err)
+		util.PrintFunc(OaiObj.Logger, err)
 	}
-	// if !ret {
-	// 	OaiObj.Logger.Print("installing oairan devmode")
-	// 	fmt.Println("installing oairan devmode")
-	// 	util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--devmode")
-	// 	OaiObj.Logger.Print("oairan devmode is installed")
-	// 	fmt.Println("oairan devmode is installed")
-	// }
-	///////////////////////////
+
 	if !ret {
 		if OaiObj.Conf.Snap.Channel == "stable" {
 			util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran")
-			OaiObj.Logger.Print("oairan stable is installed")
-			fmt.Println("oairan stable is installed")
+			util.PrintFunc(OaiObj.Logger, "oairan stable is installed")
 		} else {
 			if OaiObj.Conf.Snap.Devmode == true {
 				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--devmode")
-				OaiObj.Logger.Print("oairan devmode is installed")
+				util.PrintFunc(OaiObj.Logger, "oairan devmode is installed")
 			} else {
 				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--jailmode")
-				OaiObj.Logger.Print("oairan jailmode is installed")
+				util.PrintFunc(OaiObj.Logger, "oairan jailmode is installed")
 			}
 		}
 	}
-	///////////////////////////
-	//Wait a moment, cn is not ready yet !
-	OaiObj.Logger.Print("Wait 15 seconds... OK now cn should be ready")
-	fmt.Println("Wait 15 seconds... OK now cn should be ready")
-	// time.Sleep(15 * time.Second)
-
 }
 
 // installOaiHssV2 : Install oai-hss v2 snap
@@ -400,8 +410,9 @@ func installFlexRAN(OaiObj Oai) {
 		util.RunCmd(OaiObj.Logger, "snap", "install", "flexran", "--channel=edge", "--devmode")
 	}
 	//Wait a moment, cn is not ready yet !
-	OaiObj.Logger.Print("Wait 5 seconds... OK now flexran should be ready")
-	time.Sleep(5 * time.Second)
+	waitTime := 5
+	OaiObj.Logger.Print("Wait " + string(waitTime) + " seconds... OK now flexran should be ready")
+	time.Sleep(time.Duration(waitTime) * time.Second)
 
 }
 

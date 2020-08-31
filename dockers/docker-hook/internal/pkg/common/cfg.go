@@ -82,7 +82,7 @@ type Cfg struct {
 		Description string `yaml:"description"`
 		Type        string `yaml:"type"`
 	} `yaml:"node_function"`
-	MmeIpAddr struct {
+	MmeIPAddr struct {
 		Default     string `yaml:"default"`
 		Description string `yaml:"description"`
 		Type        string `yaml:"type"`
@@ -226,14 +226,14 @@ func (c *Cfg) GetConf(logger *log.Logger, path string) error {
 	//Read yaml here
 	yamlFile, err := ioutil.ReadFile(path)
 	if err != nil {
-		logger.Println(err.Error())
+		logger.Panicln(err.Error())
 		return err
 	}
 
 	err = yaml.Unmarshal(yamlFile, c)
 
 	if err != nil {
-		logger.Println(err.Error())
+		logger.Panicln(err.Error())
 		return err
 	}
 

@@ -12,8 +12,8 @@ import (
 
 func main() {
 	ctx := context.Background()
-	// cli, err := client.NewEnvClient()
-	cli, err := client.NewClientWithOpts(client.WithVersion("1.37"))
+	cli, err := client.NewEnvClient()
+	// cli, err := client.NewClientWithOpts(client.WithVersion("1.37"))
 	if err != nil {
 		panic(err)
 	}

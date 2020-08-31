@@ -53,8 +53,8 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	}
 
 	// Get interface ip and replace the default one
-	outInterfaceIP := util.GetOutboundIP()
-	outInterface, _ := util.GetInterfaceByIP(outInterfaceIP)
+	outInterfaceIP := util.GetOutboundIP(OaiObj.Logger)
+	outInterface, _ := util.GetInterfaceByIP(OaiObj.Logger, outInterfaceIP)
 
 	// MME binded interface for S1-C or S1-MME  communication (S1AP): interface name
 	sedCommand = "s:MME_INTERFACE_NAME_FOR_S1_MME.*;:MME_INTERFACE_NAME_FOR_S1_MME         = \"" + outInterface + "\";:g"

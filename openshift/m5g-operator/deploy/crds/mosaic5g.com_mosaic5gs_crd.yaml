@@ -1,4 +1,4 @@
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: mosaic5gs.mosaic5g.com
@@ -10,465 +10,478 @@ spec:
     plural: mosaic5gs
     singular: mosaic5g
   scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      description: Mosaic5g is the Schema for the mosaic5gs API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: Mosaic5gSpec defines the desired state of Mosaic5g
-          properties:
-            N_RB_DL:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            cnImage:
-              type: string
-            configurationPathofCN:
-              type: string
-            configurationPathofRAN:
-              type: string
-            coreNetworkAllInOne:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                Important: Run "operator-sdk generate k8s" to regenerate code after
-                modifying this file Add custom validation using kubebuilder tags:
-                https://book.kubebuilder.io/beyond_basics/generating_crd.html Size         int32  `json:"size"
-                yaml:"size"`'
-              type: boolean
-            cu_portc:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            cu_portd:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            cuDomainName:
-              type: string
-            dns:
-              type: string
-            downlink_frequency:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            du_portc:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            du_portd:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            duDomainName:
-              type: string
-            enb_id:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            enb_name:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            eutra_band:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            flexRAN:
-              description: EutraBand              string `json:"eutraBand" yaml:"eutraBand"`
-                DownlinkFrequency      string `json:"downlinkFrequency" yaml:"downlinkFrequency"`
-                UplinkFrequencyOffset  string `json:"uplinkFrequencyOffset" yaml:"uplinkFrequencyOffset"`
-              type: boolean
-            flexRANDomainName:
-              type: string
-            hssDomainName:
-              type: string
-            max_rxgain:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            mcc:
-              type: string
-            mme_ip_addr:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            mmeDomainName:
-              type: string
-            mnc:
-              type: string
-            mysqlDomainName:
-              type: string
-            mysqlImage:
-              type: string
-            mysqlSize:
-              format: int32
-              type: integer
-            nb_antennas_rx:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            nb_antennas_tx:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            node_function:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            oaiHssImage:
-              type: string
-            oaiMmeImage:
-              type: string
-            oaiSpgwImage:
-              type: string
-            oaicnsize:
-              format: int32
-              type: integer
-            oaihsssize:
-              format: int32
-              type: integer
-            oaimmesize:
-              format: int32
-              type: integer
-            oairansize:
-              format: int32
-              type: integer
-            oaispgwsize:
-              format: int32
-              type: integer
-            parallel_config:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            ranImage:
-              type: string
-            rcc_portc:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            rcc_portd:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            rcc_rru_tr_preference:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            rccDomainName:
-              type: string
-            rru_portc:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            rru_portd:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            rruDomainName:
-              type: string
-            rx_gain:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            snap:
-              description: New Configurations of ENB
-              properties:
-                channel:
-                  type: string
-                description:
-                  type: string
-                devmode:
-                  type: boolean
-                jailmode:
-                  type: boolean
-                name:
-                  type: string
-              required:
-              - channel
-              - description
-              - devmode
-              - jailmode
-              - name
-              type: object
-            snapBinaryPath:
-              type: string
-            spgwDomainName:
-              type: string
-            tx_gain:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-            uplink_frequency_offset:
-              description: GeneralDescription This is general description for every
-                parameters defined above
-              properties:
-                default:
-                  type: string
-                description:
-                  type: string
-              required:
-              - default
-              - description
-              type: object
-          required:
-          - N_RB_DL
-          - cnImage
-          - configurationPathofCN
-          - configurationPathofRAN
-          - coreNetworkAllInOne
-          - cuDomainName
-          - cu_portc
-          - cu_portd
-          - dns
-          - downlink_frequency
-          - duDomainName
-          - du_portc
-          - du_portd
-          - enb_id
-          - enb_name
-          - eutra_band
-          - flexRAN
-          - flexRANDomainName
-          - hssDomainName
-          - max_rxgain
-          - mcc
-          - mmeDomainName
-          - mme_ip_addr
-          - mnc
-          - mysqlDomainName
-          - mysqlImage
-          - mysqlSize
-          - nb_antennas_rx
-          - nb_antennas_tx
-          - node_function
-          - oaiHssImage
-          - oaiMmeImage
-          - oaiSpgwImage
-          - oaicnsize
-          - oaihsssize
-          - oaimmesize
-          - oairansize
-          - oaispgwsize
-          - parallel_config
-          - ranImage
-          - rccDomainName
-          - rcc_portc
-          - rcc_portd
-          - rcc_rru_tr_preference
-          - rruDomainName
-          - rru_portc
-          - rru_portd
-          - rx_gain
-          - snap
-          - snapBinaryPath
-          - spgwDomainName
-          - tx_gain
-          - uplink_frequency_offset
-          type: object
-        status:
-          description: Mosaic5gStatus defines the observed state of Mosaic5g
-          properties:
-            nodes:
-              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                of cluster Important: Run "operator-sdk generate k8s" to regenerate
-                code after modifying this file Add custom validation using kubebuilder
-                tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html'
-              items:
-                type: string
-              type: array
-          required:
-          - nodes
-          type: object
-      type: object
-  version: v1alpha1
   versions:
   - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Mosaic5g is the Schema for the mosaic5gs API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Mosaic5gSpec defines the desired state of Mosaic5g
+            properties:
+              N_RB_DL:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              cassandraDomainName:
+                type: string
+              cassandraImage:
+                description: MysqlImage     string `json:"mysqlImage" yaml:"mysqlImage"`
+                type: string
+              cassandraSize:
+                description: MysqlSize           int32 `json:"mysqlSize" yaml:"mysqlSize"`
+                format: int32
+                type: integer
+              cnImage:
+                type: string
+              configurationPathofCN:
+                type: string
+              configurationPathofRAN:
+                type: string
+              coreNetworkAllInOne:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "operator-sdk generate k8s" to regenerate code after
+                  modifying this file Add custom validation using kubebuilder tags:
+                  https://book.kubebuilder.io/beyond_basics/generating_crd.html Size         int32  `json:"size"
+                  yaml:"size"`'
+                type: boolean
+              cu_portc:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              cu_portd:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              cuDomainName:
+                type: string
+              dns:
+                type: string
+              downlink_frequency:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              du_portc:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              du_portd:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              duDomainName:
+                type: string
+              enb_name:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              eutra_band:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              flexRAN:
+                description: EutraBand              string `json:"eutraBand" yaml:"eutraBand"`
+                  DownlinkFrequency      string `json:"downlinkFrequency" yaml:"downlinkFrequency"`
+                  UplinkFrequencyOffset  string `json:"uplinkFrequencyOffset" yaml:"uplinkFrequencyOffset"`
+                type: boolean
+              flexRANDomainName:
+                type: string
+              flexranImage:
+                type: string
+              flexranSize:
+                format: int32
+                type: integer
+              hssDomainName:
+                type: string
+              max_rxgain:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              mcc:
+                type: string
+              mmeDomainName:
+                type: string
+              mnc:
+                type: string
+              mysqlDomainName:
+                type: string
+              nb_antennas_rx:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              nb_antennas_tx:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              node_function:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              oaiCnSize:
+                format: int32
+                type: integer
+              oaiHssImage:
+                type: string
+              oaiHssSize:
+                format: int32
+                type: integer
+              oaiMmeImage:
+                type: string
+              oaiMmeSize:
+                format: int32
+                type: integer
+              oaiRanSize:
+                format: int32
+                type: integer
+              oaiSpgwcImage:
+                description: OaiSpgwImage   string `json:"oaiSpgwImage" yaml:"oaiSpgwImage"`
+                type: string
+              oaiSpgwcSize:
+                description: OaiSpgwSize         int32  `json:"oaispgwsize" yaml:"oaispgwsize"`
+                format: int32
+                type: integer
+              oaiSpgwuImage:
+                type: string
+              oaiSpgwuSize:
+                format: int32
+                type: integer
+              parallel_config:
+                description: EnbId                 GeneralDescription `json:"enb_id"
+                  yaml:"enb_id"`
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              ranImage:
+                type: string
+              rcc_portc:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              rcc_portd:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              rcc_rru_tr_preference:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              rccDomainName:
+                type: string
+              realm:
+                description: New Configurations of ENB
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              rru_portc:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              rru_portd:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              rruDomainName:
+                type: string
+              rx_gain:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              snap:
+                description: SnapDescription this type is to descripe the details
+                  of the snap to be used for the current application
+                properties:
+                  channel:
+                    type: string
+                  description:
+                    type: string
+                  devmode:
+                    type: boolean
+                  jailmode:
+                    type: boolean
+                  name:
+                    type: string
+                required:
+                - channel
+                - description
+                - devmode
+                - jailmode
+                - name
+                type: object
+              snapBinaryPath:
+                type: string
+              spgwDomainName:
+                type: string
+              spgwcDomainName:
+                type: string
+              spgwuDomainName:
+                type: string
+              tx_gain:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+              uplink_frequency_offset:
+                description: GeneralDescription This is general description for every
+                  parameters defined above
+                properties:
+                  default:
+                    type: string
+                  description:
+                    type: string
+                required:
+                - default
+                - description
+                type: object
+            required:
+            - N_RB_DL
+            - cassandraDomainName
+            - cassandraImage
+            - cassandraSize
+            - cnImage
+            - configurationPathofCN
+            - configurationPathofRAN
+            - coreNetworkAllInOne
+            - cuDomainName
+            - cu_portc
+            - cu_portd
+            - dns
+            - downlink_frequency
+            - duDomainName
+            - du_portc
+            - du_portd
+            - enb_name
+            - eutra_band
+            - flexRAN
+            - flexRANDomainName
+            - flexranImage
+            - flexranSize
+            - hssDomainName
+            - max_rxgain
+            - mcc
+            - mmeDomainName
+            - mnc
+            - mysqlDomainName
+            - nb_antennas_rx
+            - nb_antennas_tx
+            - node_function
+            - oaiCnSize
+            - oaiHssImage
+            - oaiHssSize
+            - oaiMmeImage
+            - oaiMmeSize
+            - oaiRanSize
+            - oaiSpgwcImage
+            - oaiSpgwcSize
+            - oaiSpgwuImage
+            - oaiSpgwuSize
+            - parallel_config
+            - ranImage
+            - rccDomainName
+            - rcc_portc
+            - rcc_portd
+            - rcc_rru_tr_preference
+            - realm
+            - rruDomainName
+            - rru_portc
+            - rru_portd
+            - rx_gain
+            - snap
+            - snapBinaryPath
+            - spgwDomainName
+            - spgwcDomainName
+            - spgwuDomainName
+            - tx_gain
+            - uplink_frequency_offset
+            type: object
+          status:
+            description: Mosaic5gStatus defines the observed state of Mosaic5g
+            properties:
+              nodes:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                  code after modifying this file Add custom validation using kubebuilder
+                  tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html'
+                items:
+                  type: string
+                type: array
+            required:
+            - nodes
+            type: object
+        type: object
     served: true
     storage: true

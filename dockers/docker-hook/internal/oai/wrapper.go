@@ -2,6 +2,7 @@ package oai
 
 import (
 	"fmt"
+	"mosaic5g/docker-hook/internal/pkg/util"
 	"os"
 	"time"
 )
@@ -204,32 +205,24 @@ func StartSPGWUV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) {
 func InstallRAN(OaiObj Oai) {
 
 	// Install oai-ran snap
-	OaiObj.Logger.Print("Installing RAN")
-	fmt.Println("Installing RAN")
+	util.PrintFunc(OaiObj.Logger, "Installing RAN")
 	installOairan(OaiObj)
-	OaiObj.Logger.Print("RAN is installed")
-	fmt.Println("RAN RAN is installed")
+	util.PrintFunc(OaiObj.Logger, "RAN is installed")
 }
 
 //StartENB is a wrapper for configuring and starting OAI RAN services
 func StartENB(OaiObj Oai, snapVersion string, build bool) {
 	if snapVersion == "v1" {
 
-		OaiObj.Logger.Print("Starting RAN for core network v1")
-		fmt.Println("Starting RAN for core network v1")
+		util.PrintFunc(OaiObj.Logger, "Starting RAN for core network v1")
 		startENB(OaiObj, build)
-		OaiObj.Logger.Print("RAN for core network v1 is started")
-		fmt.Println("RAN for core network v1 is started")
+		util.PrintFunc(OaiObj.Logger, "RAN for core network v1 is started")
 	} else if snapVersion == "v2" {
-		OaiObj.Logger.Print("Starting RAN for core network v2")
-		fmt.Println("Starting RAN for core network v2")
+		util.PrintFunc(OaiObj.Logger, "Starting RAN for core network v2")
 		startENBV2(OaiObj, build)
-		OaiObj.Logger.Print("RAN for core network v2 is started")
-		fmt.Println("RAN for core network v2 is started")
+		util.PrintFunc(OaiObj.Logger, "RAN for core network v2 is started")
 	} else {
-		OaiObj.Logger.Print("Error while trying to install oai core entity: snap version", snapVersion, " is not recognized")
-		OaiObj.Logger.Print("The allowed values of ", snapVersion, " are: v1, v2")
-		os.Exit(1)
+		util.PrintFuncFatal(OaiObj.Logger, "Error while trying to install oai core entity: snap version", snapVersion, " is not recognized")
 	}
 }
 
@@ -286,10 +279,10 @@ func InstallFlexRAN(OaiObj Oai) {
 }
 
 //StartFlexRAN is a wrapper for installing FlexRAN
-func StartFlexRAN(OaiObj Oai) {
+func StartFlexRAN(OaiObj Oai, buildSnap bool) {
 
 	// start FlexRAN
-	startFlexRAN(OaiObj)
+	startFlexRAN(OaiObj, buildSnap)
 }
 
 //InstallMEC is a wrapper for installing LL-MEC
