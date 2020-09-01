@@ -213,7 +213,6 @@ func InstallRAN(OaiObj Oai) {
 //StartENB is a wrapper for configuring and starting OAI RAN services
 func StartENB(OaiObj Oai, snapVersion string, build bool) {
 	if snapVersion == "v1" {
-
 		util.PrintFunc(OaiObj.Logger, "Starting RAN for core network v1")
 		startENB(OaiObj, build)
 		util.PrintFunc(OaiObj.Logger, "RAN for core network v1 is started")

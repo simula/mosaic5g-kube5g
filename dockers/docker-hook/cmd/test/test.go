@@ -1,105 +1,201 @@
 package main
 
-/*
-# Copyright (c) 2020 Eurecom
-################################################################################
-# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The OpenAirInterface Software Alliance licenses this file to You under
-# the Apache License, Version 2.0  (the "License"); you may not use this file
-# except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#-------------------------------------------------------------------------------
-# For more information about the OpenAirInterface (OAI) Software Alliance:
-#      contact@openairinterface.org
-################################################################################
-
-// This hook is made for installing and configuring snaps inside docker
-// Author: Osama Arouk, Kevin Hsi-Ping Hsu
-*/
 import (
-	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
-	"mosaic5g/docker-hook/internal/oai"
+	"mosaic5g/docker-hook/internal/pkg/util"
+	"net"
+	"os"
+	"time"
 
-	"github.com/go-cmd/cmd"
+	"github.com/joho/godotenv"
+	"gopkg.in/yaml.v2"
 )
 
-const (
-	logPath  = "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/hook.log"
-	confPath = "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/conf.yaml"
-)
+type conf struct {
+	//////////////////////
+	logFile *os.File    // File for log to write something
+	Logger  *log.Logger // Collect log
+	Snap    struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"snap"`
+	Node_function struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"node_function"`
+	Target_hardware struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"target_hardware"`
+	Mme_ip_addr struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"mme_ip_addr"`
+	Eutra_band struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"eutra_band"`
+	Downlink_frequency struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"downlink_frequency"`
+	Uplink_frequency_offset struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"uplink_frequency_offset"`
+	N_RB_DL struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"N_RB_DL"`
+	Nb_antennas_tx struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"nb_antennas_tx"`
+	Nb_antennas_rx struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"nb_antennas_rx"`
+	Tx_gain struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"tx_gain"`
+	Rx_gain struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"rx_gain"`
+	Enb_name struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"enb_name"`
+	Enb_id struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"enb_id"`
+	Parallel_config struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"parallel_config"`
+	Max_rxgain struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"max_rxgain"`
+	////////////////////////
+	// Configurations of ENB
+	MCC                       string `yaml:"mcc"`
+	MNC                       string `yaml:"mnc"`
+	EutraBand_old             string `yaml:"eutraBand"`
+	DownlinkFrequency_old     string `yaml:"downlinkFrequency"`
+	UplinkFrequencyOffset_old string `yaml:"uplinkFrequencyOffset"`
+	FlexRAN                   bool   `yaml:"flexRAN"`
+	// Global setting
+	ConfigurationPathofCN  string `yaml:"configurationPathofCN"`
+	ConfigurationPathofRAN string `yaml:"configurationPathofRAN"`
+	SnapBinaryPath         string `yaml:"snapBinaryPath"`
+	DNS                    string `yaml:"dns"`
+	HssDomainName          string `yaml:"hssDomainName"`
+	MmeDomainName          string `yaml:"mmeDomainName"`
+	SpgwDomainName         string `yaml:"spgwDomainName"`
+	MysqlDomainName        string `yaml:"mysqlDomainName"`
+	FlexRANDomainName      string `yaml:"flexRANDomainName"`
+	Test                   bool   `yaml:"test"` //test configuring without changing any file; No snap is installed
+	Bar                    struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+		Type        string `yaml:"type"`
+	} `yaml:"bar"`
+}
+
+// init is invoked before main()
+func init() {
+	// loads values from .env into the system
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
+}
+
+func (c *conf) getConf() *conf {
+
+	yamlFile, err := ioutil.ReadFile("test_conf.yaml")
+
+	if err != nil {
+		log.Printf("yamlFile.Get err   #%v ", err)
+	}
+	err = yaml.Unmarshal(yamlFile, c)
+	if err != nil {
+		log.Fatalf("Unmarshal: %v", err)
+	}
+	//fmt.Println("yamlFile=", c)
+	//var logg *loggerTest
+	newFile, err := os.Create("/home/borer/go/src/dockerhook-test/hook.log")
+	if err != nil {
+		fmt.Printf("error occured= \t ")
+	}
+	//fmt.Printf(newFile.Name())
+	c.logFile = newFile
+
+	//////////////
+	c.Logger = log.New(c.logFile, "[Debug]"+time.Now().Format("2006-01-02 15:04:05")+" ", log.Lshortfile)
+
+	enbConf := "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/enb.config"
+	//enbConf := c.ConfigurationPathofRAN + "enb.band7.tm1.50PRB.usrpb210.conf"
+	sedCommand := ""
+	mmeIP := "sdvjnsd"
+	sedCommand = "s:mme_ip_address *= *( *{ *ipv4 *= *\".*\" *;:mme_ip_address      = ( { ipv4       = \"" + mmeIP + "\"" + ";:g"
+	// sedCommand = "175s:\".*;:\"" + mmeIP + "\";:g"
+	util.RunCmd(c.Logger, "sed", "-i", sedCommand, enbConf)
+
+	host, err := net.LookupAddr("192.168.12.85")
+	fmt.Println("err=", err)
+	fmt.Println("HOST=", host)
+
+	return c
+}
+
+type loggerTest struct {
+	logFile *os.File    // File for log to write something
+	Logger  *log.Logger // Collect log
+
+}
 
 func main() {
-	// Initialize oai struct
-	OaiObj := oai.Oai{}
-	err := OaiObj.Init(logPath, confPath)
-	if err != nil {
-		panic(err)
-	}
+	var c conf
+	c.getConf()
 
-	OaiObj.Logger.Print("Init of OAI is successful")
-	fmt.Println("Init of OAI is successful")
+	//fmt.Println("Hellow\n sdfs")
+	//fmt.Println(c.Bar)
+	//fmt.Println("NodeFunction=", c.Node_function.Default)
+	//fmt.Println("Description=", c.Bar.Description)
+	//fmt.Println("MNC=", c.MCC)
 
-	//Install snap core
-	OaiObj.Logger.Print("Installing snap")
-	fmt.Println("Installing snap")
-	oai.InstallSnap(OaiObj)
-	interfaceName := "wlp2s0"
-	ret := RunCmd(OaiObj.Logger, "ifconfig", interfaceName)
-	if ret.Exit != 0 {
-		fmt.Println("127.0.1.10", errors.New("Fail to run ifconfig"))
-	}
-	if len(ret.Stdout) <= 0 {
-		fmt.Println("127.0.1.10", errors.New("Fail to get result"))
-	}
-	OaiObj.Logger.Print("ret=", ret)
-	fmt.Println("ret=", ret)
-	log.Fatal(errors.New("Fail to get result log.Fatal"))
-	PrintFunc(OaiObj.Logger, "finalStatus.Cmd", errors.New("Fail to get result"))
-}
+	//v := reflect.ValueOf(c)
 
-// RunCmd will run external commands in sync. Return stdout[0].
-func RunCmd(logger *log.Logger, cmdName string, args ...string) cmd.Status {
-	PrintFunc(logger, "cmdName= "+cmdName)
-	for i := 0; i < len(args); i++ {
-		PrintFunc(logger, "args["+string(i)+"]="+args[i])
-	}
-	installSnap := cmd.NewCmd(cmdName, args...)
-	finalStatus := <-installSnap.Start() // block and wait
-	PrintFunc(logger, finalStatus)
-	PrintFunc(logger, finalStatus.Cmd)
+	//values := make([]interface{}, v.NumField())
 
-	return finalStatus
-}
+	//for i := 0; i < v.NumField(); i++ {
+	//	values[i] = v.Field(i).Interface()
+	//fmt.Println("values[", i, "]=", values[i])
+	//if i == 16 {
+	//fmt.Println("HELLO WORLD")
+	//fmt.Printf("Value: %#v \n", c.Bar)
+	//}
+	//}
 
-// //PrintFunc will return if this package is already exist or not
-// func PrintFunc(logger *log.Logger, massage interface{}) {
-// 	logger.Print(massage)
-// 	fmt.Println(massage)
-// }
-
-//PrintFunc PrintFunc
-func PrintFunc(logger *log.Logger, args ...interface{}) {
-	switch len(args) {
-	case 1:
-		logger.Print(args[0])
-		fmt.Println(args[0])
-	case 2:
-		logger.Print(args[0], args[1])
-		fmt.Println(args[0], args[1])
-	default:
-		logger.Print("Unexpected number of variables")
-		panic("Unexpected number of variables")
-	}
 }

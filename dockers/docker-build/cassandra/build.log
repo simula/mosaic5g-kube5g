@@ -1,0 +1,30 @@
+Sending build context to Docker daemon  3.265MB
+Step 1/8 : FROM mosaic5gecosys/cassandra-m5g:1.0
+ ---> cdb72138b74b
+Step 2/8 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
+ ---> Using cache
+ ---> 2a1de392162a
+Step 3/8 : ENV container docker
+ ---> Running in 3452978753e6
+Removing intermediate container 3452978753e6
+ ---> d43e8a667fcb
+Step 4/8 : RUN cp /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint_tmp.sh
+ ---> Running in 37f7c6b86e8d
+Removing intermediate container 37f7c6b86e8d
+ ---> 2376715f5ac9
+Step 5/8 : RUN sed '3a /root/hook &' /usr/local/bin/docker-entrypoint_tmp.sh  > /usr/local/bin/docker-entrypoint_tmp2.sh
+ ---> Running in 77c05539254d
+Removing intermediate container 77c05539254d
+ ---> c4f0cb264d64
+Step 6/8 : RUN cp /usr/local/bin/docker-entrypoint_tmp2.sh /usr/local/bin/docker-entrypoint.sh
+ ---> Running in d038d248563d
+Removing intermediate container d038d248563d
+ ---> 6c076c975b50
+Step 7/8 : COPY ./hook /root/
+ ---> 31bfe0ad4d17
+Step 8/8 : RUN touch /root/hook.log
+ ---> Running in d883b16531c2
+Removing intermediate container d883b16531c2
+ ---> 5da96f37f39e
+Successfully built 5da96f37f39e
+Successfully tagged mosaic5gecosys/cassandra-m5g:1.1

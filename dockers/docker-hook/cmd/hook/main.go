@@ -1,5 +1,3 @@
-package main
-
 /*
 # Copyright (c) 2020 Eurecom
 ################################################################################
@@ -24,8 +22,10 @@ package main
 ################################################################################
 
 // This hook is made for installing and configuring snaps inside docker
-// Author: Osama Arouk, Kevin Hsi-Ping Hsu
+// Author: Osama Arouk (arouk@eurcom.fr), Kevin Hsi-Ping Hsu
 */
+package main
+
 import (
 	"flag"
 	"fmt"
@@ -36,20 +36,21 @@ import (
 const (
 	logPath  = "/root/hook.log"
 	confPath = "/root/config/conf.yaml"
+
+	oaicnLogPathV1  = "/root/hook-oaicn-v1.log"
+	oaicnConfPathV1 = "/root/config/conf-oaicn-v1.yaml"
+
+	oaicnLogPathV2  = "/root/hook-oaicn-v2.log"
+	oaicnConfPathV2 = "/root/config/conf-oaicn-v2.yaml"
+
+	oairanLogPathV2  = "/root/hook-oairan-v2.log"
+	oairanConfPathV2 = "/root/config/conf-oairan-v2.yaml"
 )
 
 func main() {
-	// Initialize oai struct
-	OaiObj := oai.Oai{}
-	err := OaiObj.Init(logPath, confPath)
-	if err != nil {
-		panic(err)
-	}
-
-	util.PrintFunc(OaiObj.Logger, "Init of OAI is successful")
 
 	// Parse input flags
-	util.PrintFunc(OaiObj.Logger, "Starting parsing input parameters")
+	fmt.Println("Starting parsing input parameters")
 	installCN := flag.Bool("installCN", false, "Bool value to define that the hook will install and configure oai-cn inside the docker image")
 	installRAN := flag.Bool("installRAN", false, "Bool value to define that the hook will install and configure oai-ran inside the docker image")
 	installHSS := flag.Bool("installHSS", false, "Bool value to define that the hook will install and configure oai-hss inside the docker image")
@@ -64,32 +65,35 @@ func main() {
 	flag.StringVar(&snapVersion, "snapVersion", "v2", "a string value to specify the snap version that will be used to build the docker image. Valid values: v1, v2")
 	flag.Parse()
 
-	//Install snap core
-	util.PrintFunc(OaiObj.Logger, "Installing snap")
-	oai.InstallSnap(OaiObj)
-
 	// Decide actions based on flags
 	CnAllInOneMode := true
 	buildSnap := false
 	if *buildImage {
 		buildSnap = true
 	}
+	var OaiObj oai.Oai
 	if *installCN {
+		// Initialize oai struct
+		OaiObj = oaiInit("cn")
+
 		util.PrintFunc(OaiObj.Logger, "Installing CN")
 		oai.InstallCN(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
 		util.PrintFunc(OaiObj.Logger, "Starting CN")
 		oai.StartCN(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
 		util.PrintFunc(OaiObj.Logger, "CN is started: exit")
 	} else if *installRAN {
+		// Initialize oai struct
+		OaiObj = oaiInit("ran")
+
 		util.PrintFunc(OaiObj.Logger, "Installing RAN")
 		oai.InstallRAN(OaiObj)
 		// Define the functionality of the snap: oai-enb, oai-cu, oai-du, oai-rcc, oai-rru
-		RanNodeFunction := OaiObj.Conf.NodeFunction.Default
+		RanNodeFunction := OaiObj.ConfOaiRan.OaiRanConf.ComponentCarriers.NodeFunction
 		fmt.Println(RanNodeFunction)
 		if (RanNodeFunction == "ENB") || (RanNodeFunction == "enb") {
-			util.PrintFunc(OaiObj.Logger, "Starting RAN")
+			util.PrintFunc(OaiObj.Logger, "Starting RAN ENB")
 			oai.StartENB(OaiObj, snapVersion, buildSnap)
-			util.PrintFunc(OaiObj.Logger, "RAN Started: exit")
+			util.PrintFunc(OaiObj.Logger, "RAN ENB Started: exit")
 		} else if (RanNodeFunction == "CU") || (RanNodeFunction == "cu") {
 			util.PrintFunc(OaiObj.Logger, "Starting RAN CU")
 			oai.StartCu(OaiObj)
@@ -166,4 +170,16 @@ func main() {
 	// Give a hello when program ends
 	OaiObj.Logger.Print("End of hook")
 	OaiObj.Clean()
+}
+
+func oaiInit(entity string) oai.Oai {
+	// Initialize oai struct
+	OaiObj := oai.Oai{}
+	OaiObj.Init(entity)
+	util.PrintFunc(OaiObj.Logger, "Init of OAI is successful")
+
+	//Install snap core
+	util.PrintFunc(OaiObj.Logger, "Installing snap")
+	oai.InstallSnap(OaiObj)
+	return OaiObj
 }
