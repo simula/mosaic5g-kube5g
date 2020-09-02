@@ -4,6 +4,7 @@ import (
 	"errors"
 	"mosaic5g/docker-hook/internal/pkg/util"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -130,7 +131,7 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 			// Get flexRAN ip
 			flexranIface = "eth0"
 			OaiObj.Logger.Print("Configure FlexRAN Parameters")
-			flexranIP, err = util.GetIPFromDomain(OaiObj.Logger, c.FlexRANDomainName)
+			flexranIP, err = util.GetIPFromDomain(OaiObj.Logger, cnf.NetworkController.FlexRANDomainName)
 			if err != nil {
 				OaiObj.Logger.Print(err)
 				OaiObj.Logger.Print("Getting IP of FlexRAN failed, try again later")
@@ -149,13 +150,79 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 	}
 
 	// parallel_config
-	sedCommand = "s:parallel_config.*;:parallel_config    = \"" + c.ParallelConfig.Default + "\";:g"
+	sedCommand = "s:parallel_config.*;:parallel_config    = \"" + cnf.ThreadStruct.ParallelConfig + "\";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// max_rxgain
-	sedCommand = "s:max_rxgain.*;:max_rxgain     = " + c.MaxRxGain.Default + ";:g"
+	sedCommand = "s:max_rxgain.*;:max_rxgain     = " + string(cnf.Rus.MaxRxGain) + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
+	// max_pdschReferenceSignalPower
+	sedCommand = "s:max_pdschReferenceSignalPower.*;:max_pdschReferenceSignalPower     = " + string(cnf.Rus.MaxPdschReferenceSignalPower) + ";:g"
+	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+
+	// X2-HO
+	if cnf.X2Ho.EnableX2 == "yes" {
+		// enable_x2
+		sedCommand = "s:enable_x2.*;:enable_x2     = " + "yes" + ";:g"
+		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+		if cnf.X2Ho.MasterNode {
+			// Master eNB
+
+		} else {
+			// Slave eNB
+			for i := 0; i < len(cnf.X2Ho.TargetEnbX2IPAddress); i++ {
+				var remoteEnbIp string
+				if (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName != "" {
+					// Master eNB defined by domain; getting the ip address
+					remoteEnbIp, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
+					for {
+						if err != nil {
+							util.PrintFunc(OaiObj.Logger, err)
+						} else {
+							hostNameRemoteEnb, err := net.LookupHost(remoteEnbIp)
+							if len(hostNameRemoteEnb) > 0 {
+								// time.Sleep(3 * time.Second)
+								break
+							} else {
+								util.PrintFunc(OaiObj.Logger, err)
+							}
+						}
+						util.PrintFunc(OaiObj.Logger, "Valid ip address for master eNB not yet retreived")
+						time.Sleep(1 * time.Second)
+						remoteEnbIp, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
+					}
+				} else {
+					// The ip address of master eNB is defined
+					remoteEnbIp = (cnf.X2Ho.TargetEnbX2IPAddress[i]).Ipv4
+				}
+				// sed -n "/NETWORK_INTERFACES/="  mante.eucnc.orig.95.conf
+				sedCommand = "/NETWORK_INTERFACES/="
+				retStatus := util.RunCmd(OaiObj.Logger, "sed", "-n", sedCommand, enbConf)
+
+				number, _ := strconv.ParseUint(retStatus.Stdout[0], 10, 32)
+				lineNumber := strconv.Itoa(int(number - 1))
+				sedCommand1 := lineNumber + " a target_enb_x2_ip_address      = ( {"
+				lineNumber = strconv.Itoa(int(number))
+				sedCommand2 := lineNumber + " a 	 ipv4       = \"" + remoteEnbIp + "\";"
+				lineNumber = strconv.Itoa(int(number + 1))
+				sedCommand3 := lineNumber + " a 	  ipv6       = \"192:168:30::17\";"
+				lineNumber = strconv.Itoa(int(number + 2))
+				sedCommand4 := lineNumber + " a 	  preference = \"ipv4\";"
+				lineNumber = strconv.Itoa(int(number + 3))
+				sedCommand5 := lineNumber + " a 	  }"
+				lineNumber = strconv.Itoa(int(number + 4))
+				sedCommand6 := lineNumber + " a 	  );"
+
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand1, enbConf)
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand2, enbConf)
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand3, enbConf)
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand4, enbConf)
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand5, enbConf)
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand6, enbConf)
+			}
+		}
+	}
 	// Get the IP address of oai-mme
 	if (buildSnap == false) && (cnf.MmeIPAddress.Ipv4 != "") {
 		var mmeIP string = cnf.MmeIPAddress.Ipv4
@@ -173,7 +240,7 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 						OaiObj.Logger.Print(err)
 					}
 				}
-				OaiObj.Logger.Print("Valid ip address for oai-hss not get retreived")
+				OaiObj.Logger.Print("Valid ip address for oai-hss not yet retreived")
 				time.Sleep(1 * time.Second)
 				mmeIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.MmeDomainName)
 			}

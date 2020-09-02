@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"mosaic5g/docker-hook/internal/pkg/util"
-	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -154,17 +154,55 @@ func (c *conf) getConf() *conf {
 	//////////////
 	c.Logger = log.New(c.logFile, "[Debug]"+time.Now().Format("2006-01-02 15:04:05")+" ", log.Lshortfile)
 
-	enbConf := "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/enb.config"
+	enbConf := "/home/gatto/go/src/mosaic5g/docker-hook/cmd/test/enb.config"
 	//enbConf := c.ConfigurationPathofRAN + "enb.band7.tm1.50PRB.usrpb210.conf"
 	sedCommand := ""
-	mmeIP := "sdvjnsd"
-	sedCommand = "s:mme_ip_address *= *( *{ *ipv4 *= *\".*\" *;:mme_ip_address      = ( { ipv4       = \"" + mmeIP + "\"" + ";:g"
-	// sedCommand = "175s:\".*;:\"" + mmeIP + "\";:g"
-	util.RunCmd(c.Logger, "sed", "-i", sedCommand, enbConf)
+	// mmeIP := "sdvjnsd"
+	// sedCommand = "s:mme_ip_address *= *( *{ *ipv4 *= *\".*\" *;:mme_ip_address      = ( { ipv4       = \"" + mmeIP + "\"" + ";:g"
+	// // sedCommand = "175s:\".*;:\"" + mmeIP + "\";:g"
+	// util.RunCmd(c.Logger, "sed", "-i", sedCommand, enbConf)
 
-	host, err := net.LookupAddr("192.168.12.85")
-	fmt.Println("err=", err)
-	fmt.Println("HOST=", host)
+	// sed -n "/NETWORK_INTERFACES/="  mante.eucnc.orig.95.conf
+	sedCommand = "/NETWORK_INTERFACES/="
+	retStatus := util.RunCmd(c.Logger, "sed", "-n", sedCommand, enbConf)
+	fmt.Println("retStatus.Stdout=", retStatus.Stdout[0])
+
+	// lineNumber, err := strconv.ParseUint(retStatus.Stdout[0], 10, 32)
+
+	number, err := strconv.ParseUint(retStatus.Stdout[0], 10, 32)
+	lineNumber := strconv.Itoa(int(number - 1))
+	sedCommand1 := lineNumber + " a \t\t\t  target_enb_x2_ip_address      = ( {"
+	lineNumber = strconv.Itoa(int(number))
+	sedCommand2 := lineNumber + " a 	 ipv4       = \"192.168.12.161\";"
+	lineNumber = strconv.Itoa(int(number + 1))
+	sedCommand3 := lineNumber + " a 	  ipv6       = \"192:168:30::17\";"
+	lineNumber = strconv.Itoa(int(number + 2))
+	sedCommand4 := lineNumber + " a 	  preference = \"ipv4\";"
+	lineNumber = strconv.Itoa(int(number + 3))
+	sedCommand5 := lineNumber + " a 	  }"
+	lineNumber = strconv.Itoa(int(number + 4))
+	sedCommand6 := lineNumber + " a 	  );"
+
+	// target_enb_x2_ip_address      = (
+	// 	{ ipv4       = "192.168.12.161";
+	// 	  ipv6       = "192:168:30::17";
+	// 	  preference = "ipv4";
+	// 	}
+	//    );
+
+	retStatus = util.RunCmd(c.Logger, "sed", "-i", sedCommand1, enbConf)
+	retStatus = util.RunCmd(c.Logger, "sed", "-i", sedCommand2, enbConf)
+	retStatus = util.RunCmd(c.Logger, "sed", "-i", sedCommand3, enbConf)
+	retStatus = util.RunCmd(c.Logger, "sed", "-i", sedCommand4, enbConf)
+	retStatus = util.RunCmd(c.Logger, "sed", "-i", sedCommand5, enbConf)
+	retStatus = util.RunCmd(c.Logger, "sed", "-i", sedCommand6, enbConf)
+	// sed -i '192 a line\n2.5skdvds' mante.eucnc.orig.95.conf
+	fmt.Println("retStatus.Stdout=", retStatus.Stdout)
+	fmt.Println("retStatus.Stderr=", retStatus.Stderr)
+
+	// host, err := net.LookupAddr("192.168.12.85")
+	// fmt.Println("err=", err)
+	// fmt.Println("HOST=", host)
 
 	return c
 }

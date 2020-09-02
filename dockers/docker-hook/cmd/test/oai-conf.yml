@@ -52,6 +52,9 @@ oai-ran-conf:
       # if ENB_IPV4_ADDRESS_FOR_X2C is empty string, it will be taken automatically
       ENB_IPV4_ADDRESS_FOR_X2C      : ""
       ENB_PORT_FOR_X2C              : 36422 # Spec 36422
+  RUs:
+    max_rxgain: 110
+    max_pdschReferenceSignalPower: -27
   NETWORK_CONTROLLER:
     FLEXRAN_ENABLED         : "yes"
     # if flexRANDomainName is not empty, the configuration of flexran, more specifically FLEXRAN_INTERFACE_NAME and FLEXRAN_IPV4_ADDRESS will be retreived automatically. Otherwise, you need to specify FLEXRAN_INTERFACE_NAME and FLEXRAN_IPV4_ADDRESS

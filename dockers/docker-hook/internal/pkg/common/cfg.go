@@ -36,8 +36,8 @@ type OaiRanConf struct {
 		enableMeasurementReports string `yaml:"enable_measurement_reports"`
 		X2Ho                     struct {
 			EnableX2             string           `yaml:"enable_x2"`
-			masterNode           bool             `yaml:"master_node"`
-			TargetEnbX2IPAddress []ListMasterEnbs `yaml:"target_enb_x2_ip_address"`
+			MasterNode           bool             `yaml:"master_node"`
+			TargetEnbX2IPAddress []listMasterEnbs `yaml:"target_enb_x2_ip_address"`
 		} `yaml:"x2_ho"`
 		NetworkInterfaces struct {
 			EnbInterfaceNameForS1Mme string `yaml:"ENB_INTERFACE_NAME_FOR_S1_MME"`
@@ -48,6 +48,12 @@ type OaiRanConf struct {
 			EnbIPv4AddressForS1X2C   string `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
 			EnbPortForS1UX2C         uint   `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
 		} `yaml:"NETWORK_INTERFACES"`
+		Rus struct {
+			MaxRxGain                    uint `yaml:"max_rxgain"`
+			MaxPdschReferenceSignalPower int  `yaml:"max_pdschReferenceSignalPower"`
+			// Bands                        []uint `yaml:"bands"`
+		} `yaml:"RUs"`
+
 		NetworkController struct {
 			FlexranEnabled       string `yaml:"FLEXRAN_ENABLED"`
 			FlexRANDomainName    string `yaml:"flexRANDomainName"`
@@ -65,16 +71,8 @@ type OaiRanConf struct {
 	} `yaml:"realm"`
 }
 
-// ListMasterEnbs List of all enbs that will be connected (via X2) to the current enb
-type ListMasterEnbs struct {
-	RanDomainName string `yaml:"ranDomainName"`
-	Ipv4          string `yaml:"ipv4"`
-	Ipv6          string `yaml:"ipv6"`
-	Preference    string `yaml:"preference"`
-}
-
-// testListMasterEnbs List of all enbs that will be connected (via X2) to the current enb
-type testListMasterEnbs struct {
+// listMasterEnbs List of all enbs that will be connected (via X2) to the current enb
+type listMasterEnbs struct {
 	RanDomainName string `yaml:"ranDomainName"`
 	Ipv4          string `yaml:"ipv4"`
 	Ipv6          string `yaml:"ipv6"`
