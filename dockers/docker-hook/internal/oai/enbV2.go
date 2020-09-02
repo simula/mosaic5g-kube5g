@@ -11,8 +11,8 @@ import (
 
 func startENBV2(OaiObj Oai, buildSnap bool) error {
 	// get the configuration
-	c := OaiObj.Conf
-	cnf := OaiObj.ConfOaiRan.OaiRanConf
+	// c := OaiObj.Conf
+	cnf := OaiObj.ConfOaiRan
 
 	// config filename of the snap
 	confFileName := "enb.band7.tm1.50PRB.usrpb210.conf"
@@ -172,15 +172,15 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 		} else {
 			// Slave eNB
 			for i := 0; i < len(cnf.X2Ho.TargetEnbX2IPAddress); i++ {
-				var remoteEnbIp string
+				var remoteEnbIP string
 				if (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName != "" {
 					// Master eNB defined by domain; getting the ip address
-					remoteEnbIp, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
+					remoteEnbIP, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
 					for {
 						if err != nil {
 							util.PrintFunc(OaiObj.Logger, err)
 						} else {
-							hostNameRemoteEnb, err := net.LookupHost(remoteEnbIp)
+							hostNameRemoteEnb, err := net.LookupHost(remoteEnbIP)
 							if len(hostNameRemoteEnb) > 0 {
 								// time.Sleep(3 * time.Second)
 								break
@@ -190,11 +190,11 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 						}
 						util.PrintFunc(OaiObj.Logger, "Valid ip address for master eNB not yet retreived")
 						time.Sleep(1 * time.Second)
-						remoteEnbIp, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
+						remoteEnbIP, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
 					}
 				} else {
 					// The ip address of master eNB is defined
-					remoteEnbIp = (cnf.X2Ho.TargetEnbX2IPAddress[i]).Ipv4
+					remoteEnbIP = (cnf.X2Ho.TargetEnbX2IPAddress[i]).Ipv4
 				}
 				// sed -n "/NETWORK_INTERFACES/="  mante.eucnc.orig.95.conf
 				sedCommand = "/NETWORK_INTERFACES/="
@@ -204,7 +204,7 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 				lineNumber := strconv.Itoa(int(number - 1))
 				sedCommand1 := lineNumber + " a target_enb_x2_ip_address      = ( {"
 				lineNumber = strconv.Itoa(int(number))
-				sedCommand2 := lineNumber + " a 	 ipv4       = \"" + remoteEnbIp + "\";"
+				sedCommand2 := lineNumber + " a 	 ipv4       = \"" + remoteEnbIP + "\";"
 				lineNumber = strconv.Itoa(int(number + 1))
 				sedCommand3 := lineNumber + " a 	  ipv6       = \"192:168:30::17\";"
 				lineNumber = strconv.Itoa(int(number + 2))

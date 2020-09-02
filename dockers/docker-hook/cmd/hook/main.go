@@ -83,12 +83,13 @@ func main() {
 		util.PrintFunc(OaiObj.Logger, "CN is started: exit")
 	} else if *installRAN {
 		// Initialize oai struct
+		fmt.Println("Installing RANs", snapVersion, buildSnap)
 		OaiObj = oaiInit("ran")
 
 		util.PrintFunc(OaiObj.Logger, "Installing RAN")
 		oai.InstallRAN(OaiObj)
 		// Define the functionality of the snap: oai-enb, oai-cu, oai-du, oai-rcc, oai-rru
-		RanNodeFunction := OaiObj.ConfOaiRan.OaiRanConf.ComponentCarriers.NodeFunction
+		RanNodeFunction := OaiObj.ConfOaiRan.ComponentCarriers.NodeFunction
 		fmt.Println(RanNodeFunction)
 		if (RanNodeFunction == "ENB") || (RanNodeFunction == "enb") {
 			util.PrintFunc(OaiObj.Logger, "Starting RAN ENB")
@@ -110,6 +111,7 @@ func main() {
 			util.PrintFunc(OaiObj.Logger, "Stopping RAN Service")
 			oai.StopRan(OaiObj)
 		} else {
+			util.PrintFunc(OaiObj.Logger, "node function", RanNodeFunction)
 			util.PrintFunc(OaiObj.Logger, "Error, unkown node function: ", RanNodeFunction, "Starting RAN eNB")
 			oai.StartENB(OaiObj, snapVersion, buildSnap)
 		}
@@ -181,5 +183,6 @@ func oaiInit(entity string) oai.Oai {
 	//Install snap core
 	util.PrintFunc(OaiObj.Logger, "Installing snap")
 	oai.InstallSnap(OaiObj)
+
 	return OaiObj
 }

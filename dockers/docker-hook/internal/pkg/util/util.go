@@ -121,6 +121,7 @@ func PrintFunc(logger *log.Logger, args ...interface{}) {
 		logger.Print(args[0], args[1])
 		fmt.Println(args[0], args[1])
 	default:
+		fmt.Println("lemlen(args)=", len(args), args)
 		logger.Print("Unexpected number of variables")
 		panic("Unexpected number of variables")
 	}

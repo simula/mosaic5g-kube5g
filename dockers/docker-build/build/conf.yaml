@@ -1,3 +1,86 @@
+#######################
+# New configuration per node
+######################## 
+oai-ran-conf:
+  # if eNB_ID is empty string, the default value will remain unchanged
+  eNB_ID: "0xe00" # Hexadecimal value
+  # if eNB_name is empty string, the default value will remain unchanged
+  eNB_name: "eNB-Eurecom-LTEBox"
+  # "Realm of oai"
+  realm: "openair5G.eur"
+  mcc: 
+  - 208     
+  mnc: 
+  - 95
+  component_carriers:
+    # if node_function is empty string, the default value (enbd) will be set
+    # Define the functionality of the snap: oai-enb, oai-cu, oai-du, oai-rcc, oai-rru
+    # Allowed values of node_function: enb, cu, du, rcc, rru 
+    node_function           : "enb"
+    eutra_band              : "7"
+    downlink_frequency      : "2685000000L"
+    uplink_frequency_offset : "-120000000"
+    Nid_cell                : 10
+    N_RB_DL                 : 25
+    mme_ip_address:
+      # either mmeDomainName or ipv4 must be given, otherwise you will get issue. If both are given,mmeDomainName will be taken
+      mmeDomainName: "oaicn"
+      ipv4      : ""
+      ipv6      : ""
+      active    : "yes"
+      preference: "ipv4" # ipv4 or ipv6
+    enable_measurement_reports: "no"
+    x2_ho:
+      enable_x2               : "yes"
+      master_node             : false # true (for master node) or false (for slave node)
+      target_enb_x2_ip_address: # exist only for slave node
+      # either ranDomainName or ipv4 must be given, otherwise you will get issue. If both are given,ranDomainName will be taken
+      - ranDomainName: "oai-ran-1" # name of docker container
+        ipv4        : ""
+        ipv6        : ""
+        preference  : "ipv4"
+    NETWORK_INTERFACES: 
+      # if ENB_INTERFACE_NAME_FOR_S1_MME is empty string, it will be taken automatically
+      ENB_INTERFACE_NAME_FOR_S1_MME : ""
+      # if ENB_IPV4_ADDRESS_FOR_S1_MME is empty string, it will be taken automatically
+      ENB_IPV4_ADDRESS_FOR_S1_MME   : ""
+      # if ENB_INTERFACE_NAME_FOR_S1U is empty string, it will be taken automatically
+      ENB_INTERFACE_NAME_FOR_S1U    : ""
+      # if ENB_IPV4_ADDRESS_FOR_S1U is empty string, it will be taken automatically
+      ENB_IPV4_ADDRESS_FOR_S1U      : ""
+      ENB_PORT_FOR_S1U              : 2152 # Spec 2152
+      # if ENB_IPV4_ADDRESS_FOR_X2C is empty string, it will be taken automatically
+      ENB_IPV4_ADDRESS_FOR_X2C      : ""
+      ENB_PORT_FOR_X2C              : 36422 # Spec 36422
+  RUs:
+    max_rxgain: 110
+    max_pdschReferenceSignalPower: -27
+  NETWORK_CONTROLLER:
+    FLEXRAN_ENABLED         : "yes"
+    # if flexRANDomainName is not empty, the configuration of flexran, more specifically FLEXRAN_INTERFACE_NAME and FLEXRAN_IPV4_ADDRESS will be retreived automatically. Otherwise, you need to specify FLEXRAN_INTERFACE_NAME and FLEXRAN_IPV4_ADDRESS
+    flexRANDomainName       : "flexran"
+    # FLEXRAN_INTERFACE_NAME and FLEXRAN_IPV4_ADDRESS are needed ONLY if flexRANDomainName is empty string
+    FLEXRAN_INTERFACE_NAME  : ""
+    FLEXRAN_IPV4_ADDRESS    : ""
+    # the following parameters are always required. Leave them as they are to get the default configuration
+    FLEXRAN_PORT            : 2210
+    FLEXRAN_CACHE           : "/mnt/oai_agent_cache"
+    FLEXRAN_AWAIT_RECONF    : "no"
+  THREAD_STRUCT:
+    #three config for level of parallelism "PARALLEL_SINGLE_THREAD", "PARALLEL_RU_L1_SPLIT", or "PARALLEL_RU_L1_TRX_SPLIT"
+    parallel_config    : "PARALLEL_SINGLE_THREAD"
+    #two option for worker "WORKER_DISABLE" or "WORKER_ENABLE"
+    worker_config      : "WORKER_ENABLE"
+
+
+#####################
+# old configuration
+
+
+
+
+
+
 mcc: 208           
 mnc: 95
 # eutraBand: "7"
@@ -17,7 +100,7 @@ spgwcDomainName: "oaispgwc"
 spgwuDomainName: "oaispgwu"
 mysqlDomainName: "mysql"
 cassandraDomainName: "cassandra"
-dns: "192.168.1.1"
+dns: "192.168.106.12"
 flexRAN: true
 flexRANDomainName: "flexran"
 test: false
@@ -191,7 +274,7 @@ rru_tx_schedadvance:
   type: int
 parallel_config:
   default: PARALLEL_SINGLE_THREAD
-  description: "defines the level of parallelism. There are three available values; 'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
+  description: "defines the level of parallelism. There are three available values 'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
   type: string
 max_rxgain:
   default: 110

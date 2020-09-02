@@ -10,65 +10,63 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// OaiRanConf Configuration of oai-ran
-type OaiRanConf struct {
-	OaiRanConf struct {
-		EnbID             string `yaml:"eNB_ID"`
-		EnbName           string `yaml:"eNB_name"`
-		Realm             string `yaml:"realm"`
-		Mcc               []uint `yaml:"mcc"`
-		Mnc               []uint `yaml:"mnc"`
-		ComponentCarriers struct {
-			NodeFunction          string `yaml:"node_function"`
-			EutraBand             string `yaml:"eutra_band"`
-			DownlinkFrequency     string `yaml:"downlink_frequency"`
-			UplinkFrequencyOffset string `yaml:"uplink_frequency_offset"`
-			NidCell               int    `yaml:"Nid_cell"`
-			NRbDl                 int    `yaml:"N_RB_DL"`
-		} `yaml:"node_function"`
-		MmeIPAddress struct {
-			mmeDomainName string `yaml:"mmeDomainName"`
-			Ipv4          string `yaml:"ipv4"`
-			Ipv6          string `yaml:"ipv6"`
-			Active        string `yaml:"active"`
-			Preference    string `yaml:"preference"`
-		} `yaml:"mme_ip_address"`
-		enableMeasurementReports string `yaml:"enable_measurement_reports"`
-		X2Ho                     struct {
-			EnableX2             string           `yaml:"enable_x2"`
-			MasterNode           bool             `yaml:"master_node"`
-			TargetEnbX2IPAddress []listMasterEnbs `yaml:"target_enb_x2_ip_address"`
-		} `yaml:"x2_ho"`
-		NetworkInterfaces struct {
-			EnbInterfaceNameForS1Mme string `yaml:"ENB_INTERFACE_NAME_FOR_S1_MME"`
-			EnbIPv4AddressForS1Mme   string `yaml:"ENB_IPV4_ADDRESS_FOR_S1_MME"`
-			EnbInterfaceNameforS1U   string `yaml:"ENB_INTERFACE_NAME_FOR_S1U"`
-			EnbIPv4AddressForS1U     string `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
-			EnbPortForS1U            uint   `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
-			EnbIPv4AddressForS1X2C   string `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
-			EnbPortForS1UX2C         uint   `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
-		} `yaml:"NETWORK_INTERFACES"`
-		Rus struct {
-			MaxRxGain                    uint `yaml:"max_rxgain"`
-			MaxPdschReferenceSignalPower int  `yaml:"max_pdschReferenceSignalPower"`
-			// Bands                        []uint `yaml:"bands"`
-		} `yaml:"RUs"`
+// CfgRan Configuration of oai-ran
+type CfgRan struct {
+	EnbID             string `yaml:"eNB_ID"`
+	EnbName           string `yaml:"eNB_name"`
+	Realm             string `yaml:"realm"`
+	Mcc               []uint `yaml:"mcc"`
+	Mnc               []uint `yaml:"mnc"`
+	ComponentCarriers struct {
+		NodeFunction          string `yaml:"node_function"`
+		EutraBand             string `yaml:"eutra_band"`
+		DownlinkFrequency     string `yaml:"downlink_frequency"`
+		UplinkFrequencyOffset string `yaml:"uplink_frequency_offset"`
+		NidCell               int    `yaml:"Nid_cell"`
+		NRbDl                 int    `yaml:"N_RB_DL"`
+	} `yaml:"node_function"`
+	MmeIPAddress struct {
+		mmeDomainName string `yaml:"mmeDomainName"`
+		Ipv4          string `yaml:"ipv4"`
+		Ipv6          string `yaml:"ipv6"`
+		Active        string `yaml:"active"`
+		Preference    string `yaml:"preference"`
+	} `yaml:"mme_ip_address"`
+	enableMeasurementReports string `yaml:"enable_measurement_reports"`
+	X2Ho                     struct {
+		EnableX2             string           `yaml:"enable_x2"`
+		MasterNode           bool             `yaml:"master_node"`
+		TargetEnbX2IPAddress []listMasterEnbs `yaml:"target_enb_x2_ip_address"`
+	} `yaml:"x2_ho"`
+	NetworkInterfaces struct {
+		EnbInterfaceNameForS1Mme string `yaml:"ENB_INTERFACE_NAME_FOR_S1_MME"`
+		EnbIPv4AddressForS1Mme   string `yaml:"ENB_IPV4_ADDRESS_FOR_S1_MME"`
+		EnbInterfaceNameforS1U   string `yaml:"ENB_INTERFACE_NAME_FOR_S1U"`
+		EnbIPv4AddressForS1U     string `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
+		EnbPortForS1U            uint   `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
+		EnbIPv4AddressForS1X2C   string `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
+		EnbPortForS1UX2C         uint   `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
+	} `yaml:"NETWORK_INTERFACES"`
+	Rus struct {
+		MaxRxGain                    uint `yaml:"max_rxgain"`
+		MaxPdschReferenceSignalPower int  `yaml:"max_pdschReferenceSignalPower"`
+		// Bands                        []uint `yaml:"bands"`
+	} `yaml:"RUs"`
 
-		NetworkController struct {
-			FlexranEnabled       string `yaml:"FLEXRAN_ENABLED"`
-			FlexRANDomainName    string `yaml:"flexRANDomainName"`
-			FlexRANInterfaceName string `yaml:"FLEXRAN_INTERFACE_NAME"`
-			FlexRANIPv4Address   string `yaml:"FLEXRAN_IPV4_ADDRESS"`
-			FlexRANPort          uint   `yaml:"FLEXRAN_PORT"`
-			FlexRANCache         string `yaml:"FLEXRAN_CACHE"`
-			FlexRANAwaitReconf   string `yaml:"FLEXRAN_AWAIT_RECONF"`
-		} `yaml:"NETWORK_CONTROLLER"`
+	NetworkController struct {
+		FlexranEnabled       string `yaml:"FLEXRAN_ENABLED"`
+		FlexRANDomainName    string `yaml:"flexRANDomainName"`
+		FlexRANInterfaceName string `yaml:"FLEXRAN_INTERFACE_NAME"`
+		FlexRANIPv4Address   string `yaml:"FLEXRAN_IPV4_ADDRESS"`
+		FlexRANPort          uint   `yaml:"FLEXRAN_PORT"`
+		FlexRANCache         string `yaml:"FLEXRAN_CACHE"`
+		FlexRANAwaitReconf   string `yaml:"FLEXRAN_AWAIT_RECONF"`
+	} `yaml:"NETWORK_CONTROLLER"`
 
-		ThreadStruct struct {
-			ParallelConfig string `yaml:"parallel_config"`
-			WorkerConfig   string `yaml:"worker_config"`
-		} `yaml:"THREAD_STRUCT"`
-	} `yaml:"realm"`
+	ThreadStruct struct {
+		ParallelConfig string `yaml:"parallel_config"`
+		WorkerConfig   string `yaml:"worker_config"`
+	} `yaml:"THREAD_STRUCT"`
 }
 
 // listMasterEnbs List of all enbs that will be connected (via X2) to the current enb
@@ -241,17 +239,8 @@ type Cfg struct {
 	Test                   bool   `yaml:"test"` //test configuring without changing any file; No snap is installed
 }
 
-// GetConfFinal Implement the method of getting the config of Mosaic5G oai-cn-v2
-func (c *Cfg) GetConfFinal(logger *log.Logger, path string) (interface{}, error) {
-	return c, getConfTemp(logger, path, c)
-}
-
-// GetConfFinal Implement the method of getting the config of Mosaic5G oai-cn-v2
-func (c *OaiRanConf) GetConfFinal(logger *log.Logger, path string) (interface{}, error) {
-	return c, getConfTemp(logger, path, c)
-}
-
-func getConfTemp(logger *log.Logger, path string, Cfg interface{}) error {
+// GetConf : read yaml into struct
+func (c *CfgRan) GetConf(logger *log.Logger, path string) error {
 	//Read yaml here
 	yamlFile, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -259,15 +248,39 @@ func getConfTemp(logger *log.Logger, path string, Cfg interface{}) error {
 		return err
 	}
 
-	err = yaml.Unmarshal(yamlFile, Cfg)
+	err = yaml.Unmarshal(yamlFile, c)
 
 	if err != nil {
+		fmt.Println("ERROR=", err)
 		logger.Panicln(err.Error())
 		return err
 	}
 
 	return nil
 }
+
+// func getConfTemp(logger *log.Logger, path string, cfg interface{}) error {
+// 	//Read yaml here
+// 	yamlFile, err := ioutil.ReadFile(path)
+// 	if err != nil {
+// 		logger.Panicln(err.Error())
+// 		return err
+// 	}
+
+// 	err = yaml.Unmarshal(yamlFile, cfg)
+
+// 	if err != nil {
+// 		logger.Panicln(err.Error())
+// 		return err
+// 	}
+// 	if true {
+// 		fmt.Println("path", path)
+// 		fmt.Println("me.ConfOaiRan", cfg)
+// 		panic("test panic")
+// 	}
+
+// 	return nil
+// }
 
 // GetConf : read yaml into struct
 func (c *Cfg) GetConf(logger *log.Logger, path string) error {
