@@ -2,6 +2,12 @@
 # New configuration per node
 ######################## 
 oai-ran-conf:
+  # define the snap that you need to be installed via the docker hook
+  snap:
+    name: "oai-ran"
+    channel: "edge"
+    devmode: true
+    refresh: false
   # if eNB_ID is empty string, the default value will remain unchanged
   eNB_ID: "0xe00" # Hexadecimal value
   # if eNB_name is empty string, the default value will remain unchanged

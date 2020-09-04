@@ -76,7 +76,7 @@ func startDu(OaiObj Oai) error {
 	sedCommand = "s:Active_eNBs.*;:Active_eNBs              			      = ( \"" + c.EnbName.Default + "\");:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 	//eNB_ID
-	sedCommand = "s:eNB_ID.*;:eNB_ID              			      = " + c.EnbId.Default + ";:g"
+	sedCommand = "s:eNB_ID.*;:eNB_ID              			      = " + c.EnbID.Default + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 	// max_rxgain
 	sedCommand = "s:max_rxgain.*;:max_rxgain              			      = " + c.MaxRxGain.Default + ";:g"

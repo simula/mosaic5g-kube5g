@@ -138,23 +138,40 @@ func installOaicn(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion s
 func installOairan(OaiObj Oai) {
 	// Install oai-ran snap
 	util.PrintFunc(OaiObj.Logger, "Installing oai-ran")
-	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-ran")
+	snapExist, err := util.CheckSnapPackageExist(OaiObj.Logger, "oai-ran")
 	if err != nil {
 		util.PrintFunc(OaiObj.Logger, err)
 	}
 
-	if !ret {
-		if OaiObj.Conf.Snap.Channel == "stable" {
+	if !snapExist {
+
+		if OaiObj.ConfOaiRan.OaianConf.Snap.Channel == "stable" {
 			util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran")
 			util.PrintFunc(OaiObj.Logger, "oairan stable is installed")
 		} else {
-			if OaiObj.Conf.Snap.Devmode == true {
+			if OaiObj.ConfOaiRan.OaianConf.Snap.Devmode == true {
 				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--devmode")
 				util.PrintFunc(OaiObj.Logger, "oairan devmode is installed")
 			} else {
 				util.RunCmd(OaiObj.Logger, "snap", "install", "oai-ran", "--channel=edge", "--jailmode")
 				util.PrintFunc(OaiObj.Logger, "oairan jailmode is installed")
 			}
+		}
+	} else {
+		if OaiObj.ConfOaiRan.OaianConf.Snap.Refresh == true {
+			if OaiObj.ConfOaiRan.OaianConf.Snap.Channel == "stable" {
+				util.RunCmd(OaiObj.Logger, "snap", "refresh", "oai-ran")
+				util.PrintFunc(OaiObj.Logger, "oairan stable is refresh")
+			} else {
+				if OaiObj.ConfOaiRan.OaianConf.Snap.Devmode == true {
+					util.RunCmd(OaiObj.Logger, "snap", "refresh", "oai-ran", "--channel=edge", "--devmode")
+					util.PrintFunc(OaiObj.Logger, "oairan devmode is refresh")
+				} else {
+					util.RunCmd(OaiObj.Logger, "snap", "refresh", "oai-ran", "--channel=edge", "--jailmode")
+					util.PrintFunc(OaiObj.Logger, "oairan jailmode is refresh")
+				}
+			}
+
 		}
 	}
 }

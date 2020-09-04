@@ -12,61 +12,68 @@ import (
 
 // CfgRan Configuration of oai-ran
 type CfgRan struct {
-	EnbID             string `yaml:"eNB_ID"`
-	EnbName           string `yaml:"eNB_name"`
-	Realm             string `yaml:"realm"`
-	Mcc               []uint `yaml:"mcc"`
-	Mnc               []uint `yaml:"mnc"`
-	ComponentCarriers struct {
-		NodeFunction          string `yaml:"node_function"`
-		EutraBand             string `yaml:"eutra_band"`
-		DownlinkFrequency     string `yaml:"downlink_frequency"`
-		UplinkFrequencyOffset string `yaml:"uplink_frequency_offset"`
-		NidCell               int    `yaml:"Nid_cell"`
-		NRbDl                 int    `yaml:"N_RB_DL"`
-	} `yaml:"node_function"`
-	MmeIPAddress struct {
-		mmeDomainName string `yaml:"mmeDomainName"`
-		Ipv4          string `yaml:"ipv4"`
-		Ipv6          string `yaml:"ipv6"`
-		Active        string `yaml:"active"`
-		Preference    string `yaml:"preference"`
-	} `yaml:"mme_ip_address"`
-	enableMeasurementReports string `yaml:"enable_measurement_reports"`
-	X2Ho                     struct {
-		EnableX2             string           `yaml:"enable_x2"`
-		MasterNode           bool             `yaml:"master_node"`
-		TargetEnbX2IPAddress []listMasterEnbs `yaml:"target_enb_x2_ip_address"`
-	} `yaml:"x2_ho"`
-	NetworkInterfaces struct {
-		EnbInterfaceNameForS1Mme string `yaml:"ENB_INTERFACE_NAME_FOR_S1_MME"`
-		EnbIPv4AddressForS1Mme   string `yaml:"ENB_IPV4_ADDRESS_FOR_S1_MME"`
-		EnbInterfaceNameforS1U   string `yaml:"ENB_INTERFACE_NAME_FOR_S1U"`
-		EnbIPv4AddressForS1U     string `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
-		EnbPortForS1U            uint   `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
-		EnbIPv4AddressForS1X2C   string `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
-		EnbPortForS1UX2C         uint   `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
-	} `yaml:"NETWORK_INTERFACES"`
-	Rus struct {
-		MaxRxGain                    uint `yaml:"max_rxgain"`
-		MaxPdschReferenceSignalPower int  `yaml:"max_pdschReferenceSignalPower"`
-		// Bands                        []uint `yaml:"bands"`
-	} `yaml:"RUs"`
-
-	NetworkController struct {
-		FlexranEnabled       string `yaml:"FLEXRAN_ENABLED"`
-		FlexRANDomainName    string `yaml:"flexRANDomainName"`
-		FlexRANInterfaceName string `yaml:"FLEXRAN_INTERFACE_NAME"`
-		FlexRANIPv4Address   string `yaml:"FLEXRAN_IPV4_ADDRESS"`
-		FlexRANPort          uint   `yaml:"FLEXRAN_PORT"`
-		FlexRANCache         string `yaml:"FLEXRAN_CACHE"`
-		FlexRANAwaitReconf   string `yaml:"FLEXRAN_AWAIT_RECONF"`
-	} `yaml:"NETWORK_CONTROLLER"`
-
-	ThreadStruct struct {
-		ParallelConfig string `yaml:"parallel_config"`
-		WorkerConfig   string `yaml:"worker_config"`
-	} `yaml:"THREAD_STRUCT"`
+	OaianConf struct {
+		Snap struct {
+			Name     string `yaml:"name"`
+			Channel  string `yaml:"channel"`
+			Devmode  bool   `yaml:"devmode"`
+			Jailmode bool   `yaml:"jailmode"`
+			Refresh  bool   `yaml:"refresh"`
+		} `yaml:"snap"`
+		EnbID             string `yaml:"eNB_ID"`
+		EnbName           string `yaml:"eNB_name"`
+		Realm             string `yaml:"realm"`
+		Mcc               []uint `yaml:"mcc"`
+		Mnc               []uint `yaml:"mnc"`
+		ComponentCarriers struct {
+			NodeFunction          string `yaml:"node_function"`
+			EutraBand             string `yaml:"eutra_band"`
+			DownlinkFrequency     string `yaml:"downlink_frequency"`
+			UplinkFrequencyOffset string `yaml:"uplink_frequency_offset"`
+			NidCell               int    `yaml:"Nid_cell"`
+			NRbDl                 int    `yaml:"N_RB_DL"`
+		} `yaml:"component_carriers"`
+		MmeIPAddress struct {
+			MmeDomainName string `yaml:"mmeDomainName"`
+			Ipv4          string `yaml:"ipv4"`
+			Ipv6          string `yaml:"ipv6"`
+			Active        string `yaml:"active"`
+			Preference    string `yaml:"preference"`
+		} `yaml:"mme_ip_address"`
+		EnableMeasurementReports string `yaml:"enable_measurement_reports"`
+		X2Ho                     struct {
+			EnableX2             string           `yaml:"enable_x2"`
+			MasterNode           bool             `yaml:"master_node"`
+			TargetEnbX2IPAddress []listMasterEnbs `yaml:"target_enb_x2_ip_address"`
+		} `yaml:"x2_ho"`
+		NetworkInterfaces struct {
+			EnbInterfaceNameForS1Mme string `yaml:"ENB_INTERFACE_NAME_FOR_S1_MME"`
+			EnbIPv4AddressForS1Mme   string `yaml:"ENB_IPV4_ADDRESS_FOR_S1_MME"`
+			EnbInterfaceNameforS1U   string `yaml:"ENB_INTERFACE_NAME_FOR_S1U"`
+			EnbIPv4AddressForS1U     string `yaml:"ENB_IPV4_ADDRESS_FOR_S1U"`
+			EnbPortForS1U            uint   `yaml:"ENB_PORT_FOR_S1U"`
+			EnbIPv4AddressForS1X2C   string `yaml:"ENB_IPV4_ADDRESS_FOR_X2C"`
+			EnbPortForS1UX2C         uint   `yaml:"ENB_PORT_FOR_X2C"`
+		} `yaml:"NETWORK_INTERFACES"`
+		Rus struct {
+			MaxRxGain                    uint `yaml:"max_rxgain"`
+			MaxPdschReferenceSignalPower int  `yaml:"max_pdschReferenceSignalPower"`
+			// Bands                        []uint `yaml:"bands"`
+		} `yaml:"RUs"`
+		NetworkController struct {
+			FlexranEnabled       string `yaml:"FLEXRAN_ENABLED"`
+			FlexRANDomainName    string `yaml:"flexRANDomainName"`
+			FlexRANInterfaceName string `yaml:"FLEXRAN_INTERFACE_NAME"`
+			FlexRANIPv4Address   string `yaml:"FLEXRAN_IPV4_ADDRESS"`
+			FlexRANPort          uint   `yaml:"FLEXRAN_PORT"`
+			FlexRANCache         string `yaml:"FLEXRAN_CACHE"`
+			FlexRANAwaitReconf   string `yaml:"FLEXRAN_AWAIT_RECONF"`
+		} `yaml:"NETWORK_CONTROLLER"`
+		ThreadStruct struct {
+			ParallelConfig string `yaml:"parallel_config"`
+			WorkerConfig   string `yaml:"worker_config"`
+		} `yaml:"THREAD_STRUCT"`
+	} `yaml:"oai-ran-conf"`
 }
 
 // listMasterEnbs List of all enbs that will be connected (via X2) to the current enb
@@ -150,7 +157,7 @@ type Cfg struct {
 		Description string `yaml:"description"`
 		Type        string `yaml:"type"`
 	} `yaml:"enb_name"`
-	EnbId struct {
+	EnbID struct {
 		Default     string `yaml:"default"`
 		Description string `yaml:"description"`
 		Type        string `yaml:"type"`

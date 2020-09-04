@@ -7,16 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// type testType struct {
-// 	Hello   string `yaml:"Hello"`
-// 	EnbID   string `yaml:"eNB_ID"`
-// 	EnbName string `yaml:"eNB_name"`
-// 	Realm   string `yaml:"realm"`
-// }
-
 // CfgRan Configuration of oai-ran
 type CfgRan struct {
-	// OaianConf testType `yaml:"oai-ran-conf"`
 	OaianConf struct {
 		EnbID             string `yaml:"eNB_ID"`
 		EnbName           string `yaml:"eNB_name"`
@@ -152,7 +144,7 @@ func main() {
 	// fmt.Println(err)
 
 	cnfRan := CfgRan{}
-	confPath := "/home/gatto/go/src/mosaic5g/docker-hook/cmd/test/oai-conf-2.yml"
+	confPath := "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/oai-conf-2.yml"
 	err := cnfRan.GetConf(confPath)
 	fmt.Println(err)
 	fmt.Println("cnfRan.ComponentCarriers=", cnfRan.OaianConf.EnbID)

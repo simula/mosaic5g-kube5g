@@ -41,10 +41,10 @@ const (
 	oaiSpgwuConfPathV2 = "/root/config/conf.yaml"
 
 	// Config path and log file for RAN entities
-	// oaiEnbLogPathV2  = "/root/hook-oaienb.log"
-	// oaiEnbConfPathV2 = "/root/config/conf.yaml"
-	oaiEnbLogPathV2  = "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/hook-oaienb.log"
-	oaiEnbConfPathV2 = "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/oai-conf.yml"
+	oaiEnbLogPathV2  = "/root/hook-oaienb.log"
+	oaiEnbConfPathV2 = "/root/config/conf.yaml"
+	// oaiEnbLogPathV2  = "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/hook-oaienb.log"
+	// oaiEnbConfPathV2 = "/home/cigarier/go/src/mosaic5g/docker-hook/cmd/test/oai-conf.yml"
 
 	oaiCuLogPathV2  = "/root/hook-oaicu.log"
 	oaiCuConfPathV2 = "/root/config/conf.yaml"
@@ -161,8 +161,7 @@ func (me *Oai) Init(entity string) {
 
 		fmt.Println("me.ConfOaiRan", me.ConfOaiRan)
 
-		ranEntity := me.ConfOaiRan.ComponentCarriers.NodeFunction
-
+		ranEntity := me.ConfOaiRan.OaianConf.ComponentCarriers.NodeFunction
 		if err != nil {
 			panic(err)
 		}
@@ -171,15 +170,6 @@ func (me *Oai) Init(entity string) {
 		me.Logger = log.New(me.logFile, "[Mosaic5G-"+ranEntity+"-] ", log.Ldate|log.Ltime|log.Llongfile)
 		util.PrintFunc(me.Logger, "Configuration is successfully retreived")
 		util.PrintFunc(me.Logger, "Configs:", me.ConfOaiRan)
-		/////////////////
-		// me.Conf = new(common.Cfg)
-		// err = me.Conf.GetConf(me.Logger, confPath)
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// util.PrintFunc(me.Logger, "Configuration is successfully retreived")
-		// util.PrintFunc(me.Logger, "Configs:", me.Conf)
-		panic("test")
 	default:
 		me.Conf = new(common.Cfg)
 		err = me.Conf.GetConf(me.Logger, confPath)

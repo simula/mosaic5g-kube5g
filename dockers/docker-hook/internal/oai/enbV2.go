@@ -49,7 +49,7 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 	// util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// //eNB_ID
-	// sedCommand = "s:eNB_ID.*;:eNB_ID    =  " + c.EnbId.Default + ";:g"
+	// sedCommand = "s:eNB_ID.*;:eNB_ID    =  " + c.EnbID.Default + ";:g"
 	// util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// //eNB_name
@@ -57,11 +57,12 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 	// util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// node function
-	sedCommand := "s:node_function.*;:node_function             = \"" + cnf.ComponentCarriers.NodeFunction + "\";:g"
+
+	sedCommand := "s:node_function.*;:node_function             = \"" + cnf.OaianConf.ComponentCarriers.NodeFunction + "\";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// Replace MCC
-	sedCommand = "s/mcc =.[^;]*/mcc = " + string(cnf.Mcc[0]) + "/g"
+	sedCommand = "s/mcc =.[^;]*/mcc = " + string(cnf.OaianConf.Mcc[0]) + "/g"
 	OaiObj.Logger.Print("Replace MCC")
 	OaiObj.Logger.Print(sedCommand)
 	retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
@@ -70,7 +71,7 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 	}
 
 	//Replace MNC
-	sedCommand = "s/mnc =.[^;]*/mnc = " + string(cnf.Mnc[0]) + "/g"
+	sedCommand = "s/mnc =.[^;]*/mnc = " + string(cnf.OaianConf.Mnc[0]) + "/g"
 	OaiObj.Logger.Print("Replace MNC")
 	OaiObj.Logger.Print(sedCommand)
 	retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
@@ -79,23 +80,23 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 	}
 
 	//eutra_band
-	sedCommand = "s:eutra_band.*;:eutra_band                                      = " + cnf.ComponentCarriers.EutraBand + ";:g"
+	sedCommand = "s:eutra_band.*;:eutra_band                                      = " + cnf.OaianConf.ComponentCarriers.EutraBand + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// downlink_frequency
-	sedCommand = "s:downlink_frequency.*;:downlink_frequency                              = " + cnf.ComponentCarriers.DownlinkFrequency + ";:g"
+	sedCommand = "s:downlink_frequency.*;:downlink_frequency                              = " + cnf.OaianConf.ComponentCarriers.DownlinkFrequency + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// uplink_frequency_offset
-	sedCommand = "s:uplink_frequency_offset.*;:uplink_frequency_offset                         = " + cnf.ComponentCarriers.UplinkFrequencyOffset + ";:g"
+	sedCommand = "s:uplink_frequency_offset.*;:uplink_frequency_offset                         = " + cnf.OaianConf.ComponentCarriers.UplinkFrequencyOffset + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// Nid_cell
-	sedCommand = "s:Nid_cell.*;:Nid_cell                                         = " + string(cnf.ComponentCarriers.NidCell) + ";:g"
+	sedCommand = "s:Nid_cell.*;:Nid_cell                                         = " + string(cnf.OaianConf.ComponentCarriers.NidCell) + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// N_RB_DL
-	sedCommand = "s:N_RB_DL.*;:N_RB_DL                                         = " + string(cnf.ComponentCarriers.NRbDl) + ";:g"
+	sedCommand = "s:N_RB_DL.*;:N_RB_DL                                         = " + string(cnf.OaianConf.ComponentCarriers.NRbDl) + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// Get Outbound IP and Interface name
@@ -122,16 +123,16 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// Set up FlexRAN
-	if (cnf.NetworkController.FlexranEnabled == "yes") && (buildSnap == false) {
+	if (cnf.OaianConf.NetworkController.FlexranEnabled == "yes") && (buildSnap == false) {
 		var flexranIP, flexranIface string
-		if cnf.NetworkController.FlexRANDomainName == "" {
-			flexranIP = cnf.NetworkController.FlexRANIPv4Address
-			flexranIface = cnf.NetworkController.FlexRANInterfaceName
+		if cnf.OaianConf.NetworkController.FlexRANDomainName == "" {
+			flexranIP = cnf.OaianConf.NetworkController.FlexRANIPv4Address
+			flexranIface = cnf.OaianConf.NetworkController.FlexRANInterfaceName
 		} else {
 			// Get flexRAN ip
 			flexranIface = "eth0"
 			OaiObj.Logger.Print("Configure FlexRAN Parameters")
-			flexranIP, err = util.GetIPFromDomain(OaiObj.Logger, cnf.NetworkController.FlexRANDomainName)
+			flexranIP, err = util.GetIPFromDomain(OaiObj.Logger, cnf.OaianConf.NetworkController.FlexRANDomainName)
 			if err != nil {
 				OaiObj.Logger.Print(err)
 				OaiObj.Logger.Print("Getting IP of FlexRAN failed, try again later")
@@ -150,32 +151,32 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 	}
 
 	// parallel_config
-	sedCommand = "s:parallel_config.*;:parallel_config    = \"" + cnf.ThreadStruct.ParallelConfig + "\";:g"
+	sedCommand = "s:parallel_config.*;:parallel_config    = \"" + cnf.OaianConf.ThreadStruct.ParallelConfig + "\";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// max_rxgain
-	sedCommand = "s:max_rxgain.*;:max_rxgain     = " + string(cnf.Rus.MaxRxGain) + ";:g"
+	sedCommand = "s:max_rxgain.*;:max_rxgain     = " + string(cnf.OaianConf.Rus.MaxRxGain) + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// max_pdschReferenceSignalPower
-	sedCommand = "s:max_pdschReferenceSignalPower.*;:max_pdschReferenceSignalPower     = " + string(cnf.Rus.MaxPdschReferenceSignalPower) + ";:g"
+	sedCommand = "s:max_pdschReferenceSignalPower.*;:max_pdschReferenceSignalPower     = " + string(cnf.OaianConf.Rus.MaxPdschReferenceSignalPower) + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// X2-HO
-	if cnf.X2Ho.EnableX2 == "yes" {
+	if cnf.OaianConf.X2Ho.EnableX2 == "yes" {
 		// enable_x2
 		sedCommand = "s:enable_x2.*;:enable_x2     = " + "yes" + ";:g"
 		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
-		if cnf.X2Ho.MasterNode {
+		if cnf.OaianConf.X2Ho.MasterNode {
 			// Master eNB
 
 		} else {
 			// Slave eNB
-			for i := 0; i < len(cnf.X2Ho.TargetEnbX2IPAddress); i++ {
+			for i := 0; i < len(cnf.OaianConf.X2Ho.TargetEnbX2IPAddress); i++ {
 				var remoteEnbIP string
-				if (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName != "" {
+				if (cnf.OaianConf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName != "" {
 					// Master eNB defined by domain; getting the ip address
-					remoteEnbIP, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
+					remoteEnbIP, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.OaianConf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
 					for {
 						if err != nil {
 							util.PrintFunc(OaiObj.Logger, err)
@@ -190,11 +191,11 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 						}
 						util.PrintFunc(OaiObj.Logger, "Valid ip address for master eNB not yet retreived")
 						time.Sleep(1 * time.Second)
-						remoteEnbIP, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
+						remoteEnbIP, err = util.GetIPFromDomain(OaiObj.Logger, (cnf.OaianConf.X2Ho.TargetEnbX2IPAddress[i]).RanDomainName)
 					}
 				} else {
 					// The ip address of master eNB is defined
-					remoteEnbIP = (cnf.X2Ho.TargetEnbX2IPAddress[i]).Ipv4
+					remoteEnbIP = (cnf.OaianConf.X2Ho.TargetEnbX2IPAddress[i]).Ipv4
 				}
 				// sed -n "/NETWORK_INTERFACES/="  mante.eucnc.orig.95.conf
 				sedCommand = "/NETWORK_INTERFACES/="
@@ -224,8 +225,8 @@ func startENBV2(OaiObj Oai, buildSnap bool) error {
 		}
 	}
 	// Get the IP address of oai-mme
-	if (buildSnap == false) && (cnf.MmeIPAddress.Ipv4 != "") {
-		var mmeIP string = cnf.MmeIPAddress.Ipv4
+	if (buildSnap == false) && (cnf.OaianConf.MmeIPAddress.Ipv4 != "") {
+		var mmeIP string = cnf.OaianConf.MmeIPAddress.Ipv4
 		if mmeIP == "" {
 			mmeIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.MmeDomainName)
 			for {

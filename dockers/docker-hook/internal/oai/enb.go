@@ -47,7 +47,7 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	// util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// //eNB_ID
-	// sedCommand = "s:eNB_ID.*;:eNB_ID    =  " + c.EnbId.Default + ";:g"
+	// sedCommand = "s:eNB_ID.*;:eNB_ID    =  " + c.EnbID.Default + ";:g"
 	// util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// //eNB_name

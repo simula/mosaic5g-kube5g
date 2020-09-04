@@ -89,7 +89,7 @@ func main() {
 		util.PrintFunc(OaiObj.Logger, "Installing RAN")
 		oai.InstallRAN(OaiObj)
 		// Define the functionality of the snap: oai-enb, oai-cu, oai-du, oai-rcc, oai-rru
-		RanNodeFunction := OaiObj.ConfOaiRan.ComponentCarriers.NodeFunction
+		RanNodeFunction := OaiObj.ConfOaiRan.OaianConf.ComponentCarriers.NodeFunction
 		fmt.Println(RanNodeFunction)
 		if (RanNodeFunction == "ENB") || (RanNodeFunction == "enb") {
 			util.PrintFunc(OaiObj.Logger, "Starting RAN ENB")
