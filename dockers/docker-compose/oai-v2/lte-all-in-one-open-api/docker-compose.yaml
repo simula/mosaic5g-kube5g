@@ -1,0 +1,65 @@
+version: '2'
+
+services:
+  oaicn: # Domain name of container
+    # image: mosaic5gecosys/oaicn:2.0
+    image: mosaic5gecosys/oaicn:mytest
+    restart: always # Operation Policy
+    container_name: oaicn # Name of the container
+    hostname: ubuntu # hostname
+    privileged: true # Give the container the permission to manipulate the host
+    depends_on: # Before starting this container, what should be ready
+      - "cassandra"
+    # cap_add:
+    #   - SYS_ADMIN
+    volumes: # Mounted from host
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /lib/modules:/lib/modules:ro
+      - ./conf.yaml:/root/config/conf.yaml:ro
+    ports:
+      - 5551:5551 # open-api-manager oai-hss
+      - 6661:6661 # open-api-manager oai-hss
+      - 5552:5552 # open-api-manager oai-mme
+      - 6662:6662 # open-api-manager oai-mme
+      - 5553:5553 # open-api-manager oai-spgwc
+      - 6663:6663 # open-api-manager oai-spgwc
+      - 5554:5554 # open-api-manager oai-spgwu
+      - 6664:6664 # open-api-manager oai-spgwu
+    networks: # the network this container attached to
+      - oai
+  oairan:
+    image: mosaic5gecosys/oairan:2.0
+    restart: always
+    container_name: oairan
+    hostname: ubuntu
+    privileged: true
+    depends_on:
+      - "cassandra"
+      - "oaicn"
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /lib/modules:/lib/modules:ro
+      - /dev/bus/usb:/dev/bus/usb
+      - ./conf.yaml:/root/config/conf.yaml:ro
+    ports:
+      - 5550:5550 # open-api-manager oai-ran
+      - 6660:6660 # open-api-manager oai-ran
+    networks:
+      - oai
+  cassandra:
+    image: mosaic5gecosys/cassandra-m5g:1.1
+    restart: always
+    container_name: cassandra
+    hostname: ubuntu
+    networks:
+      - oai
+
+networks: # Define our network here
+  oai:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 9000 # Configure mtu
+    # ipam:
+    #   driver: default
+    #   config:
+    #     - subnet: 172.17.0.0/24
