@@ -2,8 +2,7 @@ version: '2'
 
 services:
   oaicn: # Domain name of container
-    # image: mosaic5gecosys/oaicn:2.0
-    image: mosaic5gecosys/oaicn:mytest
+    image: mosaic5gecosys/oaicn:2.1
     restart: always # Operation Policy
     container_name: oaicn # Name of the container
     hostname: ubuntu # hostname
