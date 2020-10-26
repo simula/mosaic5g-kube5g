@@ -79,7 +79,7 @@ After that, we can work on the project like any other golang project.
 In order to generate the hook that is used to create docker images:
 - go to the following directory:
     ```bash
-    $ cd $HOME/go/src/docker-hook/cmd/hook/
+    $ cd $HOME/go/src/mosaic5g/docker-hook/cmd/hook/
     $ go build -o hook main.go
     ```
     Where the option ```-o``` in the last command is to give the name of the binary file, which is here ```hook```

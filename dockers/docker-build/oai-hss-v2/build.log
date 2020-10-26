@@ -1,0 +1,65 @@
+Sending build context to Docker daemon  4.803MB
+Step 1/21 : FROM ubuntu:16.04
+ ---> 096efd74bb89
+Step 2/21 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
+ ---> Using cache
+ ---> 3646f5fbcdd9
+Step 3/21 : ENV container docker
+ ---> Using cache
+ ---> 65691fedb6b7
+Step 4/21 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+ ---> Using cache
+ ---> 275ebed73805
+Step 5/21 : ENV LANG C.UTF-8
+ ---> Using cache
+ ---> c9eb08f20baa
+Step 6/21 : ENV LC_ALL C.UTF-8
+ ---> Using cache
+ ---> a8b799b67349
+Step 7/21 : RUN echo exit 0 > /usr/sbin/policy-rc.d
+ ---> Using cache
+ ---> 5bd8476304b0
+Step 8/21 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo &&  apt-get autoremove -y &&  apt-get autoclean -y &&  dpkg-divert --local --rename --add /sbin/udevadm &&  ln -s /bin/true /sbin/udevadm
+ ---> Using cache
+ ---> 8b8a662ff822
+Step 9/21 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim tcpdump curl jq
+ ---> Using cache
+ ---> 6e942fd7597f
+Step 10/21 : RUN mv /usr/sbin/tcpdump /usr/bin/
+ ---> Using cache
+ ---> 94f804fd1c89
+Step 11/21 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
+ ---> Using cache
+ ---> ef7ad7b95df6
+Step 12/21 : RUN chmod +x /etc/rc.local
+ ---> Using cache
+ ---> 424d64e4bfd4
+Step 13/21 : COPY ./init_build.sh /root/init.sh
+ ---> Using cache
+ ---> b7fb0c3af99d
+Step 14/21 : COPY ./init_deploy.sh /root/
+ ---> Using cache
+ ---> 3ec2f07a1e60
+Step 15/21 : COPY ./hook /root/
+ ---> Using cache
+ ---> 3ee9b8c5c22a
+Step 16/21 : RUN mkdir /root/config
+ ---> Using cache
+ ---> 0df23edcfd1a
+Step 17/21 : COPY ./conf.yaml /root/config/
+ ---> Using cache
+ ---> ac4036c829e4
+Step 18/21 : RUN systemctl enable snapd
+ ---> Using cache
+ ---> 696a2f8f0b40
+Step 19/21 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
+ ---> Using cache
+ ---> 29c6b6798fc1
+Step 20/21 : VOLUME ["/sys/fs/cgroup"]
+ ---> Using cache
+ ---> e3ac02b1c572
+Step 21/21 : CMD ["/sbin/init"]
+ ---> Using cache
+ ---> b6e1d64d7989
+Successfully built b6e1d64d7989
+Successfully tagged mosaic5gecosys/oaihss:base

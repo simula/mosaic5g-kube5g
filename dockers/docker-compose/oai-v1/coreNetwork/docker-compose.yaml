@@ -2,38 +2,19 @@ version: '2'
 
 services:
   oaicn: # Domain name of container
-    image: mosaic5gecosys/oaicn:1.0
+    image: mosaic5gecosys/oaicn:1.1
     #restart: always # Operation Policy
     container_name: oaicn # Name of the container
     hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
       - "mysql"
-    # cap_add:
-    #   - SYS_ADMIN
     volumes: # Mounted from host
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules:ro
       - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
       - oai
-
-  # oairan:
-  #   image: mosaic5gecosys/oairan:1.0
-  #   restart: always
-  #   container_name: oairan
-  #   hostname: oairan
-  #   privileged: true
-  #   depends_on:
-  #     - "oaicn"
-  #   volumes:
-  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  #     - /lib/modules:/lib/modules:ro
-  #     - /dev/bus/usb:/dev/bus/usb
-  #     - ./conf.yaml:/root/config/conf.yaml:ro
-  #   networks:
-  #     - oai
-
   mysql:
     image: mysql:5.6
     #restart: always

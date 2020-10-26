@@ -1,22 +1,72 @@
-mcc: "208"                 
-mnc: "95"   
+oaiEnb:
+  - mcc: "208"                 
+    mnc: "95"
+    mmeService: 
+      description: |
+        If 'ipv4' is provided, the enb connects to MME using the provied ip address.
+        Otherwise, it will connect to the service provided by 'name'        
+      name: "oaimme"
+      ipv4: ""
+    flexRAN: true
+    flexRANServiceName: "flexran"
+    snap:
+      description: |
+        Define the version of the snap to be used
+        The field "refresh", if true, it will get the lates version of snap.
+        Otherwise, the current version (supposing that it is already installed) will be kept
+      name: "oai-ran"
+      channel: "edge"
+      devmode: true
+      refresh: false 
+      
+    eutra_band:
+      description: "Setting the LTE  EUTRA frequency band."
+      default: "7"
+    downlink_frequency:
+      description: "Setting the downlink frequency band."
+      default: "2685000000L"
+    uplink_frequency_offset:
+      description: "Setting the uplink frequency offset."
+      default: "-120000000"
+    N_RB_DL:
+      description: |
+        Setting the bandwidth in terms of number of available PRBS, 
+        25 (5MHz), 50 (10MHz), and 100 (20MHz)."
+      default: "25"
+    parallel_config:
+      description: |
+        Defines the level of parallelism. There are three available values;
+        'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
+      default: "PARALLEL_SINGLE_THREAD"
+    max_rxgain:
+      description: "defines the maximum Rx gain"  
+      default: "110"
+flexran:
+  - snap:
+      description: |
+        Define the version of the snap to be used
+      name: "flexran"
+      channel: "edge/ci"
+      devmode: true
+      refresh: false
 
-eutraBand: "7"             
-downlinkFrequency: "2685000000L"    
-uplinkFrequencyOffset: "-120000000"
-NumberRbDl: "25"
-MaxRxGain: "110"
-ParallelConfig: "PARALLEL_SINGLE_THREAD"
-
-configurationPathofCN: "/var/snap/oai-cn/current/"
-configurationPathofRAN: "/var/snap/oai-ran/current/"
-snapBinaryPath: "/snap/bin/"
-hssDomainName: "oaicn"
-mmeDomainName: "oaicn"
-spgwDomainName: "oaicn"
-mysqlDomainName: "mysql"
-dns: "192.168.1.1"
-
-flexRAN: false
-flexRANDomainName: "flexran"
-test: false
+oaiCn:
+  v1:
+  - realm: 
+      description: "Realm of oai"
+      default: "openair4G.eur"
+    snap:
+      description: |
+        Define the version of the snap to be used
+      name: "oai-cn"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    oaiHss:
+      databaseServiceName: "mysql"
+    oaiMme:
+      mcc: "208"  
+      mnc: "95"
+    oaiSpgw:
+      dns: "192.168.1.1"
+  

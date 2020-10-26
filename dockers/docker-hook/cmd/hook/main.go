@@ -1,12 +1,40 @@
+/*
+#!/usr/local/go/bin/go
+################################################################################
+* Copyright 2016-2019 Eurecom and Mosaic5G Platforms Authors
+* Licensed to the Mosaic5G under one or more contributor license
+* agreements. See the NOTICE file distributed with this
+* work for additional information regarding copyright ownership.
+* The Mosaic5G licenses this file to You under the
+* Apache License, Version 2.0  (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+################################################################################
+#-------------------------------------------------------------------------------
+# For more information about Mosaic5G:
+#                                   admin@mosaic-5g.io
+# file          main.go
+# brief 		main file to create docker-hook, in order to install the required snaps and configure them correctly inside dockers
+# authors:
+	- Osama Arouk (arouk@eurecom.fr)
+	- Kevin Hsi-Ping Hsu (hsuh@eurecom.fr)
+*-------------------------------------------------------------------------------
+*/
+
 package main
 
-// This APP is made for installing snaps in docker and
-// handle the configurations
-// Author: Osama Arouk, Kevin Hsi-Ping Hsu
 import (
-	"docker-hook/internal/oai"
 	"flag"
 	"fmt"
+	"mosaic5g/docker-hook/internal/oai"
 )
 
 const (
@@ -24,54 +52,84 @@ func main() {
 	}
 
 	// Parse input flags
-	installCN := flag.Bool("installCN", false, "a bool")
-	installRAN := flag.Bool("installRAN", false, "a bool")
-	installHSS := flag.Bool("installHSS", false, "a bool")
-	installMME := flag.Bool("installMME", false, "a bool")
-	installSPGW := flag.Bool("installSPGW", false, "a bool")
-	installFlexRAN := flag.Bool("installFlexRAN", false, "a bool")
-	installMEC := flag.Bool("installMEC", false, "a bool")
+	OaiObj.Logger.Print("Starting parsing input parameters")
+	fmt.Println("Starting parsing input parameters")
+	installCN := flag.Bool("installCN", false, "a bool to indicate whether to install the snap oai-cn (v1) or (oai-hss, oai-mme, oai-spgwc, and oai-spgwu) (v2), if it is true")
+	installRAN := flag.Bool("installRAN", false, "a bool to indicate whether to install the snap oai-ran, if it is true")
+	installHSS := flag.Bool("installHSS", false, "a bool to indicate whether to install the snap oai-cn (v1) oai-hss (v2), if it is true")
+	installMME := flag.Bool("installMME", false, "a bool to indicate whether to install the snap oai-cn (v1) or oai-mme (v2), if it is true")
+	installSPGW := flag.Bool("installSPGW", false, "a bool to indicate whether to install the snap oai-cn, if it is true")
+	installSPGWC := flag.Bool("installSPGWC", false, "a bool to indicate whether to install the snap oai-spgwc, if it is true")
+	installSPGWU := flag.Bool("installSPGWU", false, "a bool to indicate whether to install the snap oai-spgwu, if it is true")
+	installFlexRAN := flag.Bool("installFlexRAN", false, "a bool to indicate whether to install the snap flexran, if it is true")
+	installMEC := flag.Bool("installMEC", false, "a bool to indicate whether to install the snap ll-mec, if it is true")
 	buildImage := flag.Bool("build", false, "a bool value to define that the current setup is to build the docker image.")
+	var snapVersion string
+	flag.StringVar(&snapVersion, "snapVersion", "v2", "a string value to specify the snap version that will be used to build the docker image. Valid values: v1, v2")
 	flag.Parse()
+
 	//Install snap core
 	OaiObj.Logger.Print("Installing snap")
 	fmt.Println("Installing snap")
 	oai.InstallSnap(OaiObj)
 	// Decide actions based on flags
 	CnAllInOneMode := true
-	build := false
+	buildSnap := false
 	if *buildImage {
-		build = true
+		buildSnap = true
 	}
 	if *installCN {
 		OaiObj.Logger.Print("Installing CN")
 		fmt.Println("Installing CN")
-		oai.InstallCN(OaiObj)
+
+		oai.InstallCN(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+
+		OaiObj.Logger.Print("CN is installed")
+		fmt.Println("CN is installed")
+
 		OaiObj.Logger.Print("Starting CN")
 		fmt.Println("Starting CN")
-		oai.StartCN(OaiObj, CnAllInOneMode, build)
+
+		oai.StartCN(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+
+		OaiObj.Logger.Print("CN is started: exit")
+		fmt.Println("CN is started: exit")
 	} else if *installRAN {
 		OaiObj.Logger.Print("Installing RAN")
 		fmt.Println("Installing RAN")
+
 		oai.InstallRAN(OaiObj)
+
 		OaiObj.Logger.Print("Starting RAN")
 		fmt.Println("Starting RAN")
-		oai.StartENB(OaiObj)
+
+		oai.StartENB(OaiObj, buildSnap)
 	} else if *installHSS {
-		oai.InstallCN(OaiObj)
 		CnAllInOneMode = false
-		oai.StartHSS(OaiObj, CnAllInOneMode, build)
+		oai.InstallHSS(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+		oai.StartHSS(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
 	} else if *installMME {
-		oai.InstallCN(OaiObj)
 		CnAllInOneMode = false
-		oai.StartMME(OaiObj, CnAllInOneMode, build)
+		oai.InstallMME(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+		oai.StartMME(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
 	} else if *installSPGW {
-		oai.InstallCN(OaiObj)
 		CnAllInOneMode = false
-		oai.StartSPGW(OaiObj, CnAllInOneMode)
+		oai.InstallCN(OaiObj, CnAllInOneMode, buildSnap, "v1")
+		oai.StartSPGW(OaiObj, CnAllInOneMode, buildSnap)
+	} else if *installSPGWC {
+		CnAllInOneMode = false
+		// Install SPGWC
+		oai.InstallSPGWC(OaiObj)
+		oai.StartSPGWCV2(OaiObj, CnAllInOneMode, buildSnap)
+	} else if *installSPGWU {
+		CnAllInOneMode = false
+		oai.InstallSPGWU(OaiObj)
+		oai.StartSPGWUV2(OaiObj, CnAllInOneMode, buildSnap)
 	} else if *installFlexRAN {
 		oai.InstallFlexRAN(OaiObj)
-		oai.StartFlexRAN(OaiObj)
+		if buildSnap == false {
+			oai.StartFlexRAN(OaiObj)
+		}
 	} else if *installMEC {
 		oai.InstallMEC(OaiObj)
 	} else {
@@ -80,6 +138,7 @@ func main() {
 	}
 
 	// Give a hello when program ends
+	// Do not change the phrase "End of hook", it is used in docker-build
 	OaiObj.Logger.Print("End of hook")
 	OaiObj.Clean()
 }
