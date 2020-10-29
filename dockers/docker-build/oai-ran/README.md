@@ -34,7 +34,7 @@ hssDomainName: "oaicn"
 mmeDomainName: "oaicn"
 spgwDomainName: "oaicn"
 mysqlDomainName: "mysql"
-dns: "192.168.1.1"
+dns: "192.168.106.10"
 ```
 
 - ```mcc```: Mobile Country Code
@@ -129,7 +129,7 @@ For more information about these parameters and more, pleases visit:
     mmeDomainName: "oaicn"
     spgwDomainName: "oaicn"
     mysqlDomainName: "mysql"
-    dns: "192.168.1.1"
+    dns: "192.168.106.10"
 
     flexRAN: false
     flexRANDomainName: "flexran"

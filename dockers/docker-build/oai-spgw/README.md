@@ -23,7 +23,7 @@ The following parameters are exposed to be configured in the current version of 
 hssDomainName: "oaihss"
 mmeDomainName: "oaimme"
 spgwDomainName: "oaispgw"
-dns: "192.168.1.1"
+dns: "192.168.106.10"
 ```
 
 - ```hssDomainName```: name of docker container for the service hss
@@ -140,7 +140,7 @@ hssDomainName: "oaihss"
 mmeDomainName: "oaimme"
 spgwDomainName: "oaispgw"
 mysqlDomainName: "mysql"
-dns: "192.168.1.1"
+dns: "192.168.106.10"
 
 flexRAN: false
 flexRANDomainName: "flexran"
