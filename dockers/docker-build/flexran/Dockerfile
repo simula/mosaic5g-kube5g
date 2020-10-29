@@ -29,6 +29,14 @@ COPY ./conf.yaml /root/config/
 # Start snapd
 RUN systemctl enable snapd
 
+# stop agetty that uses a lot of resources
+RUN rm -f /lib/systemd/system/systemd*udev* \
+  && rm -f /lib/systemd/system/getty.target
+
 VOLUME ["/sys/fs/cgroup"]
-STOPSIGNAL SIGRTMIN+3
+
 CMD ["/sbin/init"]
+
+
+
+
