@@ -34,7 +34,7 @@ services:
       - oai
 
   flexran:
-    image: mosaic5gecosys/flexran:0.1
+    image: mosaic5gecosys/flexran:1.0
     restart: always
     container_name: flexran
     hostname: flexran

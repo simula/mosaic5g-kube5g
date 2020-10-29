@@ -15,7 +15,7 @@ hssDomainName: "oaicn"
 mmeDomainName: "oaicn"
 spgwDomainName: "oaicn"
 mysqlDomainName: "mysql"
-dns: "172.24.2.4"
+dns: "192.168.106.10"
 
 flexRAN: false
 flexRANDomainName: "flexran"

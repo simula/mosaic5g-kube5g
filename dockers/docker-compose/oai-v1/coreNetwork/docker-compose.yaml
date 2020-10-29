@@ -19,7 +19,7 @@ services:
       - oai
 
   # oairan:
-  #   image: mosaic5gecosys/oairan:1.0
+  #   image: mosaic5gecosys/oairan:1.2
   #   restart: always
   #   container_name: oairan
   #   hostname: oairan
