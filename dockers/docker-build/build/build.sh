@@ -102,14 +102,35 @@ build_target(){
         RET=$?
         
     done
+
+
+    # Wait until the hook inside docker image finish
+    cmd="tail -n 1 /root/hook.log"
+    EXIT_STAT="End of hook"
+    RET=1
+    while  [ ${RET} -ne 0 ] ;
+    do
+        echo "Waiting until the docker-hook inside docker image finish ..."
+        sleep 1
+        DOCK_EXEC_OUT=$(docker exec ${BASE_CONTAINER} $cmd); echo $DOCK_EXEC_OUT
+        if [[ $DOCK_EXEC_OUT == *"$EXIT_STAT"* ]]; then
+            RET=0
+        fi
+    done
+
+
+
     sleep 5
     echo "copying init_deploy.sh to docker"
-    docker cp ../${DIR}/init_deploy.sh ${BASE_CONTAINER}:/root/init.sh
+    cmd="mv /root/init_deploy.sh /root/init.sh"
+    docker exec ${BASE_CONTAINER} $cmd
     docker commit ${BASE_CONTAINER} ${TARGET}:${RELEASE_TAG}
     docker stop ${BASE_CONTAINER}
     docker container rm ${BASE_CONTAINER} -f
     docker image prune -f
     echo "Now ${TARGET}:${RELEASE_TAG} is ready"
+    echo "All done, please use docker push ${TARGET}:${RELEASE_TAG} to push image to your repository"
+
 }
 
 clean_up(){

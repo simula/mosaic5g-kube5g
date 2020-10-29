@@ -19,6 +19,7 @@ RUN mv /usr/sbin/tcpdump /usr/bin/
 RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
 RUN chmod +x /etc/rc.local
 COPY ./init_build.sh /root/init.sh
+COPY ./init_deploy.sh /root/
 COPY ./hook /root/
 RUN mkdir /root/config
 COPY ./conf.yaml /root/config/
