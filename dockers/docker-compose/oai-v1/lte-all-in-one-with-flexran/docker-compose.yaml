@@ -12,7 +12,7 @@ services:
     volumes: # Mounted from host
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/conf.yaml:ro
+      - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
       - oai
 
@@ -29,7 +29,7 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules:ro
       - /dev/bus/usb:/dev/bus/usb
-      - ./conf.yaml:/root/conf.yaml:ro
+      - ./conf.yaml:/root/config/conf.yaml:ro
     networks:
       - oai
 
@@ -46,7 +46,7 @@ services:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/conf.yaml:ro
+      - ./conf.yaml:/root/config/conf.yaml:ro
     networks:
       - oai
 
