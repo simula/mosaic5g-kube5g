@@ -28,7 +28,7 @@ services:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules:ro
-      - /dev/bus/usb/:/dev/bus/usb/
+      - /dev/bus/usb:/dev/bus/usb
       - ./conf.yaml:/root/conf.yaml:ro
     networks:
       - oai
