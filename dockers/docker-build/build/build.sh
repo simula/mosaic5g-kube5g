@@ -212,4 +212,4 @@ Example:
     echo "All done, please use docker push [IMAGE NAME]:[TAG] to push image to your repository"
     
 }
-main ${1} ${2}
+main "$@"

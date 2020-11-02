@@ -74,33 +74,36 @@ func startHss(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 		fmt.Println("Set realm in " + hssFdConf + " failed")
 		return errors.New("Set realm in " + hssFdConf + " failed")
 	}
-	// Init hss
-	fmt.Println("Init hss")
-	OaiObj.Logger.Print("Init hss")
-	fmt.Println(OaiObj.Logger, hssBin+"-init")
-	retStatus = util.RunCmd(OaiObj.Logger, hssBin+"-init")
-	fmt.Println("retStatus", retStatus)
-	fmt.Println("retStatus.Stderr", retStatus.Stderr)
-	for {
-		fail := false
-		for i := 0; i < len(retStatus.Stderr); i++ {
-			if strings.Contains(retStatus.Stderr[i], "ERROR") {
-				fmt.Println("Init error, re-run again")
-				OaiObj.Logger.Println("Init error, re-run again")
-				fail = true
+	
+	if buildSnap != true {
+		// Init hss
+		fmt.Println("Init hss")
+		OaiObj.Logger.Print("Init hss")
+		fmt.Println(OaiObj.Logger, hssBin+"-init")
+		retStatus = util.RunCmd(OaiObj.Logger, hssBin+"-init")
+		fmt.Println("retStatus", retStatus)
+		fmt.Println("retStatus.Stderr", retStatus.Stderr)
+		for {
+			fail := false
+			for i := 0; i < len(retStatus.Stderr); i++ {
+				if strings.Contains(retStatus.Stderr[i], "ERROR") {
+					fmt.Println("Init error, re-run again")
+					OaiObj.Logger.Println("Init error, re-run again")
+					fail = true
+				}
+			}
+			if fail {
+				retStatus = util.RunCmd(OaiObj.Logger, hssBin+"-init")
+			} else {
+				break
 			}
 		}
-		if fail {
-			retStatus = util.RunCmd(OaiObj.Logger, hssBin+"-init")
-		} else {
-			break
-		}
-	}
 
-	// oai-cn.hss-start
-	fmt.Println("start hss as daemon")
-	OaiObj.Logger.Print("start hss as daemon")
-	util.RunCmd(OaiObj.Logger, hssBin+"-start")
+		// oai-cn.hss-start
+		fmt.Println("start hss as daemon")
+		OaiObj.Logger.Print("start hss as daemon")
+		util.RunCmd(OaiObj.Logger, hssBin+"-start")
+	}
 	fmt.Println("END")
 	return nil
 }
