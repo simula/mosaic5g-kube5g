@@ -1,63 +1,63 @@
-Sending build context to Docker daemon  4.803MB
+Sending build context to Docker daemon  8.615MB
 Step 1/20 : FROM ubuntu:16.04
- ---> 096efd74bb89
+ ---> dfeff22e96ae
 Step 2/20 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
  ---> Using cache
- ---> 3646f5fbcdd9
+ ---> 63f651585552
 Step 3/20 : ENV container docker
  ---> Using cache
- ---> 65691fedb6b7
+ ---> d25010261da0
 Step 4/20 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
  ---> Using cache
- ---> 275ebed73805
+ ---> b3f33f2602d6
 Step 5/20 : ENV LANG C.UTF-8
  ---> Using cache
- ---> c9eb08f20baa
+ ---> c8e549852cc7
 Step 6/20 : ENV LC_ALL C.UTF-8
  ---> Using cache
- ---> a8b799b67349
+ ---> 3db02dfa2321
 Step 7/20 : RUN DEBIAN_FRONTEND=noninteractive apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo &&  apt-get autoremove -y && apt-get autoclean -y && dpkg-divert --local --rename --add /sbin/udevadm && ln -s /bin/true /sbin/udevadm
  ---> Using cache
- ---> ed15d78ff745
+ ---> cb0891b2a1f2
 Step 8/20 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim tcpdump curl jq
  ---> Using cache
- ---> 012981da4ce7
+ ---> 9c33c3fe4a98
 Step 9/20 : RUN mv /usr/sbin/tcpdump /usr/bin/
  ---> Using cache
- ---> a1bb3494dfe6
+ ---> 589539139bc5
 Step 10/20 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
  ---> Using cache
- ---> 2f909c16b59a
+ ---> ab211ac0ef8e
 Step 11/20 : RUN chmod +x /etc/rc.local
  ---> Using cache
- ---> c03325b8bba8
+ ---> 5dc408c7ed13
 Step 12/20 : COPY ./init_build.sh /root/init.sh
- ---> 5a8153e8a7a0
+ ---> b1578f3b76d1
 Step 13/20 : COPY ./init_deploy.sh /root/
- ---> ae7bef814c18
+ ---> 674f5ec00482
 Step 14/20 : COPY ./hook /root/
- ---> 0d057d2f77b8
+ ---> cc8fa7ffd2d3
 Step 15/20 : RUN mkdir /root/config
- ---> Running in df6c1fd0fc5c
-Removing intermediate container df6c1fd0fc5c
- ---> e026812c6277
+ ---> Running in 091566d4cc20
+Removing intermediate container 091566d4cc20
+ ---> ed8c7bca8cfc
 Step 16/20 : COPY ./conf.yaml /root/config/
- ---> 36f936d5f11b
+ ---> a126ebccab08
 Step 17/20 : RUN systemctl enable snapd
- ---> Running in 3c6f1e466b4c
-Removing intermediate container 3c6f1e466b4c
- ---> 53cce5426688
+ ---> Running in 3dbd02add2a0
+Removing intermediate container 3dbd02add2a0
+ ---> 1065bf885d81
 Step 18/20 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
- ---> Running in 85c1640f3d4a
-Removing intermediate container 85c1640f3d4a
- ---> a2806816fff6
+ ---> Running in abe13338d083
+Removing intermediate container abe13338d083
+ ---> 2fcdc536666d
 Step 19/20 : VOLUME ["/sys/fs/cgroup"]
- ---> Running in df7816fef33f
-Removing intermediate container df7816fef33f
- ---> 98fa49e504f3
+ ---> Running in 6871427f1a25
+Removing intermediate container 6871427f1a25
+ ---> 084518ccc31e
 Step 20/20 : CMD ["/sbin/init"]
- ---> Running in 70f843335497
-Removing intermediate container 70f843335497
- ---> 31e161172429
-Successfully built 31e161172429
+ ---> Running in da79e6bc89ac
+Removing intermediate container da79e6bc89ac
+ ---> a4e5c2669b94
+Successfully built a4e5c2669b94
 Successfully tagged mosaic5gecosys/oaispgwc:base

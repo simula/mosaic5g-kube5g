@@ -73,7 +73,7 @@ func main() {
 	fmt.Println("Installing snap")
 	oai.InstallSnap(OaiObj)
 	// Decide actions based on flags
-	CnAllInOneMode := true
+	// CnAllInOneMode := true
 	buildSnap := false
 	if *buildImage {
 		buildSnap = true
@@ -82,7 +82,7 @@ func main() {
 		OaiObj.Logger.Print("Installing CN")
 		fmt.Println("Installing CN")
 
-		oai.InstallCN(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+		oai.InstallCN(OaiObj, buildSnap, snapVersion)
 
 		OaiObj.Logger.Print("CN is installed")
 		fmt.Println("CN is installed")
@@ -90,7 +90,7 @@ func main() {
 		OaiObj.Logger.Print("Starting CN")
 		fmt.Println("Starting CN")
 
-		oai.StartCN(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+		oai.StartCN(OaiObj, buildSnap, snapVersion)
 
 		OaiObj.Logger.Print("CN is started: exit")
 		fmt.Println("CN is started: exit")
@@ -105,26 +105,26 @@ func main() {
 
 		oai.StartENB(OaiObj, buildSnap)
 	} else if *installHSS {
-		CnAllInOneMode = false
-		oai.InstallHSS(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
-		oai.StartHSS(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+		// CnAllInOneMode = false
+		oai.InstallHSS(OaiObj, buildSnap, snapVersion)
+		oai.StartHSS(OaiObj, buildSnap, snapVersion)
 	} else if *installMME {
-		CnAllInOneMode = false
-		oai.InstallMME(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
-		oai.StartMME(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+		// CnAllInOneMode = false
+		oai.InstallMME(OaiObj, buildSnap, snapVersion)
+		oai.StartMME(OaiObj, buildSnap, snapVersion)
 	} else if *installSPGW {
-		CnAllInOneMode = false
-		oai.InstallCN(OaiObj, CnAllInOneMode, buildSnap, "v1")
-		oai.StartSPGW(OaiObj, CnAllInOneMode, buildSnap)
+		// CnAllInOneMode = false
+		oai.InstallSPGW(OaiObj, buildSnap)
+		oai.StartSPGW(OaiObj, buildSnap)
 	} else if *installSPGWC {
-		CnAllInOneMode = false
+		// CnAllInOneMode = false
 		// Install SPGWC
 		oai.InstallSPGWC(OaiObj)
-		oai.StartSPGWCV2(OaiObj, CnAllInOneMode, buildSnap)
+		oai.StartSPGWCV2(OaiObj, buildSnap)
 	} else if *installSPGWU {
-		CnAllInOneMode = false
+		// CnAllInOneMode = false
 		oai.InstallSPGWU(OaiObj)
-		oai.StartSPGWUV2(OaiObj, CnAllInOneMode, buildSnap)
+		oai.StartSPGWUV2(OaiObj, buildSnap)
 	} else if *installFlexRAN {
 		oai.InstallFlexRAN(OaiObj)
 		if buildSnap == false {

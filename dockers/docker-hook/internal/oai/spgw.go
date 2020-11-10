@@ -38,7 +38,7 @@ import (
 )
 
 // StartSpgw : Start SPGW as a daemon
-func startSpgw(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
+func startSpgwV1(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 
 	retStatus := util.RunCmd(OaiObj.Logger, "which", "oai-cn.spgw-status")
 	s := strings.Split(retStatus.Stdout[0], "/")

@@ -44,18 +44,18 @@ func InstallSnap(OaiObj Oai) {
 }
 
 //InstallCN is a wrapper for installing OAI CN
-func InstallCN(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion string) {
+func InstallCN(OaiObj Oai, buildSnap bool, snapVersion string) {
 
 	// Install oai-cn snap
-	installOaicn(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+	installOaicn(OaiObj, buildSnap, snapVersion)
 
 }
 
 //InstallHSS is a wrapper for installing OAI HSS
-func InstallHSS(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion string) {
+func InstallHSS(OaiObj Oai, buildSnap bool, snapVersion string) {
 	if snapVersion == "v1" {
 		// Install oai-cn snap
-		installOaicn(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+		installOaiHssV1(OaiObj, buildSnap)
 	} else {
 		// Install oai-cn snap
 		installOaiHssV2(OaiObj, buildSnap)
@@ -63,14 +63,20 @@ func InstallHSS(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion str
 }
 
 //InstallMME is a wrapper for installing OAI MME
-func InstallMME(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion string) {
+func InstallMME(OaiObj Oai, buildSnap bool, snapVersion string) {
 	if snapVersion == "v1" {
 		// Install oai-mme snap
-		installOaicn(OaiObj, CnAllInOneMode, buildSnap, snapVersion)
+		installOaiMmeV1(OaiObj, buildSnap)
 	} else {
 		// Install oai-mme snap
-		installOaiMmeV2(OaiObj, CnAllInOneMode, buildSnap)
+		installOaiMmeV2(OaiObj, buildSnap)
 	}
+}
+
+//InstallSPGW is a wrapper for installing OAI SPGW V1
+func InstallSPGW(OaiObj Oai, buildSnap bool) {
+	// Install oai-spgw-v1 snap
+	installOaiSpgwV1(OaiObj, buildSnap)
 }
 
 //InstallSPGWC is a wrapper for installing OAI MME
@@ -86,20 +92,21 @@ func InstallSPGWU(OaiObj Oai) {
 }
 
 // StartCN is a wrapper for configuring and starting OAI CN services
-func StartCN(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion string) {
+func StartCN(OaiObj Oai, buildSnap bool, snapVersion string) {
+	CnAllInOneMode := true
 	if snapVersion == "v1" {
 		// Start HSS
 		OaiObj.Logger.Print("Starting configuring HSS")
 		fmt.Println("Starting configuring HSS")
-		startHss(OaiObj, CnAllInOneMode, buildSnap)
+		startHssV1(OaiObj, CnAllInOneMode, buildSnap)
 		// Start MME
 		OaiObj.Logger.Print("Starting configuring MME")
 		fmt.Println("Starting configuring MME")
-		startMme(OaiObj, CnAllInOneMode, buildSnap)
+		startMmeV1(OaiObj, CnAllInOneMode, buildSnap)
 		// Start SPGW
 		OaiObj.Logger.Print("Starting configuring SPGW")
 		fmt.Println("Starting configuring SPGW")
-		startSpgw(OaiObj, CnAllInOneMode, buildSnap)
+		startSpgwV1(OaiObj, CnAllInOneMode, buildSnap)
 	} else if snapVersion == "v2" {
 		OaiObj.Logger.Print("Starting configuring HSS v2")
 		fmt.Println("Starting configuring HSS v2")
@@ -129,13 +136,14 @@ func StartCN(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion string
 
 }
 
-// StartHSS is a wrapper for startHss
-func StartHSS(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion string) {
+// StartHSS is a wrapper for startHssV1
+func StartHSS(OaiObj Oai, buildSnap bool, snapVersion string) {
+	CnAllInOneMode := false
 	// Start HSS
 	if snapVersion == "v1" {
 		OaiObj.Logger.Print("Starting configuring HSS v1")
 		fmt.Println("Starting configuring HSS v1")
-		startHss(OaiObj, CnAllInOneMode, buildSnap)
+		startHssV1(OaiObj, CnAllInOneMode, buildSnap)
 	} else if snapVersion == "v2" {
 		OaiObj.Logger.Print("Starting configuring HSS v2")
 		fmt.Println("Starting configuring HSS v2")
@@ -148,13 +156,14 @@ func StartHSS(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion strin
 	}
 }
 
-// StartMME is a wrapper for startMme
-func StartMME(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion string) {
+// StartMME is a wrapper for startMmeV1
+func StartMME(OaiObj Oai, buildSnap bool, snapVersion string) {
+	CnAllInOneMode := false
 	// Start Mme
 	if snapVersion == "v1" {
 		OaiObj.Logger.Print("Starting configuring MME v1")
 		fmt.Println("Starting configuring MME v1")
-		startMme(OaiObj, CnAllInOneMode, buildSnap)
+		startMmeV1(OaiObj, CnAllInOneMode, buildSnap)
 	} else if snapVersion == "v2" {
 		OaiObj.Logger.Print("Starting configuring MME v2")
 		fmt.Println("Starting configuring MME v2")
@@ -167,23 +176,26 @@ func StartMME(OaiObj Oai, CnAllInOneMode bool, buildSnap bool, snapVersion strin
 	}
 }
 
-// StartSPGW is a wrapper for startSpgw
-func StartSPGW(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) {
+// StartSPGW is a wrapper for startSpgwV1
+func StartSPGW(OaiObj Oai, buildSnap bool) {
+	CnAllInOneMode := false
 	// Start Mme
 	OaiObj.Logger.Print("Starting configuring SPGW v1")
 	fmt.Println("Starting configuring SPGW v1")
-	startSpgw(OaiObj, CnAllInOneMode, buildSnap)
+	startSpgwV1(OaiObj, CnAllInOneMode, buildSnap)
 }
 
-// StartSPGWCV2 is a wrapper for startSpgw
-func StartSPGWCV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) {
+// StartSPGWCV2 is a wrapper for startSpgwV1
+func StartSPGWCV2(OaiObj Oai, buildSnap bool) {
+	CnAllInOneMode := false
 	OaiObj.Logger.Print("Starting configuring SPGWC v2")
 	fmt.Println("Starting configuring SPGWC v2")
 	startSpgwcV2(OaiObj, CnAllInOneMode, buildSnap)
 }
 
-// StartSPGWUV2 is a wrapper for startSpgw
-func StartSPGWUV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) {
+// StartSPGWUV2 is a wrapper for startSpgwV1
+func StartSPGWUV2(OaiObj Oai, buildSnap bool) {
+	CnAllInOneMode := false
 	OaiObj.Logger.Print("Starting configuring SPGWU v2")
 	fmt.Println("Starting configuring SPGWU v2")
 	startSpgwuV2(OaiObj, CnAllInOneMode, buildSnap)

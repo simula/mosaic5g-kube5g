@@ -3,7 +3,9 @@
 # prepare ENVs
 #export KUBECONFIG=/home/agrion/kubernetes/aiyu
 export OPERATOR_NAME=m5g-operator
-export MYDNS="192.168.1.1"
+
+DOCKER_OPERATOR_REP_NAME="mosaic5gecosys/m5g_operator"
+DOCKER_OPERATOR_TAG="v1.test"
 
 ###################################
 # colorful echos
@@ -39,7 +41,8 @@ echo_success() { cecho "$*" $green        ;}
 echo_info()    { cecho "$*" $blue         ;}
 
 run_local(){
-    operator-sdk run --local --namespace=default
+    # operator-sdk run --local --namespace=default
+    operator-sdk run local --watch-namespace=default
 }
 
 run_container(){
@@ -61,15 +64,77 @@ run_container(){
     esac
 }
 
-apply_cr(){
+operator_gen_build(){
     case ${1} in
-        all-in-one)
-            kubectl apply -f deploy/crds/allInOne/mosaic5g_v1alpha1_mosaic5g_cr.yaml
-            echo "Custom Resources (CR) of monolitic Core Network is applied"
+        -g | --generate)
+            echo_info "generating the crds of the operator"
+            operator-sdk generate k8s
+            operator-sdk generate crds
         ;;
-        disaggregated-cn)
-            kubectl apply -f deploy/crds/mosaic5g_v1alpha1_mosaic5g_cr.yaml
-            echo "Custom Resources (CR) of disaggregated Core Network entities is applied"
+        #######################
+        -b | --build)
+            docker_operator_repository_name=""
+            docker_operator_tag=""
+            case ${2} in
+                -d | --default)
+                    docker_operator_repository_name=$DOCKER_OPERATOR_REP_NAME
+                ;;
+                *)
+                    docker_operator_repository_name=${2}
+            esac
+            case ${3} in
+                -d | --default)
+                    docker_operator_tag=$DOCKER_OPERATOR_TAG
+                ;;
+                *)
+                    docker_operator_tag=${3}
+            esac
+            docker_operator_image_tag=${docker_operator_repository_name}":"${docker_operator_tag}
+            echo_info "building the docker image $docker_operator_image_tag for the operator"
+            operator-sdk build $docker_operator_image_tag
+            # operator-sdk build mosaic5gecosys/m5g_operator:1.1
+            echo_success "the docker image of the operator $docker_operator_image_tag is successfully build"
+            echo_info "do not forgot to push it to docker hub by: docker push $docker_operator_image_tag"
+        #######################
+        ;;
+        -p | --push)
+            docker_operator_repository_name=""
+            docker_operator_tag=""
+            case ${2} in
+                -d | --default)
+                    docker_operator_repository_name=$DOCKER_OPERATOR_REP_NAME
+                ;;
+                *)
+                    docker_operator_repository_name=${2}
+            esac
+            case ${3} in
+                -d | --default)
+                    docker_operator_tag=$DOCKER_OPERATOR_TAG
+                ;;
+                *)
+                    docker_operator_tag=${3}
+            esac
+            docker_operator_image_tag=${docker_operator_repository_name}":"${docker_operator_tag}
+            echo_info "pushing the docker image $docker_operator_image_tag to docker hub"
+            docker push $docker_operator_image_tag
+            echo_success "the docker image of the operator $docker_operator_image_tag is successfully pushed to docker hub"
+        #######################
+        ;;
+        *)
+            echo_error "Unkown option '${1}' for operator operations"
+    esac
+}
+apply_cr(){
+    case ${2} in
+        aio|all-in-one)
+            echo_info "kubectl apply -f deploy/crds/cr-${1}/lte-all-in-one/mosaic5g_v1alpha1_cr_${1}_lte_all_in_one.yaml"
+            kubectl apply -f deploy/crds/cr-${1}/lte-all-in-one/mosaic5g_v1alpha1_cr_${1}_lte_all_in_one.yaml
+            echo "lte network Custom Resources (CR) of monolitic Core Network, of snap version ${1}, is applied"
+        ;;
+        dis-cn|disaggregated-cn)
+            echo_info "kubectl apply -f deploy/crds/cr-${1}/lte/mosaic5g_v1alpha1_cr_${1}_lte.yaml"
+            kubectl apply -f deploy/crds/cr-${1}/lte/mosaic5g_v1alpha1_cr_${1}_lte.yaml
+            echo "lte network Custom Resources (CR) of disaggregated Core Network entities, of snap version ${1}, is applied"
         ;;
         *)
             echo_error "Unkown option '${1}' for deploy"
@@ -163,7 +228,7 @@ main() {
             run_container ${2}
         ;;
         deploy)
-            apply_cr ${2}
+            apply_cr ${2} ${3}
         ;;
         upgrade)
             upgrade_image
@@ -180,6 +245,11 @@ main() {
         -r | --remove)
             break_down
         ;;
+        ###
+        -o | --operator)
+            operator_gen_build ${2} ${3} ${4}
+        ;;
+        ###
         *)
             echo_info '
 This program installs the requirements to run kubernets on one machine, 
@@ -195,22 +265,31 @@ Options:
     Run Operator as a Golang app at local
 container [start|stop]
     Run Operator as a POD inside Kubernetes
-deploy [all-in-one|disaggregated-cn]
+deploy [v1|v2][[aio|all-in-one]|[dis-cn|disaggregated-cn]]
     Deploy the network with:
-        - all-in-one: all the core network entities (oai-hss, oai-mme, oai-spgw) in one pod
-        - disaggregated-cn: the core network entities (oai-hss, oai-mme, oai-spgw) are deployed on disaggregated pods
+        v1: snap version v1
+        v2: snap version v2
+        - aio|all-in-one: all the core network entities (oai-hss, oai-mme, oai-spgw) in one pod
+        - dis-cn|disaggregated-cn: the core network entities (oai-hss, oai-mme, oai-spgw) are deployed on disaggregated pods
 -d | --delete 
     Stop the network by deleting the Custom Resources (CR) of the network
-upgrade 
-    upgrade the images of the network to the new version v1.1
-downgrade 
-    downgrade the images of the network to the old version v1.0
 -c | --clean 
     Remove CRD from cluster
 -r | --remove
     remove the snap of kubectl and microk8s
+-o | --operator [-g|-b -d -d]
+    -g|--generate: generate the crds of the operator
+    -b|--build: build docker image of the operator
+        -b -d -d: 
+                with default values of (docker-hub accout)/(docker-image-name):mosaic5gecosys/m5g_operator, for the first (-d)
+                with default tag (1.1) for the second (-d)
+            Example: the options "-b -d -d" will build the image "mosaic5gecosys/m5g_operator:1.1"
 Usage:
     ./m5goperator.sh -i 
+    ./m5goperator.sh -o -g # generate the crds of the operator
+    ./m5goperator.sh -o -b -d -d # build the docker image of the operator with the default values: mosaic5gecosys/m5g_operator:1.1
+    ./m5goperator.sh -o -b -d v1.test # build the docker image of the operator with the default values of docker image name and certain tage: mosaic5gecosys/m5g_operator:v1.test
+
     ./m5goperator.sh container start
     ./m5goperator.sh deploy all-in-one
     ./m5goperator.sh deploy disaggregated-cn

@@ -1,65 +1,66 @@
-Sending build context to Docker daemon  4.803MB
+Sending build context to Docker daemon  8.615MB
 Step 1/21 : FROM ubuntu:16.04
- ---> 096efd74bb89
+ ---> dfeff22e96ae
 Step 2/21 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
  ---> Using cache
- ---> 3646f5fbcdd9
+ ---> 63f651585552
 Step 3/21 : ENV container docker
  ---> Using cache
- ---> 65691fedb6b7
+ ---> d25010261da0
 Step 4/21 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
  ---> Using cache
- ---> 275ebed73805
+ ---> b3f33f2602d6
 Step 5/21 : ENV LANG C.UTF-8
  ---> Using cache
- ---> c9eb08f20baa
+ ---> c8e549852cc7
 Step 6/21 : ENV LC_ALL C.UTF-8
  ---> Using cache
- ---> a8b799b67349
+ ---> 3db02dfa2321
 Step 7/21 : RUN echo exit 0 > /usr/sbin/policy-rc.d
  ---> Using cache
- ---> 5bd8476304b0
+ ---> d2ceefcd1cd3
 Step 8/21 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo &&  apt-get autoremove -y &&  apt-get autoclean -y &&  dpkg-divert --local --rename --add /sbin/udevadm &&  ln -s /bin/true /sbin/udevadm
  ---> Using cache
- ---> 8b8a662ff822
+ ---> 55e0e5dd3351
 Step 9/21 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim tcpdump curl jq
  ---> Using cache
- ---> 6e942fd7597f
+ ---> d66f7ee59eca
 Step 10/21 : RUN mv /usr/sbin/tcpdump /usr/bin/
  ---> Using cache
- ---> 94f804fd1c89
+ ---> 62a95b0d00fe
 Step 11/21 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
  ---> Using cache
- ---> ef7ad7b95df6
+ ---> 46f66ff5bfe9
 Step 12/21 : RUN chmod +x /etc/rc.local
  ---> Using cache
- ---> 424d64e4bfd4
+ ---> 2d2a64b35b99
 Step 13/21 : COPY ./init_build.sh /root/init.sh
- ---> Using cache
- ---> b7fb0c3af99d
+ ---> 0110473094eb
 Step 14/21 : COPY ./init_deploy.sh /root/
- ---> Using cache
- ---> 3ec2f07a1e60
+ ---> fda4e7002d56
 Step 15/21 : COPY ./hook /root/
- ---> Using cache
- ---> 3ee9b8c5c22a
+ ---> 9f9d2bda1512
 Step 16/21 : RUN mkdir /root/config
- ---> Using cache
- ---> 0df23edcfd1a
+ ---> Running in 783cc59b5a1a
+Removing intermediate container 783cc59b5a1a
+ ---> 1c154434810a
 Step 17/21 : COPY ./conf.yaml /root/config/
- ---> Using cache
- ---> ac4036c829e4
+ ---> 24c06ba07f8f
 Step 18/21 : RUN systemctl enable snapd
- ---> Using cache
- ---> 696a2f8f0b40
+ ---> Running in 253bbaad9e64
+Removing intermediate container 253bbaad9e64
+ ---> 6c93e35bcee3
 Step 19/21 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
- ---> Using cache
- ---> 29c6b6798fc1
+ ---> Running in 2a4c849a6a63
+Removing intermediate container 2a4c849a6a63
+ ---> 1d05930602d9
 Step 20/21 : VOLUME ["/sys/fs/cgroup"]
- ---> Using cache
- ---> e3ac02b1c572
+ ---> Running in f0d4552c832e
+Removing intermediate container f0d4552c832e
+ ---> 94035069c65e
 Step 21/21 : CMD ["/sbin/init"]
- ---> Using cache
- ---> b6e1d64d7989
-Successfully built b6e1d64d7989
+ ---> Running in fc102256adef
+Removing intermediate container fc102256adef
+ ---> 6be1df33c661
+Successfully built 6be1df33c661
 Successfully tagged mosaic5gecosys/oaihss:base

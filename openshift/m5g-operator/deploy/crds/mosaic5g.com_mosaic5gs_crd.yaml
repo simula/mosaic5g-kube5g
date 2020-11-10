@@ -29,430 +29,1863 @@ spec:
           metadata:
             type: object
           spec:
-            description: Mosaic5gSpec defines the desired state of Mosaic5g
+            description: Mosaic5gSpec defines the desired state of Mosaic5g Mosaic5gSpec
+              Mosaic5gSpec
             properties:
-              N_RB_DL:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              cnImage:
+              database:
+                items:
+                  description: CfgDatabase the configuration of database
+                  properties:
+                    databaseImage:
+                      type: string
+                    databaseSize:
+                      format: int32
+                      type: integer
+                    databaseType:
+                      type: string
+                    k8sDeploymentName:
+                      type: string
+                    k8sEntityNamespace:
+                      type: string
+                    k8sLabelSelector:
+                      items:
+                        description: K8sLabelSelectorDescription list of lables accepted
+                          for K8S
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - key
+                        - value
+                        type: object
+                      type: array
+                    k8sNodeSelecter:
+                      items:
+                        description: K8sNodeSelecterDescription list of lables accepted
+                          for K8S
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - key
+                        - value
+                        type: object
+                      type: array
+                    k8sPodResources:
+                      description: k8sPodResourcesDescription request and limits of
+                        the resources for the pods
+                      properties:
+                        limits:
+                          description: ResourcesDescription Define the limits of the
+                            resources
+                          properties:
+                            resourceCPU:
+                              type: string
+                            resourceMemory:
+                              type: string
+                          required:
+                          - resourceCPU
+                          - resourceMemory
+                          type: object
+                        requests:
+                          description: ResourcesDescription Define the limits of the
+                            resources
+                          properties:
+                            resourceCPU:
+                              type: string
+                            resourceMemory:
+                              type: string
+                          required:
+                          - resourceCPU
+                          - resourceMemory
+                          type: object
+                      required:
+                      - limits
+                      - requests
+                      type: object
+                    k8sServiceName:
+                      type: string
+                  required:
+                  - databaseImage
+                  - databaseSize
+                  - databaseType
+                  - k8sDeploymentName
+                  - k8sEntityNamespace
+                  - k8sLabelSelector
+                  - k8sNodeSelecter
+                  - k8sPodResources
+                  - k8sServiceName
+                  type: object
+                type: array
+              flexran:
+                items:
+                  description: CfgFlexran the configuration of flexran
+                  properties:
+                    flexranImage:
+                      type: string
+                    flexranSize:
+                      format: int32
+                      type: integer
+                    k8sDeploymentName:
+                      type: string
+                    k8sEntityNamespace:
+                      type: string
+                    k8sLabelSelector:
+                      items:
+                        description: K8sLabelSelectorDescription list of lables accepted
+                          for K8S
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - key
+                        - value
+                        type: object
+                      type: array
+                    k8sNodeSelecter:
+                      items:
+                        description: K8sNodeSelecterDescription list of lables accepted
+                          for K8S
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - key
+                        - value
+                        type: object
+                      type: array
+                    k8sPodResources:
+                      description: k8sPodResourcesDescription request and limits of
+                        the resources for the pods
+                      properties:
+                        limits:
+                          description: ResourcesDescription Define the limits of the
+                            resources
+                          properties:
+                            resourceCPU:
+                              type: string
+                            resourceMemory:
+                              type: string
+                          required:
+                          - resourceCPU
+                          - resourceMemory
+                          type: object
+                        requests:
+                          description: ResourcesDescription Define the limits of the
+                            resources
+                          properties:
+                            resourceCPU:
+                              type: string
+                            resourceMemory:
+                              type: string
+                          required:
+                          - resourceCPU
+                          - resourceMemory
+                          type: object
+                      required:
+                      - limits
+                      - requests
+                      type: object
+                    k8sServiceName:
+                      type: string
+                    snap:
+                      description: SnapDescriptionFinal this type is to descripe the
+                        details of the snap to be used for the current application
+                      properties:
+                        channel:
+                          type: string
+                        description:
+                          type: string
+                        devmode:
+                          type: boolean
+                        name:
+                          type: string
+                        refresh:
+                          type: boolean
+                      required:
+                      - channel
+                      - description
+                      - devmode
+                      - name
+                      - refresh
+                      type: object
+                  required:
+                  - flexranImage
+                  - flexranSize
+                  - k8sDeploymentName
+                  - k8sEntityNamespace
+                  - k8sLabelSelector
+                  - k8sNodeSelecter
+                  - k8sPodResources
+                  - k8sServiceName
+                  - snap
+                  type: object
+                type: array
+              k8sGlobalNamespace:
                 type: string
-              configurationPathofCN:
-                type: string
-              configurationPathofRAN:
-                type: string
-              coreNetworkAllInOne:
-                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                  Important: Run "operator-sdk generate k8s" to regenerate code after
-                  modifying this file Add custom validation using kubebuilder tags:
-                  https://book.kubebuilder.io/beyond_basics/generating_crd.html Size         int32  `json:"size"
-                  yaml:"size"`'
-                type: boolean
-              cu_portc:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
+              llmec:
+                items:
+                  description: CfgLlMec the configuration of flexran
+                  properties:
+                    k8sDeploymentName:
+                      type: string
+                    k8sEntityNamespace:
+                      type: string
+                    k8sLabelSelector:
+                      items:
+                        description: K8sLabelSelectorDescription list of lables accepted
+                          for K8S
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - key
+                        - value
+                        type: object
+                      type: array
+                    k8sNodeSelecter:
+                      items:
+                        description: K8sNodeSelecterDescription list of lables accepted
+                          for K8S
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - key
+                        - value
+                        type: object
+                      type: array
+                    k8sPodResources:
+                      description: k8sPodResourcesDescription request and limits of
+                        the resources for the pods
+                      properties:
+                        limits:
+                          description: ResourcesDescription Define the limits of the
+                            resources
+                          properties:
+                            resourceCPU:
+                              type: string
+                            resourceMemory:
+                              type: string
+                          required:
+                          - resourceCPU
+                          - resourceMemory
+                          type: object
+                        requests:
+                          description: ResourcesDescription Define the limits of the
+                            resources
+                          properties:
+                            resourceCPU:
+                              type: string
+                            resourceMemory:
+                              type: string
+                          required:
+                          - resourceCPU
+                          - resourceMemory
+                          type: object
+                      required:
+                      - limits
+                      - requests
+                      type: object
+                    k8sServiceName:
+                      type: string
+                    llmecImage:
+                      type: string
+                    llmecSize:
+                      format: int32
+                      type: integer
+                    snap:
+                      description: SnapDescriptionFinal this type is to descripe the
+                        details of the snap to be used for the current application
+                      properties:
+                        channel:
+                          type: string
+                        description:
+                          type: string
+                        devmode:
+                          type: boolean
+                        name:
+                          type: string
+                        refresh:
+                          type: boolean
+                      required:
+                      - channel
+                      - description
+                      - devmode
+                      - name
+                      - refresh
+                      type: object
+                  required:
+                  - k8sDeploymentName
+                  - k8sEntityNamespace
+                  - k8sLabelSelector
+                  - k8sNodeSelecter
+                  - k8sPodResources
+                  - k8sServiceName
+                  - llmecImage
+                  - llmecSize
+                  - snap
+                  type: object
+                type: array
+              oaiCn:
+                description: CfgCnGlobal CfgCnGlobal
                 properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
+                  v1:
+                    items:
+                      description: CfgCnV1 the configuration of flexran
+                      properties:
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        oaiCnImage:
+                          type: string
+                        oaiCnSize:
+                          format: int32
+                          type: integer
+                        oaiHss:
+                          properties:
+                            databaseServiceName:
+                              type: string
+                          required:
+                          - databaseServiceName
+                          type: object
+                        oaiMme:
+                          properties:
+                            mcc:
+                              type: string
+                            mnc:
+                              type: string
+                          required:
+                          - mcc
+                          - mnc
+                          type: object
+                        oaiSpgw:
+                          properties:
+                            dns:
+                              type: string
+                          required:
+                          - dns
+                          type: object
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                        snap:
+                          description: SnapDescriptionFinal this type is to descripe
+                            the details of the snap to be used for the current application
+                          properties:
+                            channel:
+                              type: string
+                            description:
+                              type: string
+                            devmode:
+                              type: boolean
+                            name:
+                              type: string
+                            refresh:
+                              type: boolean
+                          required:
+                          - channel
+                          - description
+                          - devmode
+                          - name
+                          - refresh
+                          type: object
+                      required:
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - oaiCnImage
+                      - oaiCnSize
+                      - oaiHss
+                      - oaiMme
+                      - oaiSpgw
+                      - realm
+                      - snap
+                      type: object
+                    type: array
+                  v2:
+                    items:
+                      description: CfgCnV2 the configuration of flexran
+                      properties:
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        oaiCnImage:
+                          type: string
+                        oaiCnSize:
+                          format: int32
+                          type: integer
+                        oaiHss:
+                          properties:
+                            databaseServiceName:
+                              type: string
+                            snap:
+                              description: SnapDescriptionFinal this type is to descripe
+                                the details of the snap to be used for the current
+                                application
+                              properties:
+                                channel:
+                                  type: string
+                                description:
+                                  type: string
+                                devmode:
+                                  type: boolean
+                                name:
+                                  type: string
+                                refresh:
+                                  type: boolean
+                              required:
+                              - channel
+                              - description
+                              - devmode
+                              - name
+                              - refresh
+                              type: object
+                          required:
+                          - databaseServiceName
+                          - snap
+                          type: object
+                        oaiMme:
+                          properties:
+                            mcc:
+                              type: string
+                            mnc:
+                              type: string
+                            snap:
+                              description: SnapDescriptionFinal this type is to descripe
+                                the details of the snap to be used for the current
+                                application
+                              properties:
+                                channel:
+                                  type: string
+                                description:
+                                  type: string
+                                devmode:
+                                  type: boolean
+                                name:
+                                  type: string
+                                refresh:
+                                  type: boolean
+                              required:
+                              - channel
+                              - description
+                              - devmode
+                              - name
+                              - refresh
+                              type: object
+                          required:
+                          - mcc
+                          - mnc
+                          - snap
+                          type: object
+                        oaiSpgwc:
+                          properties:
+                            dns:
+                              type: string
+                            snap:
+                              description: SnapDescriptionFinal this type is to descripe
+                                the details of the snap to be used for the current
+                                application
+                              properties:
+                                channel:
+                                  type: string
+                                description:
+                                  type: string
+                                devmode:
+                                  type: boolean
+                                name:
+                                  type: string
+                                refresh:
+                                  type: boolean
+                              required:
+                              - channel
+                              - description
+                              - devmode
+                              - name
+                              - refresh
+                              type: object
+                          required:
+                          - dns
+                          - snap
+                          type: object
+                        oaiSpgwu:
+                          properties:
+                            snap:
+                              description: SnapDescriptionFinal this type is to descripe
+                                the details of the snap to be used for the current
+                                application
+                              properties:
+                                channel:
+                                  type: string
+                                description:
+                                  type: string
+                                devmode:
+                                  type: boolean
+                                name:
+                                  type: string
+                                refresh:
+                                  type: boolean
+                              required:
+                              - channel
+                              - description
+                              - devmode
+                              - name
+                              - refresh
+                              type: object
+                          required:
+                          - snap
+                          type: object
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                      required:
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - oaiCnImage
+                      - oaiCnSize
+                      - oaiHss
+                      - oaiMme
+                      - oaiSpgwc
+                      - oaiSpgwu
+                      - realm
+                      type: object
+                    type: array
                 required:
-                - default
-                - description
+                - v1
+                - v2
                 type: object
-              cu_portd:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
+              oaiEnb:
+                items:
+                  description: 'EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+                    NOTE: json tags are required.  Any new fields you add must have
+                    json tags for the fields to be serialized. CfgOaiEnb the configuration
+                    of oai-enb'
+                  properties:
+                    N_RB_DL:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    downlink_frequency:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    eutra_band:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    flexRAN:
+                      type: boolean
+                    flexranServiceName:
+                      type: string
+                    k8sDeploymentName:
+                      description: Configurations of ENB
+                      type: string
+                    k8sEntityNamespace:
+                      type: string
+                    k8sLabelSelector:
+                      items:
+                        description: K8sLabelSelectorDescription list of lables accepted
+                          for K8S
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - key
+                        - value
+                        type: object
+                      type: array
+                    k8sNodeSelecter:
+                      items:
+                        description: K8sNodeSelecterDescription list of lables accepted
+                          for K8S
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                        required:
+                        - key
+                        - value
+                        type: object
+                      type: array
+                    k8sPodResources:
+                      description: k8sPodResourcesDescription request and limits of
+                        the resources for the pods
+                      properties:
+                        limits:
+                          description: ResourcesDescription Define the limits of the
+                            resources
+                          properties:
+                            resourceCPU:
+                              type: string
+                            resourceMemory:
+                              type: string
+                          required:
+                          - resourceCPU
+                          - resourceMemory
+                          type: object
+                        requests:
+                          description: ResourcesDescription Define the limits of the
+                            resources
+                          properties:
+                            resourceCPU:
+                              type: string
+                            resourceMemory:
+                              type: string
+                          required:
+                          - resourceCPU
+                          - resourceMemory
+                          type: object
+                      required:
+                      - limits
+                      - requests
+                      type: object
+                    k8sServiceName:
+                      type: string
+                    max_rxgain:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    mcc:
+                      type: string
+                    mmeService:
+                      description: MmeServiceDescription is to descripe the details
+                        of the mme service for oai-ran
+                      properties:
+                        description:
+                          type: string
+                        ipv4:
+                          type: string
+                        name:
+                          type: string
+                        snapVersion:
+                          type: string
+                      required:
+                      - description
+                      - ipv4
+                      - name
+                      - snapVersion
+                      type: object
+                    mnc:
+                      type: string
+                    oaiEnbImage:
+                      type: string
+                    oaiEnbSize:
+                      format: int32
+                      type: integer
+                    parallel_config:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    snap:
+                      description: SnapDescriptionFinal this type is to descripe the
+                        details of the snap to be used for the current application
+                      properties:
+                        channel:
+                          type: string
+                        description:
+                          type: string
+                        devmode:
+                          type: boolean
+                        name:
+                          type: string
+                        refresh:
+                          type: boolean
+                      required:
+                      - channel
+                      - description
+                      - devmode
+                      - name
+                      - refresh
+                      type: object
+                    uplink_frequency_offset:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                  required:
+                  - N_RB_DL
+                  - downlink_frequency
+                  - eutra_band
+                  - flexRAN
+                  - flexranServiceName
+                  - k8sDeploymentName
+                  - k8sEntityNamespace
+                  - k8sLabelSelector
+                  - k8sNodeSelecter
+                  - k8sPodResources
+                  - k8sServiceName
+                  - max_rxgain
+                  - mcc
+                  - mmeService
+                  - mnc
+                  - oaiEnbImage
+                  - oaiEnbSize
+                  - parallel_config
+                  - snap
+                  - uplink_frequency_offset
+                  type: object
+                type: array
+              oaiHss:
+                description: CfgHssGlobal CfgHssGlobal
                 properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
+                  v1:
+                    items:
+                      description: CfgHssV1 the configuration of flexran
+                      properties:
+                        databaseServiceName:
+                          type: string
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        mmeServiceName:
+                          type: string
+                        oaiHssImage:
+                          type: string
+                        oaiHssSize:
+                          format: int32
+                          type: integer
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                        snap:
+                          description: SnapDescriptionFinal this type is to descripe
+                            the details of the snap to be used for the current application
+                          properties:
+                            channel:
+                              type: string
+                            description:
+                              type: string
+                            devmode:
+                              type: boolean
+                            name:
+                              type: string
+                            refresh:
+                              type: boolean
+                          required:
+                          - channel
+                          - description
+                          - devmode
+                          - name
+                          - refresh
+                          type: object
+                      required:
+                      - databaseServiceName
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - mmeServiceName
+                      - oaiHssImage
+                      - oaiHssSize
+                      - realm
+                      - snap
+                      type: object
+                    type: array
+                  v2:
+                    items:
+                      description: CfgHssV2 the configuration of flexran
+                      properties:
+                        databaseServiceName:
+                          type: string
+                        hssServiceName:
+                          type: string
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        mmeServiceName:
+                          type: string
+                        oaiHssImage:
+                          type: string
+                        oaiHssSize:
+                          format: int32
+                          type: integer
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                        snap:
+                          description: SnapDescriptionFinal this type is to descripe
+                            the details of the snap to be used for the current application
+                          properties:
+                            channel:
+                              type: string
+                            description:
+                              type: string
+                            devmode:
+                              type: boolean
+                            name:
+                              type: string
+                            refresh:
+                              type: boolean
+                          required:
+                          - channel
+                          - description
+                          - devmode
+                          - name
+                          - refresh
+                          type: object
+                        spgwcServiceName:
+                          type: string
+                      required:
+                      - databaseServiceName
+                      - hssServiceName
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - mmeServiceName
+                      - oaiHssImage
+                      - oaiHssSize
+                      - realm
+                      - snap
+                      - spgwcServiceName
+                      type: object
+                    type: array
                 required:
-                - default
-                - description
+                - v1
+                - v2
                 type: object
-              cuDomainName:
-                type: string
-              dns:
-                type: string
-              downlink_frequency:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
+              oaiMme:
+                description: CfgMmeGlobal CfgMmeGlobal
                 properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
+                  v1:
+                    items:
+                      description: CfgMmeV1 the configuration of flexran
+                      properties:
+                        hssServiceName:
+                          type: string
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        mcc:
+                          type: string
+                        mnc:
+                          type: string
+                        oaiMmeImage:
+                          type: string
+                        oaiMmeSize:
+                          format: int32
+                          type: integer
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                        snap:
+                          description: SnapDescriptionFinal this type is to descripe
+                            the details of the snap to be used for the current application
+                          properties:
+                            channel:
+                              type: string
+                            description:
+                              type: string
+                            devmode:
+                              type: boolean
+                            name:
+                              type: string
+                            refresh:
+                              type: boolean
+                          required:
+                          - channel
+                          - description
+                          - devmode
+                          - name
+                          - refresh
+                          type: object
+                        spgwServiceName:
+                          type: string
+                      required:
+                      - hssServiceName
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - mcc
+                      - mnc
+                      - oaiMmeImage
+                      - oaiMmeSize
+                      - realm
+                      - snap
+                      - spgwServiceName
+                      type: object
+                    type: array
+                  v2:
+                    items:
+                      description: CfgMmeV2 the configuration of flexran
+                      properties:
+                        hssServiceName:
+                          type: string
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        mcc:
+                          type: string
+                        mnc:
+                          type: string
+                        oaiMmeImage:
+                          type: string
+                        oaiMmeSize:
+                          format: int32
+                          type: integer
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                        snap:
+                          description: SnapDescriptionFinal this type is to descripe
+                            the details of the snap to be used for the current application
+                          properties:
+                            channel:
+                              type: string
+                            description:
+                              type: string
+                            devmode:
+                              type: boolean
+                            name:
+                              type: string
+                            refresh:
+                              type: boolean
+                          required:
+                          - channel
+                          - description
+                          - devmode
+                          - name
+                          - refresh
+                          type: object
+                        spgwcServiceName:
+                          type: string
+                      required:
+                      - hssServiceName
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - mcc
+                      - mnc
+                      - oaiMmeImage
+                      - oaiMmeSize
+                      - realm
+                      - snap
+                      - spgwcServiceName
+                      type: object
+                    type: array
                 required:
-                - default
-                - description
+                - v1
+                - v2
                 type: object
-              du_portc:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
+              oaiSpgw:
+                description: CfgSpgwGlobal CfgSpgwGlobal
                 properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
+                  v1:
+                    items:
+                      description: CfgSpgwV1 the configuration of flexran
+                      properties:
+                        dns:
+                          type: string
+                        hssServiceName:
+                          type: string
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        mmeServiceName:
+                          type: string
+                        oaiSpgwImage:
+                          type: string
+                        oaiSpgwSize:
+                          format: int32
+                          type: integer
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                        snap:
+                          description: SnapDescriptionFinal this type is to descripe
+                            the details of the snap to be used for the current application
+                          properties:
+                            channel:
+                              type: string
+                            description:
+                              type: string
+                            devmode:
+                              type: boolean
+                            name:
+                              type: string
+                            refresh:
+                              type: boolean
+                          required:
+                          - channel
+                          - description
+                          - devmode
+                          - name
+                          - refresh
+                          type: object
+                      required:
+                      - dns
+                      - hssServiceName
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - mmeServiceName
+                      - oaiSpgwImage
+                      - oaiSpgwSize
+                      - realm
+                      - snap
+                      type: object
+                    type: array
                 required:
-                - default
-                - description
+                - v1
                 type: object
-              du_portd:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
+              oaiSpgwc:
+                description: CfgSpgwcGlobal CfgSpgwcGlobal
                 properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
+                  v2:
+                    items:
+                      description: CfgSpgwcV2 the configuration of flexran
+                      properties:
+                        dns:
+                          type: string
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        oaiSpgwcImage:
+                          type: string
+                        oaiSpgwcSize:
+                          format: int32
+                          type: integer
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                        snap:
+                          description: SnapDescriptionFinal this type is to descripe
+                            the details of the snap to be used for the current application
+                          properties:
+                            channel:
+                              type: string
+                            description:
+                              type: string
+                            devmode:
+                              type: boolean
+                            name:
+                              type: string
+                            refresh:
+                              type: boolean
+                          required:
+                          - channel
+                          - description
+                          - devmode
+                          - name
+                          - refresh
+                          type: object
+                      required:
+                      - dns
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - oaiSpgwcImage
+                      - oaiSpgwcSize
+                      - realm
+                      - snap
+                      type: object
+                    type: array
                 required:
-                - default
-                - description
+                - v2
                 type: object
-              duDomainName:
-                type: string
-              enb_id:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
+              oaiSpgwu:
+                description: CfgSpgwuGlobal CfgSpgwuGlobal
                 properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
+                  v2:
+                    items:
+                      description: CfgSpgwuV2 the configuration of flexran
+                      properties:
+                        k8sDeploymentName:
+                          type: string
+                        k8sEntityNamespace:
+                          type: string
+                        k8sLabelSelector:
+                          items:
+                            description: K8sLabelSelectorDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sNodeSelecter:
+                          items:
+                            description: K8sNodeSelecterDescription list of lables
+                              accepted for K8S
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                            required:
+                            - key
+                            - value
+                            type: object
+                          type: array
+                        k8sPodResources:
+                          description: k8sPodResourcesDescription request and limits
+                            of the resources for the pods
+                          properties:
+                            limits:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                            requests:
+                              description: ResourcesDescription Define the limits
+                                of the resources
+                              properties:
+                                resourceCPU:
+                                  type: string
+                                resourceMemory:
+                                  type: string
+                              required:
+                              - resourceCPU
+                              - resourceMemory
+                              type: object
+                          required:
+                          - limits
+                          - requests
+                          type: object
+                        k8sServiceName:
+                          type: string
+                        oaiSpgwuImage:
+                          type: string
+                        oaiSpgwuSize:
+                          format: int32
+                          type: integer
+                        realm:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
+                        snap:
+                          description: SnapDescriptionFinal this type is to descripe
+                            the details of the snap to be used for the current application
+                          properties:
+                            channel:
+                              type: string
+                            description:
+                              type: string
+                            devmode:
+                              type: boolean
+                            name:
+                              type: string
+                            refresh:
+                              type: boolean
+                          required:
+                          - channel
+                          - description
+                          - devmode
+                          - name
+                          - refresh
+                          type: object
+                        spgwcServiceName:
+                          type: string
+                      required:
+                      - k8sDeploymentName
+                      - k8sEntityNamespace
+                      - k8sLabelSelector
+                      - k8sNodeSelecter
+                      - k8sPodResources
+                      - k8sServiceName
+                      - oaiSpgwuImage
+                      - oaiSpgwuSize
+                      - realm
+                      - snap
+                      - spgwcServiceName
+                      type: object
+                    type: array
                 required:
-                - default
-                - description
-                type: object
-              enb_name:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              eutra_band:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              flexRAN:
-                description: EutraBand              string `json:"eutraBand" yaml:"eutraBand"`
-                  DownlinkFrequency      string `json:"downlinkFrequency" yaml:"downlinkFrequency"`
-                  UplinkFrequencyOffset  string `json:"uplinkFrequencyOffset" yaml:"uplinkFrequencyOffset"`
-                type: boolean
-              flexRANDomainName:
-                type: string
-              hssDomainName:
-                type: string
-              max_rxgain:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              mcc:
-                type: string
-              mme_ip_addr:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              mmeDomainName:
-                type: string
-              mnc:
-                type: string
-              mysqlDomainName:
-                type: string
-              mysqlImage:
-                type: string
-              mysqlSize:
-                format: int32
-                type: integer
-              nb_antennas_rx:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              nb_antennas_tx:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              node_function:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              oaiHssImage:
-                type: string
-              oaiMmeImage:
-                type: string
-              oaiSpgwImage:
-                type: string
-              oaicnsize:
-                format: int32
-                type: integer
-              oaihsssize:
-                format: int32
-                type: integer
-              oaimmesize:
-                format: int32
-                type: integer
-              oairansize:
-                format: int32
-                type: integer
-              oaispgwsize:
-                format: int32
-                type: integer
-              parallel_config:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              ranImage:
-                type: string
-              rcc_portc:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              rcc_portd:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              rcc_rru_tr_preference:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              rccDomainName:
-                type: string
-              rru_portc:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              rru_portd:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              rruDomainName:
-                type: string
-              rx_gain:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              snap:
-                description: New Configurations of ENB
-                properties:
-                  channel:
-                    type: string
-                  description:
-                    type: string
-                  devmode:
-                    type: boolean
-                  jailmode:
-                    type: boolean
-                  name:
-                    type: string
-                required:
-                - channel
-                - description
-                - devmode
-                - jailmode
-                - name
-                type: object
-              snapBinaryPath:
-                type: string
-              spgwDomainName:
-                type: string
-              tx_gain:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
-                type: object
-              uplink_frequency_offset:
-                description: GeneralDescription This is general description for every
-                  parameters defined above
-                properties:
-                  default:
-                    type: string
-                  description:
-                    type: string
-                required:
-                - default
-                - description
+                - v2
                 type: object
             required:
-            - N_RB_DL
-            - cnImage
-            - configurationPathofCN
-            - configurationPathofRAN
-            - coreNetworkAllInOne
-            - cuDomainName
-            - cu_portc
-            - cu_portd
-            - dns
-            - downlink_frequency
-            - duDomainName
-            - du_portc
-            - du_portd
-            - enb_id
-            - enb_name
-            - eutra_band
-            - flexRAN
-            - flexRANDomainName
-            - hssDomainName
-            - max_rxgain
-            - mcc
-            - mmeDomainName
-            - mme_ip_addr
-            - mnc
-            - mysqlDomainName
-            - mysqlImage
-            - mysqlSize
-            - nb_antennas_rx
-            - nb_antennas_tx
-            - node_function
-            - oaiHssImage
-            - oaiMmeImage
-            - oaiSpgwImage
-            - oaicnsize
-            - oaihsssize
-            - oaimmesize
-            - oairansize
-            - oaispgwsize
-            - parallel_config
-            - ranImage
-            - rccDomainName
-            - rcc_portc
-            - rcc_portd
-            - rcc_rru_tr_preference
-            - rruDomainName
-            - rru_portc
-            - rru_portd
-            - rx_gain
-            - snap
-            - snapBinaryPath
-            - spgwDomainName
-            - tx_gain
-            - uplink_frequency_offset
+            - database
+            - flexran
+            - k8sGlobalNamespace
+            - llmec
+            - oaiCn
+            - oaiEnb
+            - oaiHss
+            - oaiMme
+            - oaiSpgw
+            - oaiSpgwc
+            - oaiSpgwu
             type: object
           status:
             description: Mosaic5gStatus defines the observed state of Mosaic5g

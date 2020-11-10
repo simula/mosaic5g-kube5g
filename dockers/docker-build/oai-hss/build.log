@@ -1,46 +1,45 @@
-Sending build context to Docker daemon  4.803MB
+Sending build context to Docker daemon  8.615MB
 Step 1/21 : FROM ubuntu:16.04
- ---> 096efd74bb89
+ ---> dfeff22e96ae
 Step 2/21 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
  ---> Using cache
- ---> 3646f5fbcdd9
+ ---> 63f651585552
 Step 3/21 : ENV container docker
  ---> Using cache
- ---> 65691fedb6b7
+ ---> d25010261da0
 Step 4/21 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
  ---> Using cache
- ---> 275ebed73805
+ ---> b3f33f2602d6
 Step 5/21 : ENV LANG C.UTF-8
  ---> Using cache
- ---> c9eb08f20baa
+ ---> c8e549852cc7
 Step 6/21 : ENV LC_ALL C.UTF-8
  ---> Using cache
- ---> a8b799b67349
+ ---> 3db02dfa2321
 Step 7/21 : RUN echo exit 0 > /usr/sbin/policy-rc.d
- ---> Running in a8acd0d8e03c
-Removing intermediate container a8acd0d8e03c
- ---> 5bd8476304b0
+ ---> Using cache
+ ---> d2ceefcd1cd3
 Step 8/21 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo &&  apt-get autoremove -y &&  apt-get autoclean -y &&  dpkg-divert --local --rename --add /sbin/udevadm &&  ln -s /bin/true /sbin/udevadm
- ---> Running in aff7bcf4ae8a
+ ---> Running in 2760e25c5c90
 Get:1 http://archive.ubuntu.com/ubuntu xenial InRelease [247 kB]
-Get:2 http://security.ubuntu.com/ubuntu xenial-security InRelease [109 kB]
-Get:3 http://archive.ubuntu.com/ubuntu xenial-updates InRelease [109 kB]
+Get:2 http://archive.ubuntu.com/ubuntu xenial-updates InRelease [109 kB]
+Get:3 http://security.ubuntu.com/ubuntu xenial-security InRelease [109 kB]
 Get:4 http://archive.ubuntu.com/ubuntu xenial-backports InRelease [107 kB]
-Get:5 http://security.ubuntu.com/ubuntu xenial-security/main amd64 Packages [1839 kB]
-Get:6 http://archive.ubuntu.com/ubuntu xenial/main amd64 Packages [1558 kB]
-Get:7 http://security.ubuntu.com/ubuntu xenial-security/restricted amd64 Packages [15.9 kB]
-Get:8 http://security.ubuntu.com/ubuntu xenial-security/universe amd64 Packages [955 kB]
-Get:9 http://security.ubuntu.com/ubuntu xenial-security/multiverse amd64 Packages [9249 B]
-Get:10 http://archive.ubuntu.com/ubuntu xenial/restricted amd64 Packages [14.1 kB]
-Get:11 http://archive.ubuntu.com/ubuntu xenial/universe amd64 Packages [9827 kB]
+Get:5 http://archive.ubuntu.com/ubuntu xenial/main amd64 Packages [1558 kB]
+Get:6 http://archive.ubuntu.com/ubuntu xenial/restricted amd64 Packages [14.1 kB]
+Get:7 http://archive.ubuntu.com/ubuntu xenial/universe amd64 Packages [9827 kB]
+Get:8 http://security.ubuntu.com/ubuntu xenial-security/main amd64 Packages [1839 kB]
+Get:9 http://security.ubuntu.com/ubuntu xenial-security/restricted amd64 Packages [15.9 kB]
+Get:10 http://security.ubuntu.com/ubuntu xenial-security/universe amd64 Packages [968 kB]
+Get:11 http://security.ubuntu.com/ubuntu xenial-security/multiverse amd64 Packages [9249 B]
 Get:12 http://archive.ubuntu.com/ubuntu xenial/multiverse amd64 Packages [176 kB]
 Get:13 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 Packages [2353 kB]
 Get:14 http://archive.ubuntu.com/ubuntu xenial-updates/restricted amd64 Packages [16.4 kB]
-Get:15 http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 Packages [1499 kB]
+Get:15 http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 Packages [1511 kB]
 Get:16 http://archive.ubuntu.com/ubuntu xenial-updates/multiverse amd64 Packages [26.7 kB]
 Get:17 http://archive.ubuntu.com/ubuntu xenial-backports/main amd64 Packages [10.9 kB]
 Get:18 http://archive.ubuntu.com/ubuntu xenial-backports/universe amd64 Packages [12.6 kB]
-Fetched 18.9 MB in 5s (3470 kB/s)
+Fetched 18.9 MB in 5s (3154 kB/s)
 Reading package lists...
 Reading package lists...
 Building dependency tree...
@@ -67,9 +66,9 @@ The following NEW packages will be installed:
   mime-support openssh-client openssl python3 python3-minimal python3.5
   python3.5-minimal snap-confine snapd squashfs-tools squashfuse sudo udev
   xauth
-0 upgraded, 45 newly installed, 0 to remove and 4 not upgraded.
-Need to get 31.5 MB of archives.
-After this operation, 158 MB of additional disk space will be used.
+0 upgraded, 45 newly installed, 0 to remove and 1 not upgraded.
+Need to get 31.3 MB of archives.
+After this operation, 161 MB of additional disk space will be used.
 Get:1 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libssl1.0.0 amd64 1.0.2g-1ubuntu4.17 [1082 kB]
 Get:2 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libpython3.5-minimal amd64 3.5.2-2ubuntu0~16.04.12 [524 kB]
 Get:3 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libexpat1 amd64 2.1.0-7ubuntu0.16.04.5 [71.5 kB]
@@ -98,7 +97,7 @@ Get:25 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 sudo amd64 1.8
 Get:26 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libapparmor-perl amd64 2.10.95-0ubuntu2.11 [33.6 kB]
 Get:27 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 apparmor amd64 2.10.95-0ubuntu2.11 [451 kB]
 Get:28 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 openssl amd64 1.0.2g-1ubuntu4.17 [492 kB]
-Get:29 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 ca-certificates all 20190110~16.04.1 [146 kB]
+Get:29 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 ca-certificates all 20201027ubuntu0.16.04.1 [155 kB]
 Get:30 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libfuse2 amd64 2.9.4-1ubuntu3.1 [89.9 kB]
 Get:31 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 fuse amd64 2.9.4-1ubuntu3.1 [24.4 kB]
 Get:32 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 krb5-locales all 1.13.2+dfsg-5ubuntu2.1 [13.6 kB]
@@ -112,11 +111,11 @@ Get:39 http://archive.ubuntu.com/ubuntu xenial/main amd64 libxmuu1 amd64 2:1.1.2
 Get:40 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 openssh-client amd64 1:7.2p2-4ubuntu2.10 [590 kB]
 Get:41 http://archive.ubuntu.com/ubuntu xenial/main amd64 xauth amd64 1:1.0.9-1ubuntu2 [22.7 kB]
 Get:42 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 squashfs-tools amd64 1:4.3-3ubuntu2.16.04.3 [105 kB]
-Get:43 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 snapd amd64 2.46.1 [20.2 MB]
-Get:44 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 snap-confine amd64 2.46.1 [1710 B]
+Get:43 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 snapd amd64 2.47.1 [20.1 MB]
+Get:44 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 snap-confine amd64 2.47.1 [1716 B]
 Get:45 http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 squashfuse amd64 0.1.100-0ubuntu1~ubuntu16.04.1 [17.4 kB]
 [91mdebconf: delaying package configuration, since apt-utils is not installed
-[0mFetched 31.5 MB in 7s (4391 kB/s)
+[0mFetched 31.3 MB in 9s (3363 kB/s)
 Selecting previously unselected package libssl1.0.0:amd64.
 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4780 files and directories currently installed.)
 Preparing to unpack .../libssl1.0.0_1.0.2g-1ubuntu4.17_amd64.deb ...
@@ -211,8 +210,8 @@ Selecting previously unselected package openssl.
 Preparing to unpack .../openssl_1.0.2g-1ubuntu4.17_amd64.deb ...
 Unpacking openssl (1.0.2g-1ubuntu4.17) ...
 Selecting previously unselected package ca-certificates.
-Preparing to unpack .../ca-certificates_20190110~16.04.1_all.deb ...
-Unpacking ca-certificates (20190110~16.04.1) ...
+Preparing to unpack .../ca-certificates_20201027ubuntu0.16.04.1_all.deb ...
+Unpacking ca-certificates (20201027ubuntu0.16.04.1) ...
 Selecting previously unselected package libfuse2:amd64.
 Preparing to unpack .../libfuse2_2.9.4-1ubuntu3.1_amd64.deb ...
 Unpacking libfuse2:amd64 (2.9.4-1ubuntu3.1) ...
@@ -253,11 +252,11 @@ Selecting previously unselected package squashfs-tools.
 Preparing to unpack .../squashfs-tools_1%3a4.3-3ubuntu2.16.04.3_amd64.deb ...
 Unpacking squashfs-tools (1:4.3-3ubuntu2.16.04.3) ...
 Selecting previously unselected package snapd.
-Preparing to unpack .../snapd_2.46.1_amd64.deb ...
-Unpacking snapd (2.46.1) ...
+Preparing to unpack .../snapd_2.47.1_amd64.deb ...
+Unpacking snapd (2.47.1) ...
 Selecting previously unselected package snap-confine.
-Preparing to unpack .../snap-confine_2.46.1_amd64.deb ...
-Unpacking snap-confine (2.46.1) ...
+Preparing to unpack .../snap-confine_2.47.1_amd64.deb ...
+Unpacking snap-confine (2.47.1) ...
 Selecting previously unselected package squashfuse.
 Preparing to unpack .../squashfuse_0.1.100-0ubuntu1~ubuntu16.04.1_amd64.deb ...
 Unpacking squashfuse (0.1.100-0ubuntu1~ubuntu16.04.1) ...
@@ -287,7 +286,7 @@ Setting up libbsd0:amd64 (0.8.2-1ubuntu0.1) ...
 Setting up sudo (1.8.16-0ubuntu1.9) ...
 Setting up libapparmor-perl (2.10.95-0ubuntu2.11) ...
 Setting up openssl (1.0.2g-1ubuntu4.17) ...
-Setting up ca-certificates (20190110~16.04.1) ...
+Setting up ca-certificates (20201027ubuntu0.16.04.1) ...
 Setting up libfuse2:amd64 (2.9.4-1ubuntu3.1) ...
 Setting up fuse (2.9.4-1ubuntu3.1) ...
 Setting up krb5-locales (1.13.2+dfsg-5ubuntu2.1) ...
@@ -306,28 +305,28 @@ Setting up python3 (3.5.1-3) ...
 Setting up apparmor (2.10.95-0ubuntu2.11) ...
 update-rc.d: warning: start and stop actions are no longer supported; falling back to defaults
 diff: /var/lib/apparmor/profiles/.apparmor.md5sums: No such file or directory
-Setting up snapd (2.46.1) ...
-Setting up snap-confine (2.46.1) ...
+Setting up snapd (2.47.1) ...
+Setting up snap-confine (2.47.1) ...
 Setting up dh-python (2.20151103ubuntu1.2) ...
 Processing triggers for libc-bin (2.23-0ubuntu11.2) ...
 Processing triggers for systemd (229-4ubuntu21.29) ...
-Processing triggers for ca-certificates (20190110~16.04.1) ...
+Processing triggers for ca-certificates (20201027ubuntu0.16.04.1) ...
 Updating certificates in /etc/ssl/certs...
-127 added, 0 removed; done.
+138 added, 0 removed; done.
 Running hooks in /etc/ca-certificates/update.d...
 done.
 Reading package lists...
 Building dependency tree...
 Reading state information...
-0 upgraded, 0 newly installed, 0 to remove and 4 not upgraded.
+0 upgraded, 0 newly installed, 0 to remove and 1 not upgraded.
 Reading package lists...
 Building dependency tree...
 Reading state information...
 Adding 'local diversion of /sbin/udevadm to /sbin/udevadm.distrib'
-Removing intermediate container aff7bcf4ae8a
- ---> 8b8a662ff822
+Removing intermediate container 2760e25c5c90
+ ---> 55e0e5dd3351
 Step 9/21 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim tcpdump curl jq
- ---> Running in ad7e420d529a
+ ---> Running in 7bc229dc2438
 Reading package lists...
 Building dependency tree...
 Reading state information...
@@ -358,7 +357,7 @@ The following NEW packages will be installed:
   libroken18-heimdal librtmp1 libsasl2-2 libsasl2-modules libsasl2-modules-db
   libtasn1-6 libwind0-heimdal libxml2 net-tools sgml-base tcpdump vim
   vim-common vim-runtime xml-core
-0 upgraded, 52 newly installed, 0 to remove and 4 not upgraded.
+0 upgraded, 52 newly installed, 0 to remove and 1 not upgraded.
 Need to get 23.0 MB of archives.
 After this operation, 93.1 MB of additional disk space will be used.
 Get:1 http://archive.ubuntu.com/ubuntu xenial/main amd64 sgml-base all 1.26+nmu4ubuntu1 [12.5 kB]
@@ -414,9 +413,9 @@ Get:50 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 libpython3.5 a
 Get:51 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 vim-runtime all 2:7.4.1689-3ubuntu1.5 [5169 kB]
 Get:52 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 vim amd64 2:7.4.1689-3ubuntu1.5 [1036 kB]
 [91mdebconf: delaying package configuration, since apt-utils is not installed
-[0mFetched 23.0 MB in 5s (4317 kB/s)
+[0mFetched 23.0 MB in 6s (3333 kB/s)
 Selecting previously unselected package sgml-base.
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 6904 files and directories currently installed.)
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 6915 files and directories currently installed.)
 Preparing to unpack .../sgml-base_1.26+nmu4ubuntu1_all.deb ...
 Unpacking sgml-base (1.26+nmu4ubuntu1) ...
 Selecting previously unselected package libgpm2:amd64.
@@ -639,47 +638,47 @@ update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/ex (ex) in aut
 update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/editor (editor) in auto mode
 Processing triggers for libc-bin (2.23-0ubuntu11.2) ...
 Processing triggers for sgml-base (1.26+nmu4ubuntu1) ...
-Removing intermediate container ad7e420d529a
- ---> 6e942fd7597f
+Removing intermediate container 7bc229dc2438
+ ---> d66f7ee59eca
 Step 10/21 : RUN mv /usr/sbin/tcpdump /usr/bin/
- ---> Running in f0289f6902f6
-Removing intermediate container f0289f6902f6
- ---> 94f804fd1c89
+ ---> Running in ff69e281e51f
+Removing intermediate container ff69e281e51f
+ ---> 62a95b0d00fe
 Step 11/21 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
- ---> Running in 4e228988a9aa
-Removing intermediate container 4e228988a9aa
- ---> ef7ad7b95df6
+ ---> Running in 27de85aad04e
+Removing intermediate container 27de85aad04e
+ ---> 46f66ff5bfe9
 Step 12/21 : RUN chmod +x /etc/rc.local
- ---> Running in 9d0644d6c94f
-Removing intermediate container 9d0644d6c94f
- ---> 424d64e4bfd4
+ ---> Running in 07ea53a999b1
+Removing intermediate container 07ea53a999b1
+ ---> 2d2a64b35b99
 Step 13/21 : COPY ./init_build.sh /root/init.sh
- ---> aeae2ecce2c1
+ ---> 0692b864a8fe
 Step 14/21 : COPY ./init_deploy.sh /root/
- ---> 3614bf780d8b
+ ---> 91e5abff7c7c
 Step 15/21 : COPY ./hook /root/
- ---> 5a66754d21c8
+ ---> e4b478e5791a
 Step 16/21 : RUN mkdir /root/config
- ---> Running in a3491d8bee74
-Removing intermediate container a3491d8bee74
- ---> 99c5bf11f7c6
+ ---> Running in 492aa2ea42db
+Removing intermediate container 492aa2ea42db
+ ---> 24b34080e49d
 Step 17/21 : COPY ./conf.yaml /root/config/
- ---> b5e8651f1113
+ ---> 33d6c532e68a
 Step 18/21 : RUN systemctl enable snapd
- ---> Running in 72253ecfcf72
-Removing intermediate container 72253ecfcf72
- ---> 6d72eab694c7
+ ---> Running in f51927bb641c
+Removing intermediate container f51927bb641c
+ ---> 78c34568fe90
 Step 19/21 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
- ---> Running in e35bd87f7899
-Removing intermediate container e35bd87f7899
- ---> b7b58ff5b8ad
+ ---> Running in 2e649fecdc8d
+Removing intermediate container 2e649fecdc8d
+ ---> 9ff0c178a6bb
 Step 20/21 : VOLUME ["/sys/fs/cgroup"]
- ---> Running in 11c947edefc8
-Removing intermediate container 11c947edefc8
- ---> 5300443c903f
+ ---> Running in d04d1b015011
+Removing intermediate container d04d1b015011
+ ---> 66927787d4ab
 Step 21/21 : CMD ["/sbin/init"]
- ---> Running in 95a041afc3a6
-Removing intermediate container 95a041afc3a6
- ---> 9df3fd932772
-Successfully built 9df3fd932772
+ ---> Running in b7dabe9fdaf7
+Removing intermediate container b7dabe9fdaf7
+ ---> 5e6084499284
+Successfully built 5e6084499284
 Successfully tagged mosaic5gecosys/oaihss:base

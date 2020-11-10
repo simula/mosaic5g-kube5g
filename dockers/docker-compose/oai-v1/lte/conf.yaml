@@ -6,6 +6,7 @@ oaiEnb:
         If 'ipv4' is provided, the enb connects to MME using the provied ip address.
         Otherwise, it will connect to the service provided by 'name'        
       name: "oaimme"
+      snapVersion: "v1" # allowed values: v1, v2
       ipv4: ""
     flexRAN: false
     flexRANServiceName: "flexran"
@@ -54,6 +55,7 @@ oaiHss:
       devmode: true
       refresh: false
     databaseServiceName: "mysql"
+    mmeServiceName: "oaimme"
 oaiMme:
   v1:
   - realm: 
@@ -83,3 +85,5 @@ oaiSpgw:
       devmode: true
       refresh: false
     dns: "192.168.1.1"
+    hssServiceName: "oaihss"
+    mmeServiceName: "oaimme"

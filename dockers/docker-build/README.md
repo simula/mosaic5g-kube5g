@@ -56,3 +56,11 @@ In **compose** directory, we provide docker-compose files that can bring up Mosa
 
 
 **After building dokcer images for mosaic5G snaps, you may proceed now with the examples that are provided using dokcer-compose. There examples are in the project ```mosaic5g/kube5g/dockers/docker-compose```**.
+
+
+## Release Notes:
+There are two enumeritation for the tages of the docker images:
+1. Tags starts with ```1.*``` or ```2.*```, which are for related to the snap versions v1 and v2 respectively. These tags of docker images are generated using ```kube5g``` project tagged by [snap-v1](https://gitlab.eurecom.fr/mosaic5g/kube5g/-/tree/snap-v1)
+2. For ```oai-cn```, ```oai-hss```, ```oai-mme```, ```oai-spgw```, ```oai-spgwc```, and ```oai-spgwu```, the tages start with ```v1.{kube5g-tag}``` are related the snaps version ```v1```, while the tages start with ```v2.{kube5g-tag}``` are related the snaps version ```v2```. 
+Note that for ```flexran```, ```ll-mec``` ```oai-ran``` are always with the tags ```v1.{kube5g-tag}```
+2. Additionally, there are also docker images with the tages ```v1.test``` and ```v2.test```, for the snap versions ```v1``` and ```v2``` respectively, which are intended only for testing.

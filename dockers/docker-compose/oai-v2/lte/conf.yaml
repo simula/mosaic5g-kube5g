@@ -6,6 +6,7 @@ oaiEnb:
         If 'ipv4' is provided, the enb connects to MME using the provied ip address.
         Otherwise, it will connect to the service provided by 'name'        
       name: "oaimme"
+      snapVersion: "v2" # allowed values: v1, v2
       ipv4: ""
     flexRAN: false
     flexRANServiceName: "flexran"
@@ -70,7 +71,10 @@ oaiMme:
       channel: "edge"
       devmode: true
       refresh: false
+    mcc: "208"  
+    mnc: "95"
     hssServiceName: "oaihss"
+    spgwcServiceName: "oaispgwc"
 oaiSpgwc: 
   v2: # Do not change, Always v2
   - realm: 

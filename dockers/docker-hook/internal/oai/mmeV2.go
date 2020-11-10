@@ -140,7 +140,7 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 				return errors.New("Set ListenOn in " + mmeFdConf + " failed")
 			}
 			/////////////////////////////////////////////////////////
-			hssIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiHss.V2[0].HssServiceName)
+			hssIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].HssServiceName)
 
 			if buildSnap == true {
 				hssIP = "127.0.0.10"
@@ -158,11 +158,11 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 					}
 					OaiObj.Logger.Print("Valid ip address for oai-hss not yet retreived")
 					time.Sleep(1 * time.Second)
-					hssIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiHss.V2[0].HssServiceName)
+					hssIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].HssServiceName)
 				}
 			}
 
-			spgwcIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiHss.V2[0].SpgwcServiceName)
+			spgwcIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].SpgwcServiceName)
 			if buildSnap == true {
 				spgwcIP = "127.0.11.2"
 			} else {
@@ -179,7 +179,7 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 					}
 					OaiObj.Logger.Print("Valid ip address for oai-spgwc not yet retreived")
 					time.Sleep(1 * time.Second)
-					spgwcIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiHss.V2[0].SpgwcServiceName)
+					spgwcIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].SpgwcServiceName)
 				}
 			}
 

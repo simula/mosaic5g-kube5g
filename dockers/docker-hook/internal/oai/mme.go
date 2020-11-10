@@ -42,7 +42,7 @@ import (
 )
 
 // StartMme : Start MME as a daemon
-func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
+func startMmeV1(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	fmt.Println("Starting configuring MME V1")
 
 	retStatus := util.RunCmd(OaiObj.Logger, "which", "oai-cn.mme-status")

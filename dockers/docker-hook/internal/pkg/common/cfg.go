@@ -57,6 +57,7 @@ type CfgOaiEnb struct {
 	MmeService struct {
 		Description string `yaml:"description"`
 		Name        string `yaml:"name"`
+		SnapVersion string `yaml:"snapVersion"`
 		IPV4        string `yaml:"ipv4"`
 	} `yaml:"mmeService"`
 	FlexRAN            bool   `yaml:"flexRAN"`
@@ -131,6 +132,7 @@ type CfgHssV1 struct {
 		Refresh     bool   `yaml:"refresh"`
 	} `yaml:"snap"`
 	DatabaseServiceName string `yaml:"databaseServiceName"`
+	MmeServiceName      string `yaml:"mmeServiceName"`
 }
 
 // CfgHssV2 the configuration of flexran
@@ -184,9 +186,10 @@ type CfgMmeV2 struct {
 		Devmode     bool   `yaml:"devmode"`
 		Refresh     bool   `yaml:"refresh"`
 	} `yaml:"snap"`
-	MCC            string `yaml:"mcc"`
-	MNC            string `yaml:"mnc"`
-	HssServiceName string `yaml:"hssServiceName"`
+	MCC              string `yaml:"mcc"`
+	MNC              string `yaml:"mnc"`
+	HssServiceName   string `yaml:"hssServiceName"`
+	SpgwcServiceName string `yaml:"spgwcServiceName"`
 }
 
 // CfgSpgwV1 the configuration of flexran
@@ -202,7 +205,9 @@ type CfgSpgwV1 struct {
 		Devmode     bool   `yaml:"devmode"`
 		Refresh     bool   `yaml:"refresh"`
 	} `yaml:"snap"`
-	DNS string `yaml:"dns"`
+	DNS            string `yaml:"dns"`
+	HssServiceName string `yaml:"hssServiceName"`
+	MmeServiceName string `yaml:"mmeServiceName"`
 }
 
 // CfgSpgwcV2 the configuration of flexran

@@ -5,7 +5,8 @@ oaiEnb:
       description: |
         If 'ipv4' is provided, the enb connects to MME using the provied ip address.
         Otherwise, it will connect to the service provided by 'name'        
-      name: "oaimme"
+      name: "oaicn"
+      snapVersion: "v1" # allowed values: v1, v2
       ipv4: ""
     flexRAN: false
     flexRANServiceName: "flexran"

@@ -39,6 +39,7 @@ import (
 	"mosaic5g/docker-hook/internal/pkg/util"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -160,108 +161,194 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// Get the IP address of oai-mme
+	mmeServiceName := OaiObj.Conf.OaiEnb[0].MmeService.Name
+	mmeIPV4Customized := OaiObj.Conf.OaiEnb[0].MmeService.IPV4
+	mmeSnapVersion := OaiObj.Conf.OaiEnb[0].MmeService.SnapVersion
 	if buildSnap == false {
-		mmeIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiEnb[0].MmeService.Name)
-		for {
-			if err != nil {
-				OaiObj.Logger.Print(err)
+		mmeIP, err := util.GetIPFromDomain(OaiObj.Logger, mmeServiceName)
+
+		if (mmeServiceName == "") && (mmeIPV4Customized == "") {
+			//skip configuring mme as there is nothing specified
+			if mmeSnapVersion == "v1" {
+				mmeIP = "127.0.1.10"
 			} else {
-				hostNameMme, err := net.LookupHost(mmeIP)
-				if len(hostNameMme) > 0 {
-					// time.Sleep(3 * time.Second)
-					break
-				} else {
-					OaiObj.Logger.Print(err)
-				}
+				mmeIP = "127.0.1.1"
 			}
-			OaiObj.Logger.Print("Valid ip address for oai-hss not get retreived")
-			time.Sleep(1 * time.Second)
-			mmeIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiEnb[0].MmeService.Name)
+		} else if mmeIPV4Customized != "" {
+			mmeIP = mmeIPV4Customized
+		} else if mmeServiceName != "" {
+			mmeIP, err = util.GetIPFromDomain(OaiObj.Logger, mmeServiceName)
+			OaiObj.Logger.Print("err = ", err)
+			OaiObj.Logger.Print("mmeIP = ", mmeIP)
+			for {
+				if err != nil {
+					OaiObj.Logger.Print(err)
+				} else {
+					hostNameMme, err := net.LookupHost(mmeIP)
+					OaiObj.Logger.Print("err = ", err)
+					OaiObj.Logger.Print("hostNameMme = ", hostNameMme)
+					if len(hostNameMme) > 0 {
+						// time.Sleep(3 * time.Second)
+						break
+					} else {
+						OaiObj.Logger.Print(err)
+					}
+				}
+				OaiObj.Logger.Print("Valid ip address for oai-mme not get retreived")
+				time.Sleep(1 * time.Second)
+				mmeIP, err = util.GetIPFromDomain(OaiObj.Logger, mmeServiceName)
+			}
+		} else {
+			// both mmeServiceName and mmeIPV4Customized are defined, thus, the privilige is for mmeIPV4Customized
+			mmeIP = mmeIPV4Customized
+			OaiObj.Logger.Print("mmeIP = mmeIPV4Customized")
 		}
+		OaiObj.Logger.Print("mmeServiceName = ", mmeServiceName)
+		OaiObj.Logger.Print("mmeIPV4Customized = ", mmeIPV4Customized)
+		OaiObj.Logger.Print("mmeIP = ", mmeIP)
+
+		fmt.Println("mmeServiceName = ", mmeServiceName)
+		fmt.Println("mmeIPV4Customized = ", mmeIPV4Customized)
+		fmt.Println("mmeIP = ", mmeIP)
+
 		sedCommand = "175s:\".*;:\"" + mmeIP + "\";:g"
 		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
-		// curl 172.20.0.5:5552/mme/status
-		urlMme := "http://" + mmeIP + ":5552/mme/status"
-		resp, err := http.Get(urlMme)
-		counter := 0
-		mmeActiveTime := 0
-
-		maxWaitTime := 200
-		counterMmeActiveTime := 30
-		for {
-			if err != nil {
-				OaiObj.Logger.Print(err)
+		var counter int64
+		var maxWaitTime int64
+		if mmeIPV4Customized == "" {
+			if mmeSnapVersion == "v1" {
+				// maxWaitTime = 3
+				maxWaitTime = 20
+				OaiObj.Logger.Print("Waiting for " + strconv.FormatInt(maxWaitTime, 10) + " seconds until the service " + mmeServiceName + " becomes ready ...")
+				fmt.Println("Waiting for " + strconv.FormatInt(maxWaitTime, 10) + " seconds until the service " + mmeServiceName + " becomes ready ...")
+				time.Sleep(time.Duration(maxWaitTime) * time.Second)
+				OaiObj.Logger.Print("Supposed that service " + mmeServiceName + " is active now")
+				fmt.Println("Supposed that service " + mmeServiceName + " is active now")
 			} else {
-				defer resp.Body.Close()
-				bodyBytes, _ := ioutil.ReadAll(resp.Body)
-				bodyString := string(bodyBytes)
+				// curl 172.20.0.5:5552/mme/status
+				urlMme := "http://" + mmeIP + ":5552/mme/status"
 
-				var mmeStat []common.MmeStatus
-				json.Unmarshal([]byte(bodyString), &mmeStat)
+				counter = 0
+				// maxWaitTime = 50
+				maxWaitTime = 150
 
-				OaiObj.Logger.Print(mmeStat)
-				fmt.Println(mmeStat)
-				/*
-					mmeStat=
-					[
-						{
-							"service": "oai-mme.mmed",
-							"startup": "enabled",
-							"current": "active",
-							"notes": "-"
-						}
-					]
-				*/
-				if (mmeStat[0].Startup == "enabled") && (mmeStat[0].Current == "active") {
-					mmeActiveTime++
-					if mmeActiveTime >= counterMmeActiveTime {
-						OaiObj.Logger.Print("The service " + mmeStat[0].Service + " is active")
-						fmt.Println("The service " + mmeStat[0].Service + " is active")
-						break
+				var mmeActiveTime int64
+				var counterMmeActiveTime int64
+
+				mmeActiveTime = 0
+				// counterMmeActiveTime = 30
+				counterMmeActiveTime = 50
+
+				resp, err := http.Get(urlMme)
+				for {
+					if err != nil {
+						OaiObj.Logger.Print(err)
 					} else {
-						OaiObj.Logger.Print("Waiting for " + string(counterMmeActiveTime) + " seconds to make sure that the service " + OaiObj.Conf.OaiEnb[0].MmeService.Name + " is active")
-						fmt.Println("Waiting for " + string(counterMmeActiveTime) + " seconds to make sure that the service " + OaiObj.Conf.OaiEnb[0].MmeService.Name + " is active")
+						defer resp.Body.Close()
+						bodyBytes, _ := ioutil.ReadAll(resp.Body)
+						bodyString := string(bodyBytes)
+
+						var mmeStat []common.MmeStatus
+						json.Unmarshal([]byte(bodyString), &mmeStat)
+
+						OaiObj.Logger.Print(mmeStat)
+						fmt.Println(mmeStat)
+						/*
+							mmeStat=
+							[
+								{
+									"service": "oai-mme.mmed",
+									"startup": "enabled",
+									"current": "active",
+									"notes": "-"
+								}
+							]
+						*/
+						if (mmeStat[0].Startup == "enabled") && (mmeStat[0].Current == "active") {
+							mmeActiveTime++
+							if mmeActiveTime >= counterMmeActiveTime {
+								OaiObj.Logger.Print("The service " + mmeStat[0].Service + " is active")
+								fmt.Println("The service " + mmeStat[0].Service + " is active")
+								break
+							} else {
+								OaiObj.Logger.Print("Waiting time" + strconv.FormatInt(mmeActiveTime, 10) + "/" + strconv.FormatInt(counterMmeActiveTime, 10) + " seconds to make sure that the service " + mmeServiceName + " is active")
+								fmt.Println("Waiting time" + strconv.FormatInt(mmeActiveTime, 10) + "/" + strconv.FormatInt(counterMmeActiveTime, 10) + " seconds to make sure that the service " + mmeServiceName + " is active")
+							}
+						} else {
+							mmeActiveTime = 0
+							OaiObj.Logger.Print("The service " + mmeServiceName + " is NOT active yet, waiting ...")
+							fmt.Println("The service " + mmeServiceName + " is NOT active yet, waiting ...")
+						}
 					}
-				} else {
-					mmeActiveTime = 0
-					OaiObj.Logger.Print("The service " + OaiObj.Conf.OaiEnb[0].MmeService.Name + " is NOT active yet, waiting ...")
-					fmt.Println("The service " + OaiObj.Conf.OaiEnb[0].MmeService.Name + " is NOT active yet, waiting ...")
+					counter++
+					if counter >= maxWaitTime {
+						OaiObj.Logger.Print("Waiting for " + strconv.FormatInt(maxWaitTime, 10) + " seconds while the service " + mmeServiceName + " is not ready yet, exit...")
+						fmt.Println("Waiting for " + strconv.FormatInt(maxWaitTime, 10) + " seconds while the service " + mmeServiceName + " is not ready yet, exit...")
+						break
+					} //else {
+					// 	OaiObj.Logger.Print("Waiting time" + strconv.FormatInt(counter, 10) + "/" + strconv.FormatInt(maxWaitTime, 10) + " seconds or the service " + mmeServiceName + " 	")
+					// 	fmt.Println("Waiting time" + strconv.FormatInt(counter, 10) + "/" + strconv.FormatInt(maxWaitTime, 10) + " seconds of the service " + mmeServiceName + " become up")
+					// }
+					time.Sleep(1 * time.Second)
+					resp, err = http.Get(urlMme)
 				}
 			}
-			counter++
-			if counter >= maxWaitTime {
-				OaiObj.Logger.Print("Waiting for " + string(counter) + " seconds while the service " + OaiObj.Conf.OaiEnb[0].MmeService.Name + " is not ready yet, exit...")
-				fmt.Println("Waiting for " + string(counter) + " seconds while the service " + OaiObj.Conf.OaiEnb[0].MmeService.Name + " is not ready yet, exit...")
-			}
-			time.Sleep(1 * time.Second)
-			resp, err = http.Get(urlMme)
 		}
-
 		OaiObj.Logger.Print("Start enb daemon")
 
 		retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+		time.Sleep(3 * time.Second)
+		var counterOairabActiveTime int64
+
 		counter = 0
+		counterOairabActiveTime = 30
+		// if mmeSnapVersion == "v1" {
+		// 	counterOairabActiveTime = 3
+		// } else {
+		// 	counterOairabActiveTime = 5
+		// }
 		for {
 			if len(retStatus.Stderr) == 0 {
-				time.Sleep(5 * time.Second)
 				counter++
+				time.Sleep(1 * time.Second)
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-status"}, "/"))
 				oairanStatus := strings.Join(retStatus.Stdout, " ")
 				checkInactive := strings.Contains(oairanStatus, "inactive")
 				if checkInactive != true {
-					if counter >= 30 {
+					if counter == 3 {
+						OaiObj.Logger.Print("retart enb to make sure that it is working properly ...")
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+						time.Sleep(3 * time.Second)
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+						time.Sleep(3 * time.Second)
+					}
+					if counter >= counterOairabActiveTime {
+						OaiObj.Logger.Print("enb is working, exit...")
+						// if mmeSnapVersion == "v2" {
+						// 	OaiObj.Logger.Print("oaicn v2, restarting enb ...")
+						// 	fmt.Println("oaicn v2, restarting enb ...")
+						// 	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+						// 	time.Sleep(5 * time.Second)
+						// 	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+						// }
+
+						// time.Sleep(5 * time.Second)
+						// retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-restart"}, "/"))
 						break
 					}
 				} else {
 					OaiObj.Logger.Print("enb is in inactive status, restarting the service")
 					util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+					time.Sleep(3 * time.Second)
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+					time.Sleep(3 * time.Second)
 					counter = 0
 				}
 			} else {
 				OaiObj.Logger.Print("Start enb failed, try again later")
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+				time.Sleep(3 * time.Second)
 				counter = 0
 			}
 		}

@@ -193,9 +193,11 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-mme", "-i", "ubuntu.openair5G.eur", "-C", cassandraIP)
 		}
 
-		// oai-hss.add-users -I208950000000001-208950000000010 -a oai.ipv4 -C 172.18.0.2
+		// oai-hss.add-users -I208950000000001-208950000000020 -a oai.ipv4 -C 172.18.0.2
+		// oai-hss.add-users -I208950000000001-208950000000020 -a oai.ipv4 -C 172.31.0.2
+
 		OaiObj.Logger.Print("Adding users to Cassanra DB ")
-		retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000010", "-a", "oai.ipv4", "-C", cassandraIP)
+		retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
 		for {
 			if retStatus.Exit != 0 {
 				OaiObj.Logger.Print("Adding users to hss database failed")
@@ -203,12 +205,13 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			} else {
 				OaiObj.Logger.Print("Adding users to hss database was successful")
 				fmt.Println("Adding users to hss database was successful")
+				retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
 				break
 			}
 			time.Sleep(1 * time.Second)
 			OaiObj.Logger.Print("Retrying to add users to hss database")
 			fmt.Println("Retrying to add users to hss database")
-			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000010", "-a", "oai.ipv4", "-C", cassandraIP)
+			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
 		}
 
 		if CnAllInOneMode == false {
@@ -226,7 +229,7 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 		fmt.Println("start hss as daemon")
 		retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "start"}, "."))
 		counter := 0
-		maxCounter := 2
+		maxCounter := 3
 		for {
 			if len(retStatus.Stderr) == 0 {
 				time.Sleep(5 * time.Second)
@@ -238,6 +241,7 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 					OaiObj.Logger.Print("Waiting to make sure that oai-hss is working properly")
 					fmt.Println("Waiting to make sure that oai-hss is working properly")
 					if counter >= maxCounter {
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "restart"}, "."))
 						break
 					}
 				} else {
@@ -329,9 +333,9 @@ func startAndBlockHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-mme", "-i", "ubuntu.openair5G.eur", "-C", cassandraIP)
 		}
 
-		// oai-hss.add-users -I208950000000001-208950000000010 -a oai.ipv4 -C 172.18.0.2
+		// oai-hss.add-users -I208950000000001-208950000000020 -a oai.ipv4 -C 172.18.0.2
 		OaiObj.Logger.Print("Adding users to Cassanra DB ")
-		retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000010", "-a", "oai.ipv4", "-C", cassandraIP)
+		retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
 		for {
 			if retStatus.Exit != 0 {
 				OaiObj.Logger.Print("Adding users to hss database failed")
@@ -344,7 +348,7 @@ func startAndBlockHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			time.Sleep(1 * time.Second)
 			OaiObj.Logger.Print("Retrying to add users to hss database")
 			fmt.Println("Retrying to add users to hss database")
-			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000010", "-a", "oai.ipv4", "-C", cassandraIP)
+			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
 		}
 
 		// Run oai-hss with specific cassandra DB

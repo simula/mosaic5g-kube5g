@@ -41,7 +41,7 @@ import (
 )
 
 // StartHss : Start HSS as a daemon
-func startHss(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
+func startHssV1(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	fmt.Println("hss.go Starting configuring HSS")
 
 	retStatus := util.RunCmd(OaiObj.Logger, "which", "oai-cn.hss-status")

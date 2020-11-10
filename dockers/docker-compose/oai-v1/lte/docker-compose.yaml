@@ -10,7 +10,7 @@ services:
     networks:
       - oai
   oaihss: # Domain name of container
-    image: mosaic5gecosys/oaihss:1.1
+    image: mosaic5gecosys/oaihss:v1.1.0
     restart: always # Operation Policy
     container_name: oaihss # Name of the container
     hostname: ubuntu # hostname
@@ -24,7 +24,7 @@ services:
     networks: # the network this container attached to
       - oai
   oaimme: # Domain name of container
-    image: mosaic5gecosys/oaimme:1.1
+    image: mosaic5gecosys/oaimme:v1.1.0
     restart: always # Operation Policy
     container_name: oaimme # Name of the container
     hostname: ubuntu # hostname
@@ -40,7 +40,7 @@ services:
     networks: # the network this container attached to
       - oai
   oaispgw: # Domain name of container
-    image: mosaic5gecosys/oaispgw:1.1
+    image: mosaic5gecosys/oaispgw:v1.1.0
     restart: always # Operation Policy
     container_name: oaispgw # Name of the container
     hostname: ubuntu # hostname
@@ -55,7 +55,7 @@ services:
     networks: # the network this container attached to
       - oai
   oairan:
-    image: mosaic5gecosys/oairan:1.1
+    image: mosaic5gecosys/oairan:v1.1.0
     restart: always
     container_name: oairan
     hostname: oairan
