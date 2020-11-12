@@ -24,9 +24,9 @@ spec:
         - key: "app"
           value: "oairan"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter: # nodes' lablels to choose the node on which the service will be deployed
-      #   - key: "usrp"
-      #     value: "true"
+      k8sNodeSelecter: # nodes' lablels to choose the node on which the service will be deployed
+        - key: "oai"
+          value: "ran"
       mcc: "208"                 
       mnc: "95"
       mmeService: 
@@ -52,7 +52,7 @@ spec:
         default: "7"
       downlink_frequency:
         description: "Setting the downlink frequency band."
-        default: "2685000000L"
+        default: "2660000000L"
       uplink_frequency_offset:
         description: "Setting the uplink frequency offset."
         default: "-120000000"
@@ -182,7 +182,7 @@ spec:
           channel: "edge"
           devmode: true
           refresh: false
-        dns: "192.168.1.1"
+        dns: "138.96.0.10"
       oaiSpgwu:
         snap:
           description: "snap of oai-spgwu"

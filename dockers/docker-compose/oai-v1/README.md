@@ -36,7 +36,7 @@ The following figure illustrates the network that we will deploy, which concerne
   mnc: "95"   
 
   eutraBand: "7"             
-  downlinkFrequency: "2685000000L"    
+  downlinkFrequency: "2660000000L"    
   uplinkFrequencyOffset: "-120000000"
 
   NumberRbDl: "25"

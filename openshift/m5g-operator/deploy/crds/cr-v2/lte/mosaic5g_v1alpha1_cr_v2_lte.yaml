@@ -10,7 +10,6 @@ spec:
   oaiEnb:
     - oaiEnbSize: 1
       oaiEnbImage: "mosaic5gecosys/oairan:v1.test"
-      # oaiEnbImage: "mosaic5gecosys/oairan:v11.test"
       k8sDeploymentName: "oairan"
       k8sServiceName: "oairan"
       # k8sPodResources:
@@ -52,7 +51,7 @@ spec:
         default: "7"
       downlink_frequency:
         description: "Setting the downlink frequency band."
-        default: "2685000000L"
+        default: "2660000000L"
       uplink_frequency_offset:
         description: "Setting the uplink frequency offset."
         default: "-120000000"
@@ -222,7 +221,7 @@ spec:
         channel: "edge"
         devmode: true
         refresh: false
-      dns: "192.168.1.1"
+      dns: "138.96.0.10"
   ################################
   oaiSpgwu:
     v2: # Do not change, Always v2

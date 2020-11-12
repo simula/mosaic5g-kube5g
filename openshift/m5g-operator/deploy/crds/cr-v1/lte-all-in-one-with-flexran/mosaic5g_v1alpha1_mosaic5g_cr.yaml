@@ -50,7 +50,7 @@ spec:
         default: "7"
       downlink_frequency:
         description: "Setting the downlink frequency band."
-        default: "2685000000L"
+        default: "2660000000L"
       uplink_frequency_offset:
         description: "Setting the uplink frequency offset."
         default: "-120000000"
@@ -85,7 +85,8 @@ spec:
           value: "flexran"
       k8sEntityNamespace: "default"
       k8sNodeSelecter:
-        - usrp: "true"
+        - key: "usrp"
+          value: "true"
       snap:
         description: |
           Define the version of the snap to be used
@@ -154,4 +155,4 @@ spec:
         mcc: "208"  
         mnc: "95"
       oaiSpgw:
-        dns: "192.168.1.1"
+        dns: "138.96.0.10"

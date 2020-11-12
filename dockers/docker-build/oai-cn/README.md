@@ -26,7 +26,7 @@ hssDomainName: "oaihss"
 mmeDomainName: "oaimme"
 spgwDomainName: "oaispgw"
 mysqlDomainName: "mysql"
-dns: "192.168.1.1"
+dns: "138.96.0.10"
 ```
 
 - ```mcc```: Mobile Country Code
@@ -103,7 +103,7 @@ For more information about these parameters and more, pleases visit:
     mnc: "95"   
 
     eutraBand: "7"             
-    downlinkFrequency: "2685000000L"    
+    downlinkFrequency: "2660000000L"    
     uplinkFrequencyOffset: "-120000000"
     NumberRbDl: "25"
     MaxRxGain: "110"
@@ -116,7 +116,7 @@ For more information about these parameters and more, pleases visit:
     mmeDomainName: "oaicn"
     spgwDomainName: "oaicn"
     mysqlDomainName: "mysql"
-    dns: "192.168.1.1"
+    dns: "138.96.0.10"
 
     flexRAN: false
     flexRANDomainName: "flexran"

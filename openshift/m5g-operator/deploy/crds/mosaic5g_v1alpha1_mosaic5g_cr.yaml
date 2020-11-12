@@ -22,7 +22,7 @@ spec:
   mcc: "208"
   mnc: "95"
   eutraBand: "7"
-  downlinkFrequency: "2685000000L"
+  downlinkFrequency: "2660000000L"
   uplinkFrequencyOffset: "-120000000"
   configurationPathofCN: "/var/snap/oai-cn/current/"
   configurationPathofRAN: "/var/snap/oai-ran/current/"
@@ -34,7 +34,7 @@ spec:
   mmeDomainName: "oaimme"
   spgwDomainName: "oaispgw"
   mysqlDomainName: "mysql"
-  dns: "192.168.1.1"
+  dns: "138.96.0.10"
   flexRAN: false
   flexRANDomainName: "flexran"
   
@@ -64,7 +64,7 @@ spec:
     description: "Setting the LTE  EUTRA frequency band."
     # type: int
   downlink_frequency:
-    default: "2685000000L"
+    default: "2660000000L"
     description: "Setting the downlink frequency band."
     # type: string
   uplink_frequency_offset:

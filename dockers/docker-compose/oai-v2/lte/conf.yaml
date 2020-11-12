@@ -25,7 +25,7 @@ oaiEnb:
       default: "7"
     downlink_frequency:
       description: "Setting the downlink frequency band."
-      default: "2685000000L"
+      default: "2660000000L"
     uplink_frequency_offset:
       description: "Setting the uplink frequency offset."
       default: "-120000000"
@@ -87,7 +87,7 @@ oaiSpgwc:
       channel: "edge"
       devmode: true
       refresh: false
-    dns: "192.168.1.1"
+    dns: "138.96.0.10"
 oaiSpgwu:
   v2: # Do not change, Always v2
   - realm: 
