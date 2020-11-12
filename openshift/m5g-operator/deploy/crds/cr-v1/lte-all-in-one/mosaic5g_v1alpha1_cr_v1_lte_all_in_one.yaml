@@ -3,21 +3,6 @@ kind: Mosaic5g
 metadata:
   name: mosaic5g
 spec:
-  # coreNetworkAllInOne: true
-  # # Add fields here
-  # # size: 1
-  # mysqlSize: 1
-  # oaicnSize: 1
-  # oaihssSize: 1
-  # oaimmeSize: 1
-  # oaispgwSize: 1
-  # oairanSize: 1
-  # mysqlImage: "mysql:5.6"
-  # cnImage: "mosaic5gecosys/oaicn:1.0"
-  # oaiHssImage: "mosaic5gecosys/oaihss:1.0"
-  # oaiMmeImage: "mosaic5gecosys/oaimme:1.0"
-  # oaiSpgwImage: "mosaic5gecosys/oaispgw:1.0"
-  # ranImage: "arouk/oairan:1.0"
   ##########################################
   # k8sGlobalNamespace will override the values "k8sEntityNamespace" defined for every entitity
   # if k8sGlobalNamespace is empty string , i.e. k8sGlobalNamespace: "", every entity will be deployed in the namesmape defined by "k8sEntityNamespace"
