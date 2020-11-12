@@ -290,9 +290,11 @@ Usage:
     ./m5goperator.sh -o -b -d -d # build the docker image of the operator with the default values: mosaic5gecosys/m5g_operator:1.1
     ./m5goperator.sh -o -b -d v1.test # build the docker image of the operator with the default values of docker image name and certain tage: mosaic5gecosys/m5g_operator:v1.test
 
-    ./m5goperator.sh container start
-    ./m5goperator.sh deploy all-in-one
-    ./m5goperator.sh deploy disaggregated-cn
+    ./m5goperator.sh container start # start kube5g-operator as pod in K8S
+    ./m5goperator.sh deploy v1 all-in-one # deploy network with all-in-one for the core, for the snap version v1
+    ./m5goperator.sh deploy v2 all-in-one # deploy network with all-in-one for the core, for the snap version v2
+    ./m5goperator.sh deploy v1 disaggregated-cn # deploy network with disaggregated core, for the snap version v1
+    ./m5goperator.sh deploy v2 disaggregated-cn # deploy network with disaggregated core, for the snap version v2
             '
         ;;
     esac
