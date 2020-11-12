@@ -85,9 +85,9 @@ spec:
         - key: "app"
           value: "flexran"
       k8sEntityNamespace: "default"
-      k8sNodeSelecter:
-        - key: "usrp"
-          value: "true"
+      # k8sNodeSelecter:
+      #   - key: "usrp"
+      #     value: "true"
       snap:
         description: |
           Define the version of the snap to be used

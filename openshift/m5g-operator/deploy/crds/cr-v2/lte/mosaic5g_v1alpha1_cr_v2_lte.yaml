@@ -240,9 +240,9 @@ spec:
         - key: "app"
           value: "oaispgwuv2"
       k8sEntityNamespace: "default"
-      k8sNodeSelecter:
-        - key: "usrp"
-          value: "true"
+      # k8sNodeSelecter:
+      #   - key: "usrp"
+      #     value: "true"
       realm: 
         description: "Realm of oai"
         default: "openair5G.eur"
