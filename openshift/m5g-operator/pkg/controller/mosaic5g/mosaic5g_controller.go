@@ -1242,9 +1242,9 @@ func (r *ReconcileMosaic5g) deploymentForHssV1(m *mosaic5gv1alpha1.Mosaic5g) *ap
 		labels[m.Spec.OaiHss.V1[0].K8sLabelSelector[i].Key] = m.Spec.OaiHss.V1[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiHss.V1[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiHss.V1[0].K8sNodeSelecter[i].Key, m.Spec.OaiHss.V1[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiHss.V1[0].K8sNodeSelecter[i].Key] = m.Spec.OaiHss.V1[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiHss.V1[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiHss.V1[0].K8sNodeSelector[i].Key, m.Spec.OaiHss.V1[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiHss.V1[0].K8sNodeSelector[i].Key] = m.Spec.OaiHss.V1[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -1395,9 +1395,9 @@ func (r *ReconcileMosaic5g) deploymentForHssV2(m *mosaic5gv1alpha1.Mosaic5g) *ap
 		labels[m.Spec.OaiHss.V2[0].K8sLabelSelector[i].Key] = m.Spec.OaiHss.V2[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiHss.V2[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiHss.V2[0].K8sNodeSelecter[i].Key, m.Spec.OaiHss.V2[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiHss.V2[0].K8sNodeSelecter[i].Key] = m.Spec.OaiHss.V2[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiHss.V2[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiHss.V2[0].K8sNodeSelector[i].Key, m.Spec.OaiHss.V2[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiHss.V2[0].K8sNodeSelector[i].Key] = m.Spec.OaiHss.V2[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -1549,9 +1549,9 @@ func (r *ReconcileMosaic5g) deploymentForMmeV1(m *mosaic5gv1alpha1.Mosaic5g) *ap
 		labels[m.Spec.OaiMme.V1[0].K8sLabelSelector[i].Key] = m.Spec.OaiMme.V1[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiMme.V1[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiMme.V1[0].K8sNodeSelecter[i].Key, m.Spec.OaiMme.V1[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiMme.V1[0].K8sNodeSelecter[i].Key] = m.Spec.OaiMme.V1[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiMme.V1[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiMme.V1[0].K8sNodeSelector[i].Key, m.Spec.OaiMme.V1[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiMme.V1[0].K8sNodeSelector[i].Key] = m.Spec.OaiMme.V1[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -1697,9 +1697,9 @@ func (r *ReconcileMosaic5g) deploymentForMmeV2(m *mosaic5gv1alpha1.Mosaic5g) *ap
 		labels[m.Spec.OaiMme.V2[0].K8sLabelSelector[i].Key] = m.Spec.OaiMme.V2[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiMme.V2[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiMme.V2[0].K8sNodeSelecter[i].Key, m.Spec.OaiMme.V2[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiMme.V2[0].K8sNodeSelecter[i].Key] = m.Spec.OaiMme.V2[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiMme.V2[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiMme.V2[0].K8sNodeSelector[i].Key, m.Spec.OaiMme.V2[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiMme.V2[0].K8sNodeSelector[i].Key] = m.Spec.OaiMme.V2[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -1845,9 +1845,9 @@ func (r *ReconcileMosaic5g) deploymentForSpgwV1(m *mosaic5gv1alpha1.Mosaic5g) *a
 		labels[m.Spec.OaiSpgw.V1[0].K8sLabelSelector[i].Key] = m.Spec.OaiSpgw.V1[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiSpgw.V1[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiSpgw.V1[0].K8sNodeSelecter[i].Key, m.Spec.OaiSpgw.V1[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiSpgw.V1[0].K8sNodeSelecter[i].Key] = m.Spec.OaiSpgw.V1[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiSpgw.V1[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiSpgw.V1[0].K8sNodeSelector[i].Key, m.Spec.OaiSpgw.V1[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiSpgw.V1[0].K8sNodeSelector[i].Key] = m.Spec.OaiSpgw.V1[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -1996,9 +1996,9 @@ func (r *ReconcileMosaic5g) deploymentForSpgwcV2(m *mosaic5gv1alpha1.Mosaic5g) *
 		labels[m.Spec.OaiSpgwc.V2[0].K8sLabelSelector[i].Key] = m.Spec.OaiSpgwc.V2[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiSpgwc.V2[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiSpgwc.V2[0].K8sNodeSelecter[i].Key, m.Spec.OaiSpgwc.V2[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiSpgwc.V2[0].K8sNodeSelecter[i].Key] = m.Spec.OaiSpgwc.V2[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiSpgwc.V2[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiSpgwc.V2[0].K8sNodeSelector[i].Key, m.Spec.OaiSpgwc.V2[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiSpgwc.V2[0].K8sNodeSelector[i].Key] = m.Spec.OaiSpgwc.V2[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -2147,9 +2147,9 @@ func (r *ReconcileMosaic5g) deploymentForSpgwuV2(m *mosaic5gv1alpha1.Mosaic5g) *
 		labels[m.Spec.OaiSpgwu.V2[0].K8sLabelSelector[i].Key] = m.Spec.OaiSpgwu.V2[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiSpgwu.V2[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiSpgwu.V2[0].K8sNodeSelecter[i].Key, m.Spec.OaiSpgwu.V2[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiSpgwu.V2[0].K8sNodeSelecter[i].Key] = m.Spec.OaiSpgwu.V2[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiSpgwu.V2[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiSpgwu.V2[0].K8sNodeSelector[i].Key, m.Spec.OaiSpgwu.V2[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiSpgwu.V2[0].K8sNodeSelector[i].Key] = m.Spec.OaiSpgwu.V2[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -2298,9 +2298,9 @@ func (r *ReconcileMosaic5g) deploymentForCnV1(m *mosaic5gv1alpha1.Mosaic5g) *app
 		labels[m.Spec.OaiCn.V1[0].K8sLabelSelector[i].Key] = m.Spec.OaiCn.V1[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiCn.V1[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiCn.V1[0].K8sNodeSelecter[i].Key, m.Spec.OaiCn.V1[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiCn.V1[0].K8sNodeSelecter[i].Key] = m.Spec.OaiCn.V1[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiCn.V1[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiCn.V1[0].K8sNodeSelector[i].Key, m.Spec.OaiCn.V1[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiCn.V1[0].K8sNodeSelector[i].Key] = m.Spec.OaiCn.V1[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -2428,9 +2428,9 @@ func (r *ReconcileMosaic5g) deploymentForCnV2(m *mosaic5gv1alpha1.Mosaic5g) *app
 		labels[m.Spec.OaiCn.V2[0].K8sLabelSelector[i].Key] = m.Spec.OaiCn.V2[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiCn.V2[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiCn.V2[0].K8sNodeSelecter[i].Key, m.Spec.OaiCn.V2[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiCn.V2[0].K8sNodeSelecter[i].Key] = m.Spec.OaiCn.V2[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiCn.V2[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiCn.V2[0].K8sNodeSelector[i].Key, m.Spec.OaiCn.V2[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiCn.V2[0].K8sNodeSelector[i].Key] = m.Spec.OaiCn.V2[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -2558,9 +2558,9 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 		labels[m.Spec.OaiEnb[0].K8sLabelSelector[i].Key] = m.Spec.OaiEnb[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.OaiEnb[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiEnb[0].K8sNodeSelecter[i].Key, m.Spec.OaiEnb[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.OaiEnb[0].K8sNodeSelecter[i].Key] = m.Spec.OaiEnb[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.OaiEnb[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.OaiEnb[0].K8sNodeSelector[i].Key, m.Spec.OaiEnb[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.OaiEnb[0].K8sNodeSelector[i].Key] = m.Spec.OaiEnb[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -2719,9 +2719,9 @@ func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *ap
 		labels[m.Spec.Database[0].K8sLabelSelector[i].Key] = m.Spec.Database[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.Database[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.Database[0].K8sNodeSelecter[i].Key, m.Spec.Database[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.Database[0].K8sNodeSelecter[i].Key] = m.Spec.Database[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.Database[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.Database[0].K8sNodeSelector[i].Key, m.Spec.Database[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.Database[0].K8sNodeSelector[i].Key] = m.Spec.Database[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace
@@ -2810,9 +2810,9 @@ func (r *ReconcileMosaic5g) deploymentForCassandra(m *mosaic5gv1alpha1.Mosaic5g)
 		labels[m.Spec.Database[0].K8sLabelSelector[i].Key] = m.Spec.Database[0].K8sLabelSelector[i].Value
 	}
 	nodeSelctors := make(map[string]string)
-	for i := 0; i < len(m.Spec.Database[0].K8sNodeSelecter); i++ {
-		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.Database[0].K8sNodeSelecter[i].Key, m.Spec.Database[0].K8sNodeSelecter[i].Value)
-		nodeSelctors[m.Spec.Database[0].K8sNodeSelecter[i].Key] = m.Spec.Database[0].K8sNodeSelecter[i].Value
+	for i := 0; i < len(m.Spec.Database[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.Database[0].K8sNodeSelector[i].Key, m.Spec.Database[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.Database[0].K8sNodeSelector[i].Key] = m.Spec.Database[0].K8sNodeSelector[i].Value
 	}
 
 	namespace := m.Spec.K8sGlobalNamespace

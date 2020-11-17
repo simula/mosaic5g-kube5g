@@ -10,7 +10,6 @@ spec:
   oaiEnb:
     - oaiEnbSize: 1
       oaiEnbImage: "mosaic5gecosys/oairan:v1.test"
-      # oaiEnbImage: "mosaic5gecosys/oairan:v11.test"
       k8sDeploymentName: "oairan"
       k8sServiceName: "oairan"
       # k8sPodResources:
@@ -20,13 +19,13 @@ spec:
       #   requests:
       #       resourceCPU: "10m"
       #       resourceMemory: "250Mi"
-      k8sLabelSelector: # lablels for the deployments/services
+      k8sLabelSelector: # labels for the deployments/services
         - key: "app"
           value: "oairan"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter: # nodes' lablels to choose the node on which the service will be deployed
-      #   - key: "usrp"
-      #     value: "true"
+      k8sNodeSelector: # nodes' labels to choose the node on which the service will be deployed
+        - key: "oai"
+          value: "ran"
       mcc: "208"                 
       mnc: "95"
       mmeService: 
@@ -86,7 +85,7 @@ spec:
   #       - key: "app"
   #         value: "flexran"
   #     k8sEntityNamespace: "default"
-  #     k8sNodeSelecter:
+  #     k8sNodeSelector:
   #       - key: "usrp"
   #         value: "true"
   #     snap:
@@ -119,7 +118,7 @@ spec:
         # - key: "app"
         #   value: "cassandra"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "true"
   ################################
@@ -140,7 +139,7 @@ spec:
         - key: "app"
           value: "oaihssv1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "true"
       realm: 
@@ -172,7 +171,7 @@ spec:
         - key: "app"
           value: "oaimmev1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "true"
       realm: 
@@ -206,7 +205,7 @@ spec:
         - key: "app"
           value: "oaispgwv1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "true"
       realm: 

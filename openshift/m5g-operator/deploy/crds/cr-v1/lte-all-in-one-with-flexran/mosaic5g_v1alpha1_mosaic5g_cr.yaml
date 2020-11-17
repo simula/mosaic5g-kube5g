@@ -19,12 +19,13 @@ spec:
         requests:
             resourceCPU: "10m"
             resourceMemory: "250Mi"
-      k8sLabelSelector: # lablels for the deployments/services
+      k8sLabelSelector: # labels for the deployments/services
         - key: "app"
           value: "oairan"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter: # nodes' lablels to choose the node on which the service will be deployed
-      #   - usrp: "true"
+      # k8sNodeSelector: # nodes' labels to choose the node on which the service will be deployed
+      #   - key: "usrp"
+      #     value: "true"
       mcc: "208"                 
       mnc: "95"
       mmeService: 
@@ -84,8 +85,9 @@ spec:
         - key: "app"
           value: "flexran"
       k8sEntityNamespace: "default"
-      k8sNodeSelecter:
-        - usrp: "true"
+      # k8sNodeSelector: # nodes' labels to choose the node on which the service will be deployed
+      #   - key: "usrp"
+      #     value: "true"
       snap:
         description: |
           Define the version of the snap to be used
@@ -116,8 +118,9 @@ spec:
         # - key: "app"
         #   value: "cassandra"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
-      #   - usrp: "true"
+      # k8sNodeSelector: # nodes' labels to choose the node on which the service will be deployed
+      #   - key: "usrp"
+      #     value: "true"
   ################################
   oaiCn:
     v1:
@@ -136,8 +139,9 @@ spec:
         - key: "app"
           value: "oaicnv1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
-      #   - usrp: "true"
+      # k8sNodeSelector: # nodes' labels to choose the node on which the service will be deployed
+      #   - key: "oai"
+      #     value: "ran"
       realm: 
         description: "Realm of oai"
         default: "openair4G.eur"

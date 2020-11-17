@@ -14,7 +14,7 @@ type CfgOaiEnb struct {
 	K8sEntityNamespace    string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources       k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector      []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter       []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector       []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	OaiEnbSize            int32                         `json:"oaiEnbSize" yaml:"oaiEnbSize"`
 	OaiEnbImage           string                        `json:"oaiEnbImage" yaml:"oaiEnbImage"`
 	MCC                   string                        `json:"mcc" yaml:"mcc"`
@@ -38,7 +38,7 @@ type CfgFlexran struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	FlexranSize        int32                         `json:"flexranSize" yaml:"flexranSize"`
 	FlexranImage       string                        `json:"flexranImage" yaml:"flexranImage"`
 	Snap               SnapDescriptionFinal          `json:"snap" yaml:"snap"`
@@ -52,7 +52,7 @@ type CfgDatabase struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 
 	DatabaseSize  int32  `json:"databaseSize" yaml:"databaseSize"`
 	DatabaseImage string `json:"databaseImage" yaml:"databaseImage"`
@@ -65,7 +65,7 @@ type CfgLlMec struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	LlmecSize          int32                         `json:"llmecSize" yaml:"llmecSize"`
 	LlmecImage         string                        `json:"llmecImage" yaml:"llmecImage"`
 	Snap               SnapDescriptionFinal          `json:"snap" yaml:"snap"`
@@ -78,7 +78,7 @@ type CfgHssV1 struct {
 	K8sEntityNamespace  string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources     k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector    []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter     []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector     []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	OaiHssSize          int32                         `json:"oaiHssSize" yaml:"oaiHssSize"`
 	OaiHssImage         string                        `json:"oaiHssImage" yaml:"oaiHssImage"`
 	Realm               GeneralDescription            `json:"realm" yaml:"realm"`
@@ -94,7 +94,7 @@ type CfgHssV2 struct {
 	K8sEntityNamespace  string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources     k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector    []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter     []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector     []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	OaiHssSize          int32                         `json:"oaiHssSize" yaml:"oaiHssSize"`
 	OaiHssImage         string                        `json:"oaiHssImage" yaml:"oaiHssImage"`
 	Realm               GeneralDescription            `json:"realm" yaml:"realm"`
@@ -112,7 +112,7 @@ type CfgMmeV1 struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	OaiMmeSize         int32                         `json:"oaiMmeSize" yaml:"oaiMmeSize"`
 	OaiMmeImage        string                        `json:"oaiMmeImage" yaml:"oaiMmeImage"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
@@ -130,7 +130,7 @@ type CfgMmeV2 struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	OaiMmeSize         int32                         `json:"oaiMmeSize" yaml:"oaiMmeSize"`
 	OaiMmeImage        string                        `json:"oaiMmeImage" yaml:"oaiMmeImage"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
@@ -148,7 +148,7 @@ type CfgSpgwV1 struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	OaiSpgwSize        int32                         `json:"oaiSpgwSize" yaml:"oaiSpgwSize"`
 	OaiSpgwImage       string                        `json:"oaiSpgwImage" yaml:"oaiSpgwImage"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
@@ -165,7 +165,7 @@ type CfgSpgwcV2 struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	OaiSpgwcSize       int32                         `json:"oaiSpgwcSize" yaml:"oaiSpgwcSize"`
 	OaiSpgwcImage      string                        `json:"oaiSpgwcImage" yaml:"oaiSpgwcImage"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
@@ -180,7 +180,7 @@ type CfgSpgwuV2 struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	OaiSpgwuSize       int32                         `json:"oaiSpgwuSize" yaml:"oaiSpgwuSize"`
 	OaiSpgwuImage      string                        `json:"oaiSpgwuImage" yaml:"oaiSpgwuImage"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
@@ -224,7 +224,7 @@ type CfgCnV1 struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
 	Snap               SnapDescriptionFinal          `json:"snap" yaml:"snap"`
 	OaiHss             CnV1OaiHssDescription         `json:"oaiHss" yaml:"oaiHss"`
@@ -241,7 +241,7 @@ type CfgCnV2 struct {
 	K8sEntityNamespace string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
 	K8sPodResources    k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelecter    []K8sNodeSelecterDescription  `json:"k8sNodeSelecter" yaml:"k8sNodeSelecter"`
+	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
 	OaiHss             CnV2OaiHssDescription         `json:"oaiHss" yaml:"oaiHss"`
 	OaiMme             CnV2OaiMmeDescription         `json:"oaiMme" yaml:"oaiMme"`
@@ -255,8 +255,8 @@ type CfgCnGlobal struct {
 	V2 []CfgCnV2 `json:"v2" yaml:"v2"`
 }
 
-// K8sNodeSelecterDescription list of lables accepted for K8S
-type K8sNodeSelecterDescription struct {
+// K8sNodeSelectorDescription list of lables accepted for K8S
+type K8sNodeSelectorDescription struct {
 	Key   string `json:"key" yaml:"key"`
 	Value string `json:"value" yaml:"value"`
 	// Usrp  bool   `json:"usrp" yaml:"usrp"`

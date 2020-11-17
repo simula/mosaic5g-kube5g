@@ -3,22 +3,6 @@ kind: Mosaic5g
 metadata:
   name: mosaic5g
 spec:
-  # coreNetworkAllInOne: true
-  # # Add fields here
-  # # size: 1
-  # mysqlSize: 1
-  # oaicnSize: 1
-  # oaihssSize: 1
-  # oaimmeSize: 1
-  # oaispgwSize: 1
-  # oairanSize: 1
-  # mysqlImage: "mysql:5.6"
-  # cnImage: "mosaic5gecosys/oaicn:1.0"
-  # oaiHssImage: "mosaic5gecosys/oaihss:1.0"
-  # oaiMmeImage: "mosaic5gecosys/oaimme:1.0"
-  # oaiSpgwImage: "mosaic5gecosys/oaispgw:1.0"
-  # ranImage: "arouk/oairan:1.0"
-  ##########################################
   # k8sGlobalNamespace will override the values "k8sEntityNamespace" defined for every entitity
   # if k8sGlobalNamespace is empty string , i.e. k8sGlobalNamespace: "", every entity will be deployed in the namesmape defined by "k8sEntityNamespace"
   # if k8sGlobalNamespace is NOT "" empty string, e.g. k8sGlobalNamespace: "default", all the entities will be deployed in the defined namespace
@@ -35,12 +19,13 @@ spec:
         requests:
             resourceCPU: "10m"
             resourceMemory: "250Mi"
-      k8sLabelSelector: # lablels for the deployments/services
+      k8sLabelSelector: # labels for the deployments/services
         - key: "app"
           value: "oairan"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter: # nodes' lablels to choose the node on which the service will be deployed
-      #   - usrp: "true"
+      k8sNodeSelector: # nodes' labels to choose the node on which the service will be deployed
+        - key: "oai"
+          value: "ran"
       mcc: "208"                 
       mnc: "95"
       mmeService: 
@@ -100,8 +85,9 @@ spec:
   #       - key: "app"
   #         value: "flexran"
   #     k8sEntityNamespace: "default"
-  #     k8sNodeSelecter:
-  #       - usrp: "true"
+  #     k8sNodeSelector:  # nodes' labels to choose the node on which the service will be deployed
+  #       - key: "usrp"
+  #         value: "true"
   #     snap:
   #       description: |
   #         Define the version of the snap to be used
@@ -132,8 +118,9 @@ spec:
         # - key: "app"
         #   value: "cassandra"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
-      #   - usrp: "true"
+      # k8sNodeSelector:
+      #   - key: "usrp"
+      #     value: "true"
   ################################
   oaiCn:
     v1:
@@ -152,8 +139,9 @@ spec:
         - key: "app"
           value: "oaicnv1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
-      #   - usrp: "true"
+      # k8sNodeSelector:
+      #   - key: "usrp"
+      #     value: "true"
       realm: 
         description: "Realm of oai"
         default: "openair4G.eur"

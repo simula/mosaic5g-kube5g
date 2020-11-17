@@ -47,9 +47,9 @@ func (in *CfgCnV1) DeepCopyInto(out *CfgCnV1) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -79,9 +79,9 @@ func (in *CfgCnV2) DeepCopyInto(out *CfgCnV2) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -111,9 +111,9 @@ func (in *CfgDatabase) DeepCopyInto(out *CfgDatabase) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	return
@@ -138,9 +138,9 @@ func (in *CfgFlexran) DeepCopyInto(out *CfgFlexran) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Snap = in.Snap
@@ -236,9 +236,9 @@ func (in *CfgHssV1) DeepCopyInto(out *CfgHssV1) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -265,9 +265,9 @@ func (in *CfgHssV2) DeepCopyInto(out *CfgHssV2) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -294,9 +294,9 @@ func (in *CfgLlMec) DeepCopyInto(out *CfgLlMec) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Snap = in.Snap
@@ -352,9 +352,9 @@ func (in *CfgMmeV1) DeepCopyInto(out *CfgMmeV1) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -381,9 +381,9 @@ func (in *CfgMmeV2) DeepCopyInto(out *CfgMmeV2) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -410,9 +410,9 @@ func (in *CfgOaiEnb) DeepCopyInto(out *CfgOaiEnb) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.MmeService = in.MmeService
@@ -468,9 +468,9 @@ func (in *CfgSpgwV1) DeepCopyInto(out *CfgSpgwV1) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -520,9 +520,9 @@ func (in *CfgSpgwcV2) DeepCopyInto(out *CfgSpgwcV2) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -572,9 +572,9 @@ func (in *CfgSpgwuV2) DeepCopyInto(out *CfgSpgwuV2) {
 		*out = make([]K8sLabelSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
-	if in.K8sNodeSelecter != nil {
-		in, out := &in.K8sNodeSelecter, &out.K8sNodeSelecter
-		*out = make([]K8sNodeSelecterDescription, len(*in))
+	if in.K8sNodeSelector != nil {
+		in, out := &in.K8sNodeSelector, &out.K8sNodeSelector
+		*out = make([]K8sNodeSelectorDescription, len(*in))
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
@@ -758,17 +758,17 @@ func (in *K8sLabelSelectorDescription) DeepCopy() *K8sLabelSelectorDescription {
 }
 
 // DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
-func (in *K8sNodeSelecterDescription) DeepCopyInto(out *K8sNodeSelecterDescription) {
+func (in *K8sNodeSelectorDescription) DeepCopyInto(out *K8sNodeSelectorDescription) {
 	*out = *in
 	return
 }
 
-// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new K8sNodeSelecterDescription.
-func (in *K8sNodeSelecterDescription) DeepCopy() *K8sNodeSelecterDescription {
+// DeepCopy is an autogenerated deepcopy function, copying the receiver, creating a new K8sNodeSelectorDescription.
+func (in *K8sNodeSelectorDescription) DeepCopy() *K8sNodeSelectorDescription {
 	if in == nil {
 		return nil
 	}
-	out := new(K8sNodeSelecterDescription)
+	out := new(K8sNodeSelectorDescription)
 	in.DeepCopyInto(out)
 	return out
 }

@@ -20,13 +20,13 @@ spec:
       #   requests:
       #       resourceCPU: "10m"
       #       resourceMemory: "25Mi"
-      k8sLabelSelector: # lablels for the deployments/services
+      k8sLabelSelector: # labels for the deployments/services
         - key: "app"
           value: "oairan"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter: # nodes' lablels to choose the node on which the service will be deployed
-      #   - key: "usrp"
-      #     value: "true"
+      k8sNodeSelector: # nodes' labels to choose the node on which the service will be deployed
+        - key: "oai"
+          value: "ran"
       mcc: "208"                 
       mnc: "95"
       mmeService: 
@@ -86,7 +86,7 @@ spec:
   #       - key: "app"
   #         value: "flexran"
   #     k8sEntityNamespace: "default"
-  #     k8sNodeSelecter:
+  #     k8sNodeSelector:
   #       - key: "usrp"
   #         value: "true"
   #     snap:
@@ -129,7 +129,7 @@ spec:
         - key: "app"
           value: "cassandra"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "true"
   ################################
@@ -152,7 +152,7 @@ spec:
         - key: "app"
           value: "oaicnv2"
       k8sEntityNamespace: "default"
-      # k8sNodeSelecter:
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "true"
       realm: 

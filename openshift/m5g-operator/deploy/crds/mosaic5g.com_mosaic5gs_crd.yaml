@@ -61,9 +61,9 @@ spec:
                         - value
                         type: object
                       type: array
-                    k8sNodeSelecter:
+                    k8sNodeSelector:
                       items:
-                        description: K8sNodeSelecterDescription list of lables accepted
+                        description: K8sNodeSelectorDescription list of lables accepted
                           for K8S
                         properties:
                           key:
@@ -116,7 +116,7 @@ spec:
                   - k8sDeploymentName
                   - k8sEntityNamespace
                   - k8sLabelSelector
-                  - k8sNodeSelecter
+                  - k8sNodeSelector
                   - k8sPodResources
                   - k8sServiceName
                   type: object
@@ -148,9 +148,9 @@ spec:
                         - value
                         type: object
                       type: array
-                    k8sNodeSelecter:
+                    k8sNodeSelector:
                       items:
-                        description: K8sNodeSelecterDescription list of lables accepted
+                        description: K8sNodeSelectorDescription list of lables accepted
                           for K8S
                         properties:
                           key:
@@ -223,7 +223,7 @@ spec:
                   - k8sDeploymentName
                   - k8sEntityNamespace
                   - k8sLabelSelector
-                  - k8sNodeSelecter
+                  - k8sNodeSelector
                   - k8sPodResources
                   - k8sServiceName
                   - snap
@@ -253,9 +253,9 @@ spec:
                         - value
                         type: object
                       type: array
-                    k8sNodeSelecter:
+                    k8sNodeSelector:
                       items:
-                        description: K8sNodeSelecterDescription list of lables accepted
+                        description: K8sNodeSelectorDescription list of lables accepted
                           for K8S
                         properties:
                           key:
@@ -331,7 +331,7 @@ spec:
                   - k8sDeploymentName
                   - k8sEntityNamespace
                   - k8sLabelSelector
-                  - k8sNodeSelecter
+                  - k8sNodeSelector
                   - k8sPodResources
                   - k8sServiceName
                   - llmecImage
@@ -364,9 +364,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -478,7 +478,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - oaiCnImage
@@ -512,9 +512,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -701,7 +701,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - oaiCnImage
@@ -783,9 +783,9 @@ spec:
                         - value
                         type: object
                       type: array
-                    k8sNodeSelecter:
+                    k8sNodeSelector:
                       items:
-                        description: K8sNodeSelecterDescription list of lables accepted
+                        description: K8sNodeSelectorDescription list of lables accepted
                           for K8S
                         properties:
                           key:
@@ -924,7 +924,7 @@ spec:
                   - k8sDeploymentName
                   - k8sEntityNamespace
                   - k8sLabelSelector
-                  - k8sNodeSelecter
+                  - k8sNodeSelector
                   - k8sPodResources
                   - k8sServiceName
                   - max_rxgain
@@ -965,9 +965,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -1058,7 +1058,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - mmeServiceName
@@ -1094,9 +1094,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -1190,7 +1190,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - mmeServiceName
@@ -1232,9 +1232,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -1329,7 +1329,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - mcc
@@ -1365,9 +1365,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -1462,7 +1462,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - mcc
@@ -1507,9 +1507,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -1601,7 +1601,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - mmeServiceName
@@ -1641,9 +1641,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -1732,7 +1732,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - oaiSpgwcImage
@@ -1769,9 +1769,9 @@ spec:
                             - value
                             type: object
                           type: array
-                        k8sNodeSelecter:
+                        k8sNodeSelector:
                           items:
-                            description: K8sNodeSelecterDescription list of lables
+                            description: K8sNodeSelectorDescription list of lables
                               accepted for K8S
                             properties:
                               key:
@@ -1861,7 +1861,7 @@ spec:
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
-                      - k8sNodeSelecter
+                      - k8sNodeSelector
                       - k8sPodResources
                       - k8sServiceName
                       - oaiSpgwuImage
