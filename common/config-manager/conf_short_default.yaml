@@ -14,7 +14,7 @@ oaiEnb:
       default: "7"
     downlink_frequency:
       description: "Setting the downlink frequency band."
-      default: "2660000000L"
+      default: "2685000000L"
     uplink_frequency_offset:
       description: "Setting the uplink frequency offset."
       default: "-120000000"

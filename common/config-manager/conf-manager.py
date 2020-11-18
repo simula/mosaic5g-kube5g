@@ -33,14 +33,20 @@ import os, sys, subprocess, argparse, copy, logging
 try:
     import ruamel.yaml
 except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", 'uamel.yaml==0.16.12'])
+    try:
+        subprocess.check_call(["pip3", "install", "uamel.yaml==0.16.12"])
+        # subprocess.check_call([sys.executable, "-m", "pip", "install", "uamel.yaml==0.16.12"])
+    except FileNotFoundError:
+        print("pip3 is not installed. Install pip3 and try again")
+        exit(0)
 finally:
     import ruamel.yaml
 ## Install colorlog if it does not exist
 try:
     from colorlog import ColoredFormatter
 except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", 'colorlog==4.6.2'])
+    subprocess.check_call(["pip3", "install", "colorlog==4.6.2"])
+    # subprocess.check_call([sys.executable, "-m", "pip", "install", "colorlog==4.6.2"])
 finally:
     from colorlog import ColoredFormatter
 
@@ -51,7 +57,7 @@ handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.INFO)
 # log_format = "%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)s %(message)s"
 # formatter = logging.Formatter(log_format, datefmt='%Y-%m-%dT%H:%M:%S')
-LOGFORMAT = "%(asctime)s %(name)s %(log_color)s%(levelname)-8s%(reset)s | %(log_color)s%(message)s%(reset)s"
+LOGFORMAT = "%(asctime)s %(name)s:%(lineno)s %(log_color)s%(levelname)-3s%(reset)s | %(log_color)s%(message)s%(reset)s"
 formatter = ColoredFormatter(LOGFORMAT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -98,10 +104,10 @@ class ConfigManager(object):
             with open(self.config_file_short) as file_conf_short:
                 config_short_data = ruamel.yaml.round_trip_load(file_conf_short, preserve_quotes=True)
             # mcc
-            self.config_global_data["spec"]["oaiEnb"][0]["mcc"]["default"] = \
+            self.config_global_data["spec"]["oaiEnb"][0]["mcc"] = \
                     config_short_data["common"][0]["mcc"]
             # mnc
-            self.config_global_data["spec"]["oaiEnb"][0]["mnc"]["default"] = \
+            self.config_global_data["spec"]["oaiEnb"][0]["mnc"] = \
                     config_short_data["common"][0]["mnc"]
             # eutra_band
             self.config_global_data["spec"]["oaiEnb"][0]["eutra_band"]["default"] = \

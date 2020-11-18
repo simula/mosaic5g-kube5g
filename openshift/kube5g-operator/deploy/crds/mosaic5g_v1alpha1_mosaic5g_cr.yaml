@@ -3,196 +3,472 @@ kind: Mosaic5g
 metadata:
   name: mosaic5g
 spec:
-  coreNetworkAllInOne: false
-  # Add fields here
-  # size: 1
-  mysqlSize: 1
-  oaicnsize: 1
-  oaihsssize: 1
-  oaimmesize: 1
-  oaispgwsize: 1
-  oairansize: 1
-  mysqlImage: "mysql:5.6"
-  cnImage: "mosaic5gecosys/oaicn:1.0"
-  oaiHssImage: "mosaic5gecosys/oaihss:1.0"
-  oaiMmeImage: "mosaic5gecosys/oaimme:1.0"
-  oaiSpgwImage: "mosaic5gecosys/oaispgw:1.0"
-  ranImage: "arouk/oairan:1.0"
+  k8sGlobalNamespace: "default"
+  # k8sGlobalNamespace will override the values "k8sEntityNamespace" defined for every entitity
+  # if k8sGlobalNamespace is empty string , i.e. k8sGlobalNamespace: "", every entity will be deployed in the namesmape defined by "k8sEntityNamespace"
+  # if k8sGlobalNamespace is NOT "" empty string, e.g. k8sGlobalNamespace: "default", all the entities will be deployed in the defined namespace
+  oaiEnb:
+    - oaiEnbSize: 1
+      oaiEnbImage: "mosaic5gecosys/oairan:v11.test"
+      k8sDeploymentName: "oairan"
+      k8sServiceName: "oairan"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "1000m"
+      #       resourceMemory: "2500Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oairan"
+      k8sEntityNamespace: "default"
+      k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+        - key: "oai"
+          value: "ran"
+      mcc: "208"                 
+      mnc: "95"
+      mmeService: 
+        description: "If (ipv4) is provided, the enb connects to MME using the provied ip address. Otherwise, it will connect to the service provided by (name)"  
+        name: "oaimme"
+        snapVersion: "v1" # allowed values: v1, v2
+        ipv4: ""
+      flexRAN: false
+      flexRANServiceName: "flexran"
+      snap:
+        description: "Define the version of the snap to be used. The field (refresh), if true, it will get the lates version of snap. Otherwise, the current version (supposing that it is already installed) will be kept"
+        name: "oai-ran"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      eutra_band:
+        description: "Setting the LTE  EUTRA frequency band."
+        default: "7"
+      downlink_frequency:
+        description: "Setting the downlink frequency band."
+        default: "2660000000L"
+      uplink_frequency_offset:
+        description: "Setting the uplink frequency offset."
+        default: "-120000000"
+      N_RB_DL:
+        description: "Setting the bandwidth in terms of number of available PRBS, 25 (5MHz), 50 (10MHz), and 100 (20MHz)"
+        default: "25"
+      tx_gain:
+        description: "transmission gain"
+        default: "90"
+      rx_gain:
+        description: "reception gain"
+        default: "125"
+      pusch_p0_Nominal:
+        description: ""
+        default: "-96"
+      pucch_p0_Nominal:
+        description: ""
+        default: "-104"
+      pdsch_referenceSignalPower:
+        description: ""
+        default: "-27"
+      puSch10xSnr:
+        description: ""
+        default: "200"
+      puCch10xSnr:
+        description: ""
+        default: "200"
+      parallel_config:
+        description: "Defines the level of parallelism. There are three available values PARALLEL_SINGLE_THREAD, PARALLEL_RU_L1_SPLIT, or PARALLEL_RU_L1_TRX_SPLIT"
+        default: "PARALLEL_SINGLE_THREAD"
+      max_rxgain:
+        description: "defines the maximum Rx gain"  
+        default: "110"
   
-  mcc: "208"
-  mnc: "95"
-  eutraBand: "7"
-  downlinkFrequency: "2660000000L"
-  uplinkFrequencyOffset: "-120000000"
-  configurationPathofCN: "/var/snap/oai-cn/current/"
-  configurationPathofRAN: "/var/snap/oai-ran/current/"
-  snapBinaryPath: "/snap/bin/"
-  # hssDomainName: "hss"
-  # mmeDomainName: "mme"
-  # spgwDomainName: "spgw"
-  hssDomainName: "oaihss"
-  mmeDomainName: "oaimme"
-  spgwDomainName: "oaispgw"
-  mysqlDomainName: "mysql"
-  dns: "138.96.0.10"
-  flexRAN: false
-  flexRANDomainName: "flexran"
-  
-  ## new config parameters
-  cuDomainName: "rancu"
-  duDomainName: "randu"
-  rccDomainName: "ranrcc"
-  rruDomainName: "ranrru"
-  #############################################
-  snap:
-    description: "snap indicates which channel to use for the installation hook."
-    name: "oai-ran"
-    channel: "edge"
-    devmode: true
-    Jailmode: false
-    # type: string
-  node_function: 
-    default: "enb"
-    description: "set the function of this BS node. Available Options: enb, cu and du, rcc and rru."
-    # type: string
-  mme_ip_addr: 
-    default: ""
-    description: "If the MME IP address is provided, the BS node connects to MME without waiting for S1-C relation. Default is an empty string."
-    # type: string  
-  eutra_band:
-    default: "7"
-    description: "Setting the LTE  EUTRA frequency band."
-    # type: int
-  downlink_frequency:
-    default: "2660000000L"
-    description: "Setting the downlink frequency band."
-    # type: string
-  uplink_frequency_offset:
-    default: "-120000000"
-    description: "Setting the uplink frequency offset."
-    # type: string
-  N_RB_DL:
-    default: "50"
-    description: "Setting the bandwidth in terms of number of available PRBS, 25 (5MHz), 50 (10MHz), and 100 (20MHz)."
-    # type: int
-  nb_antennas_tx:
-    default: "1"
-    description: "Setting the number of tx antennas."
-    # type: int
-  nb_antennas_rx:
-    default: "1"
-    description: "Setting the number of rx antennas."
-    # type: int
-  tx_gain:
-    default: "90"
-    description: "Setting the tx antenna gain."
-    # type: int
-  rx_gain:
-    default: "125"
-    description: "Setting the rx antenna gain."
-    # type: int
-  cu_ip_addr:
-    default: "127.0.0.1"
-    description: "The IP address of the CU module. Only valid if the node function is CU."
-    # type: string
-  du_ip_addr:
-    default: "127.0.0.1"
-    description: "The IP address of the DU module. Only valid if the node function is DU."
-    # type: string
-  cu_portc:
-    default: "501"
-    description: "The port number of the CU module for control plane. Only valid if the node function is CU."
-    # type: int
-  du_portc:
-    default: "500"
-    description: "The control port number of the DU module for control plane. Only valid if the node function is DU."
-    # type: int
-  cu_portd:
-    default: "601"
-    description: "The port number of the CU module for data plane. Only valid if the node function is CU."
-    # type: int
-  du_portd:
-    default: "600"
-    description: "The control port number of the DU module for data plane. Only valid if the node function is DU."
-    # type: int
-  fh_transport_mode:
-    default: "udp_if4p5"
-    description: "defines the I/Q sample transport mode between RRU and RCC. Available mode are raw, udp, raw_if4p5, and udp_if4p5."
-    # type: string
-  rcc_portc:
-    default: "50000"
-    description: "The port number of the RCC module for control plane. Only valid if the node function is RCC."
-    # type: int
-  rru_portc:
-    default: "50000"
-    description: "The control port number of the RRU module for control plane. Only valid if the node function is RRU."
-    # type: int
-  rcc_portd:
-    default: "50001"
-    description: "The port number of the RCC module for data plane. Only valid if the node function is RCC."
-    # type: int
-  rru_portd:
-    default: "50001"
-    description: "The control port number of the RRU module for data plane. Only valid if the node function is DU."
-    # type: int 
-  rcc_rru_tr_preference:
-    default: "udp_if4p5" 
-    description: " "
-    # type: string
-  TAC:
-    default: "1"
-    description: "Set this option to the tracking area code you want this eNB to belong. Possible values are...Tracking area code, 0x0000 and 0xfffe are reserved values."
-    # type: int
-  enb_name:
-    default: "eNB_Eurecom_LTEBox"
-    description: "Set this option with the name you want for this eNodeB deployment."
-    # type: string
-  enb_id:
-    default: "0xe00"
-    description: "Set this option with the id number you want for this eNodeB deployment. "
-    # type: string
-  frame_type:
-    default: "FDD"
-    description: "Setting the frame type, FDD or TDD."
-    # type: string
-  tdd_config:
-    default: "3"
-    description: "Setting the TDD frame configuration. Valid values, 0,1,2,3,4,5,6."
-    # type: int
-  tdd_config_s:
-    default: "0"
-    description: "Setting the TDD special subframe configuration. Valid values, 0-9."
-    # type: int
+  flexran:
+    - flexranSize: 1
+      flexranImage: "mosaic5gecosys/flexran:v1.test"
+      k8sDeploymentName: "flexran"
+      k8sServiceName: "flexran"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "500m"
+      #       resourceMemory: "100Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "flexran"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "flexran"
+        channel: "edge"
+        devmode: true
+        refresh: false
 
-  flexran_if_name:
-    default: "eth0"
-    description: "defines the network interface name to connect to the controller. "
-    # type: string
-  fh_if_name:
-    default: "eth0"
-    description: "defines the network interface name to connect to the RRU. This required a dedicated fronthaul link between eNB and RRU and must not use the same interface as for the EPC.  "
-    # type: string
-  fh_local_port: 
-    default: "50000"  
-    description: "defines the network interface port to connect to the RRU."
-    # type: int
-  rru_tx_shift: 
-    default: "4"  
-    description: "defines the shift in is samples in tx"
-    # type: int
-  rru_tx_sampleadvance:
-    default: "80"
-    description: "defines the tx i/q sample advace"
-    # type: int
-  rru_tx_schedadvance:
-    default: "9"
-    description: "defines the tx i/q scheduling advance"
-    # type: int
-  parallel_config:
-    default: "PARALLEL_SINGLE_THREAD"
-    description: "defines the level of parallelism. There are three available values; 'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
-    # type: string
-  max_rxgain:
-    default: "111"
-    description: "defines the maximum Rx gain"
-    # type: "int"
+  database:
+    - databaseSize: 1
+      databaseType: "mysql" # accepted values: "mysql", "cassandra"
+      databaseImage: "mysql:5.6"
+      k8sDeploymentName: "mysql"
+      k8sServiceName: "mysql"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "500m"
+      #       resourceMemory: "100Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "mysql"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+    - databaseSize: 1
+      databaseType: "cassandra" # accepted values: "mysql", "cassandra"
+      databaseImage: "mosaic5gecosys/cassandra-m5g:1.1"
+      k8sDeploymentName: "cassandra"
+      k8sServiceName: "cassandra"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "500m"
+      #       resourceMemory: "100Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "cassandra"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+  
+  oaiCn:
+    v1:
+    - oaiCnSize: 1
+      oaiCnImage: "mosaic5gecosys/oaicn:v1.test"
+      k8sDeploymentName: "oaicnv1"
+      k8sServiceName: "oaicnv1"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "1000m"
+      #       resourceMemory: "2500Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaicnv1"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair4G.eur"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-cn"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      oaiHss:
+        databaseServiceName: "mysql"
+      oaiMme:
+        mcc: "208"  
+        mnc: "95"
+      oaiSpgw:
+        dns: "192.168.1.1" # DNS of your network
+    v2:
+    - oaiCnSize: 1
+      oaiCnImage: "mosaic5gecosys/oaicn:v2.test"
+      k8sDeploymentName: "oaicnv2"
+      k8sServiceName: "oaicnv2"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "1000m"
+      #       resourceMemory: "2500Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaicnv2"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair5G.eur"
+      APN_NI:
+        description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
+        default: "oai.ipv4"
+      oaiHss:
+        snap:
+          description: "snap of oai-hss"
+          name: "oai-hss"
+          channel: "edge"
+          devmode: true
+          refresh: false
+        databaseServiceName: "cassandra"
+      oaiMme:
+        snap:
+          description: "snap of oai-mme"
+          name: "oai-mme"
+          channel: "edge"
+          devmode: true
+          refresh: false
+        mcc: "208"  
+        mnc: "95"
+      oaiSpgwc:
+        snap:
+          description: "snap of oai-spgwc"
+          name: "oai-spgwc"
+          channel: "edge"
+          devmode: true
+          refresh: false
+        dns: "192.168.1.1" # DNS of your network
+      oaiSpgwu:
+        snap:
+          description: "snap of oai-spgwu"
+          name: "oai-spgwu"
+          channel: "edge"
+          devmode: true
+          refresh: false
+  
+  oaiHss:
+    v1:
+    - oaiHssSize: 1
+      oaiHssImage: "mosaic5gecosys/oaihss:v1.test"
+      k8sDeploymentName: "oaihssv1"
+      k8sServiceName: "oaihssv1"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "200m"
+      #       resourceMemory: "200Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaihssv1"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair4G.eur"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-cn"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      databaseServiceName: "mysql"
+      mmeServiceName: "oaimmev1"
+    v2:
+    - oaiHssSize: 1
+      oaiHssImage: "mosaic5gecosys/oaihss:v2.test"
+      k8sDeploymentName: "oaihssv2"
+      k8sServiceName: "oaihssv2"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "200m"
+      #       resourceMemory: "200Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaihssv2"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair5G.eur"
+      APN_NI:
+        description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
+        default: "oai.ipv4"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-hss"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      databaseServiceName: "cassandra"
+      hssServiceName: "oaihssv2"
+      mmeServiceName: "oaimmev2"
+      spgwcServiceName: "oaispgwcv2"
+  
+  oaiMme:
+    v1:
+    - oaiMmeSize: 1
+      oaiMmeImage: "mosaic5gecosys/oaimme:v1.test"
+      k8sDeploymentName: "oaimmev1"
+      k8sServiceName: "oaimmev1"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "200m"
+      #       resourceMemory: "200Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaimmev1"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair4G.eur"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-cn"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      mcc: "208"  
+      mnc: "95"
+      hssServiceName: "oaihssv1"
+      spgwServiceName: "oaispgwv1"
+    v2:
+    - oaiMmeSize: 1
+      oaiMmeImage: "mosaic5gecosys/oaimme:v2.test"
+      k8sDeploymentName: "oaimmev2"
+      k8sServiceName: "oaimmev2"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "200m"
+      #       resourceMemory: "200Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaimmev2"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair5G.eur"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-mme"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      mcc: "208"  
+      mnc: "95"
+      hssServiceName: "oaihssv2"
+      spgwcServiceName: "oaispgwcv2"
+  
+  oaiSpgw: 
+    v1: # Do not change, Always v1
+    - oaiSpgwSize: 1
+      oaiSpgwImage: "mosaic5gecosys/oaispgw:v1.test"
+      k8sDeploymentName: "oaispgwv1"
+      k8sServiceName: "oaispgwv1"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "200m"
+      #       resourceMemory: "200Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaispgwv1"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair4G.eur"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-cn"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      dns: "192.168.1.1" # DNS of your network
+      hssServiceName: "oaihssv1"
+      mmeServiceName: "oaimmev1"
+  
+  oaiSpgwc: 
+    v2: # Do not change, Always v2
+    - oaiSpgwcSize: 1
+      oaiSpgwcImage: "mosaic5gecosys/oaispgwc:v2.test"
+      k8sDeploymentName: "oaispgwcv2"
+      k8sServiceName: "oaispgwcv2"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "200m"
+      #       resourceMemory: "200Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaispgwcv2"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair5G.eur"
+      APN_NI:
+        description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
+        default: "oai.ipv4"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-spgwc"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      dns: "192.168.1.1" # DNS of your network
+  
+  oaiSpgwu:
+    v2: # Do not change, Always v2
+    - oaiSpgwuSize: 1
+      oaiSpgwuImage: "mosaic5gecosys/oaispgwu:v2.test"
+      k8sDeploymentName: "oaispgwuv2"
+      k8sServiceName: "oaispgwuv2"
+      # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "200m"
+      #       resourceMemory: "200Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services
+        - key: "app"
+          value: "oaispgwuv2"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      #   - key: "usrp"
+      #     value: "false"
+      realm: 
+        description: "Realm of oai"
+        default: "openair5G.eur"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-spgwu"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      spgwcServiceName: "oaispgwcv2"
+

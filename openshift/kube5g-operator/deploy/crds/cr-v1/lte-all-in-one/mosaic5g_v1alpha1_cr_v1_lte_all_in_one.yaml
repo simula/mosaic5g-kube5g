@@ -9,7 +9,7 @@ spec:
   k8sGlobalNamespace: "default"
   oaiEnb:
     - oaiEnbSize: 1
-      oaiEnbImage: "mosaic5gecosys/oairan:v1.test"
+      oaiEnbImage: "mosaic5gecosys/oairan:v11.test"
       k8sDeploymentName: "oairan"
       k8sServiceName: "oairan"
       # k8sPodResources:
@@ -60,6 +60,27 @@ spec:
           Setting the bandwidth in terms of number of available PRBS, 
           25 (5MHz), 50 (10MHz), and 100 (20MHz)."
         default: "25"
+      tx_gain:
+        description: "transmission gain"
+        default: "90"
+      rx_gain:
+        description: "reception gain"
+        default: "125"
+      pusch_p0_Nominal:
+        description: ""
+        default: "-96"
+      pucch_p0_Nominal:
+        description: ""
+        default: "-104"
+      pdsch_referenceSignalPower:
+        description: ""
+        default: "-27"
+      puSch10xSnr:
+        description: ""
+        default: "200"
+      puCch10xSnr:
+        description: ""
+        default: "200"
       parallel_config:
         description: |
           Defines the level of parallelism. There are three available values;

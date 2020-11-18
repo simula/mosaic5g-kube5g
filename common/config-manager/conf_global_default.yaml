@@ -9,7 +9,7 @@ spec:
   # if k8sGlobalNamespace is NOT "" empty string, e.g. k8sGlobalNamespace: "default", all the entities will be deployed in the defined namespace
   oaiEnb:
     - oaiEnbSize: 1
-      oaiEnbImage: "mosaic5gecosys/oairan:v1.test"
+      oaiEnbImage: "mosaic5gecosys/oairan:v11.test"
       k8sDeploymentName: "oairan"
       k8sServiceName: "oairan"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -46,7 +46,7 @@ spec:
         default: "7"
       downlink_frequency:
         description: "Setting the downlink frequency band."
-        default: "2660000000L"
+        default: "2685000000L"
       uplink_frequency_offset:
         description: "Setting the uplink frequency offset."
         default: "-120000000"

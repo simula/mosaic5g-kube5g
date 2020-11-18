@@ -85,6 +85,7 @@ func (in *CfgCnV2) DeepCopyInto(out *CfgCnV2) {
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
+	out.ApnNi = in.ApnNi
 	out.OaiHss = in.OaiHss
 	out.OaiMme = in.OaiMme
 	out.OaiSpgwc = in.OaiSpgwc
@@ -271,6 +272,7 @@ func (in *CfgHssV2) DeepCopyInto(out *CfgHssV2) {
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
+	out.ApnNi = in.ApnNi
 	out.Snap = in.Snap
 	return
 }
@@ -421,6 +423,13 @@ func (in *CfgOaiEnb) DeepCopyInto(out *CfgOaiEnb) {
 	out.DownlinkFrequency = in.DownlinkFrequency
 	out.UplinkFrequencyOffset = in.UplinkFrequencyOffset
 	out.NumberRbDl = in.NumberRbDl
+	out.TxGain = in.TxGain
+	out.RxGain = in.RxGain
+	out.PuschP0Nominal = in.PuschP0Nominal
+	out.PucchP0Nominal = in.PucchP0Nominal
+	out.PdschReferenceSignalPower = in.PdschReferenceSignalPower
+	out.PuSch10xSnr = in.PuSch10xSnr
+	out.PuCch10xSnr = in.PuCch10xSnr
 	out.ParallelConfig = in.ParallelConfig
 	out.MaxRxGain = in.MaxRxGain
 	return
@@ -526,6 +535,7 @@ func (in *CfgSpgwcV2) DeepCopyInto(out *CfgSpgwcV2) {
 		copy(*out, *in)
 	}
 	out.Realm = in.Realm
+	out.ApnNi = in.ApnNi
 	out.Snap = in.Snap
 	return
 }

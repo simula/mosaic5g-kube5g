@@ -1,3 +1,6 @@
+# DEPRECATED
+
+# This project is deprecated and the new one is kube5g-operator that exists in [openshift/kube5g-operator](https://gitlab.eurecom.fr/mosaic5g/kube5g/-/tree/develop/openshift/kube5g-operator)
 # Mosaic5g-Operator
 
 This current branch for the objective of suporting more config parameters for both oai-ran and oai-cn, in addition to support the functional slit for oai-ran, i.e. CU-DU fuctional split

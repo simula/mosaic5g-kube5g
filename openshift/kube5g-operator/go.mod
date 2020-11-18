@@ -6,11 +6,14 @@ require (
 	cloud.google.com/go v0.41.0
 	contrib.go.opencensus.io/exporter/ocagent v0.4.12
 	git.apache.org/thrift.git v0.12.0 // indirect
-	github.com/Azure/go-autorest v14.2.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.11.11 // indirect
+	github.com/Azure/go-autorest v12.2.0+incompatible
+	github.com/Azure/go-autorest/autorest v0.10.1 // indirect
+	github.com/Azure/go-autorest/autorest/adal v0.8.3 // indirect
 	github.com/PuerkitoBio/purell v1.1.1
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
-	github.com/appscode/jsonpatch v0.0.0-20190108182946-7c0e3b262f30
+	// github.com/appscode/jsonpatch v0.0.0-20190108182946-7c0e3b262f30
+	github.com/appscode/jsonpatch v0.0.0-20190108182946-7c0e3b262f30 // indirect
+	// gomodules.xyz/jsonpatch v2.0
 	github.com/beorn7/perks v1.0.0
 	github.com/census-instrumentation/opencensus-proto v0.2.0
 	github.com/coreos/prometheus-operator v0.29.0
@@ -62,10 +65,10 @@ require (
 	go.uber.org/atomic v1.4.0
 	go.uber.org/multierr v1.1.0
 	go.uber.org/zap v1.10.0
-	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
+	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
@@ -86,5 +89,6 @@ require (
 	k8s.io/kube-openapi v0.0.0-20180711000925-0cf8f7e6ed1d
 	sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/controller-tools v0.1.8
+	sigs.k8s.io/testing_frameworks v0.1.2 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )

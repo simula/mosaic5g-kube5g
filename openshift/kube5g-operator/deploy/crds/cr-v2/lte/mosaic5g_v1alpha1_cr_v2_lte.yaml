@@ -9,8 +9,7 @@ spec:
   k8sGlobalNamespace: "default"
   oaiEnb:
     - oaiEnbSize: 1
-      oaiEnbImage: "mosaic5gecosys/oairan:v1.test"
-      # oaiEnbImage: "mosaic5gecosys/oairan:v1.1.0"
+      oaiEnbImage: "mosaic5gecosys/oairan:v11.test"
       k8sDeploymentName: "oairan"
       k8sServiceName: "oairan"
       # k8sPodResources:
