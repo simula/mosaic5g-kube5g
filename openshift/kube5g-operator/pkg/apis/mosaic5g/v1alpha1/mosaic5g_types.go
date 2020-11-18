@@ -9,26 +9,33 @@ import (
 // CfgOaiEnb the configuration of oai-enb
 type CfgOaiEnb struct {
 	// Configurations of ENB
-	K8sDeploymentName     string                        `json:"k8sDeploymentName" yaml:"k8sDeploymentName"`
-	K8sServiceName        string                        `json:"k8sServiceName" yaml:"k8sServiceName"`
-	K8sEntityNamespace    string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
-	K8sPodResources       k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
-	K8sLabelSelector      []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
-	K8sNodeSelector       []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
-	OaiEnbSize            int32                         `json:"oaiEnbSize" yaml:"oaiEnbSize"`
-	OaiEnbImage           string                        `json:"oaiEnbImage" yaml:"oaiEnbImage"`
-	MCC                   string                        `json:"mcc" yaml:"mcc"`
-	MNC                   string                        `json:"mnc" yaml:"mnc"`
-	MmeService            MmeServiceDescription         `json:"mmeService" yaml:"mmeService"`
-	FlexRAN               bool                          `json:"flexRAN" yaml:"flexRAN"`
-	FlexranServiceName    string                        `json:"flexranServiceName" yaml:"flexranServiceName"`
-	Snap                  SnapDescriptionFinal          `json:"snap" yaml:"snap"`
-	EutraBand             GeneralDescription            `json:"eutra_band" yaml:"eutra_band"`
-	DownlinkFrequency     GeneralDescription            `json:"downlink_frequency" yaml:"downlink_frequency"`
-	UplinkFrequencyOffset GeneralDescription            `json:"uplink_frequency_offset" yaml:"uplink_frequency_offset"`
-	NumberRbDl            GeneralDescription            `json:"N_RB_DL" yaml:"N_RB_DL"`
-	ParallelConfig        GeneralDescription            `json:"parallel_config" yaml:"parallel_config"`
-	MaxRxGain             GeneralDescription            `json:"max_rxgain" yaml:"max_rxgain"`
+	K8sDeploymentName         string                        `json:"k8sDeploymentName" yaml:"k8sDeploymentName"`
+	K8sServiceName            string                        `json:"k8sServiceName" yaml:"k8sServiceName"`
+	K8sEntityNamespace        string                        `json:"k8sEntityNamespace" yaml:"k8sEntityNamespace"`
+	K8sPodResources           k8sPodResourcesDescription    `json:"k8sPodResources" yaml:"k8sPodResources"`
+	K8sLabelSelector          []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
+	K8sNodeSelector           []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
+	OaiEnbSize                int32                         `json:"oaiEnbSize" yaml:"oaiEnbSize"`
+	OaiEnbImage               string                        `json:"oaiEnbImage" yaml:"oaiEnbImage"`
+	MCC                       string                        `json:"mcc" yaml:"mcc"`
+	MNC                       string                        `json:"mnc" yaml:"mnc"`
+	MmeService                MmeServiceDescription         `json:"mmeService" yaml:"mmeService"`
+	FlexRAN                   bool                          `json:"flexRAN" yaml:"flexRAN"`
+	FlexranServiceName        string                        `json:"flexranServiceName" yaml:"flexranServiceName"`
+	Snap                      SnapDescriptionFinal          `json:"snap" yaml:"snap"`
+	EutraBand                 GeneralDescription            `json:"eutra_band" yaml:"eutra_band"`
+	DownlinkFrequency         GeneralDescription            `json:"downlink_frequency" yaml:"downlink_frequency"`
+	UplinkFrequencyOffset     GeneralDescription            `json:"uplink_frequency_offset" yaml:"uplink_frequency_offset"`
+	NumberRbDl                GeneralDescription            `json:"N_RB_DL" yaml:"N_RB_DL"`
+	TxGain                    GeneralDescription            `json:"tx_gain" yaml:"tx_gain"`
+	RxGain                    GeneralDescription            `json:"rx_gain" yaml:"rx_gain"`
+	PuschP0Nominal            GeneralDescription            `json:"pusch_p0_Nominal" yaml:"pusch_p0_Nominal"`
+	PucchP0Nominal            GeneralDescription            `json:"pucch_p0_Nominal" yaml:"pucch_p0_Nominal"`
+	PdschReferenceSignalPower GeneralDescription            `json:"pdsch_referenceSignalPower" yaml:"pdsch_referenceSignalPower"`
+	PuSch10xSnr               GeneralDescription            `json:"puSch10xSnr" yaml:"puSch10xSnr"`
+	PuCch10xSnr               GeneralDescription            `json:"puCch10xSnr" yaml:"puCch10xSnr"`
+	ParallelConfig            GeneralDescription            `json:"parallel_config" yaml:"parallel_config"`
+	MaxRxGain                 GeneralDescription            `json:"max_rxgain" yaml:"max_rxgain"`
 }
 
 // CfgFlexran the configuration of flexran
@@ -98,6 +105,7 @@ type CfgHssV2 struct {
 	OaiHssSize          int32                         `json:"oaiHssSize" yaml:"oaiHssSize"`
 	OaiHssImage         string                        `json:"oaiHssImage" yaml:"oaiHssImage"`
 	Realm               GeneralDescription            `json:"realm" yaml:"realm"`
+	ApnNi               GeneralDescription            `json:"APN_NI" yaml:"APN_NI"`
 	Snap                SnapDescriptionFinal          `json:"snap" yaml:"snap"`
 	DatabaseServiceName string                        `json:"databaseServiceName" yaml:"databaseServiceName"`
 	HssServiceName      string                        `json:"hssServiceName" yaml:"hssServiceName"`
@@ -169,6 +177,7 @@ type CfgSpgwcV2 struct {
 	OaiSpgwcSize       int32                         `json:"oaiSpgwcSize" yaml:"oaiSpgwcSize"`
 	OaiSpgwcImage      string                        `json:"oaiSpgwcImage" yaml:"oaiSpgwcImage"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
+	ApnNi              GeneralDescription            `json:"APN_NI" yaml:"APN_NI"`
 	Snap               SnapDescriptionFinal          `json:"snap" yaml:"snap"`
 	DNS                string                        `json:"dns" yaml:"dns"`
 }
@@ -243,6 +252,7 @@ type CfgCnV2 struct {
 	K8sLabelSelector   []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
 	K8sNodeSelector    []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
 	Realm              GeneralDescription            `json:"realm" yaml:"realm"`
+	ApnNi              GeneralDescription            `json:"APN_NI" yaml:"APN_NI"`
 	OaiHss             CnV2OaiHssDescription         `json:"oaiHss" yaml:"oaiHss"`
 	OaiMme             CnV2OaiMmeDescription         `json:"oaiMme" yaml:"oaiMme"`
 	OaiSpgwc           CnV2OaiSpgwcDescription       `json:"oaiSpgwc" yaml:"oaiSpgwc"`

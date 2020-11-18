@@ -70,10 +70,13 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 
 	// Getting the ip address of the database
 	var cassandraIP, databaseCassandraName string
+	var APINi string
 	if CnAllInOneMode == true {
 		databaseCassandraName = OaiObj.Conf.OaiCn.V2[0].OaiHss.DatabaseServiceName
+		APINi = OaiObj.Conf.OaiCn.V2[0].ApnNi.Default
 	} else {
 		databaseCassandraName = OaiObj.Conf.OaiHss.V2[0].DatabaseServiceName
+		APINi = OaiObj.Conf.OaiHss.V2[0].ApnNi.Default
 	}
 	var err error
 	if buildSnap != true {
@@ -197,7 +200,8 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 		// oai-hss.add-users -I208950000000001-208950000000020 -a oai.ipv4 -C 172.31.0.2
 
 		OaiObj.Logger.Print("Adding users to Cassanra DB ")
-		retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
+		retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", APINi, "-C", cassandraIP)
+		// retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
 		for {
 			if retStatus.Exit != 0 {
 				OaiObj.Logger.Print("Adding users to hss database failed")
@@ -205,13 +209,13 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			} else {
 				OaiObj.Logger.Print("Adding users to hss database was successful")
 				fmt.Println("Adding users to hss database was successful")
-				retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
+				retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", APINi, "-C", cassandraIP)
 				break
 			}
 			time.Sleep(1 * time.Second)
 			OaiObj.Logger.Print("Retrying to add users to hss database")
 			fmt.Println("Retrying to add users to hss database")
-			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
+			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", APINi, "-C", cassandraIP)
 		}
 
 		if CnAllInOneMode == false {

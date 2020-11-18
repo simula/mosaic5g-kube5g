@@ -91,10 +91,13 @@ func startSpgwcV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 
 		// get the dns
 		var DNSIPV4Address string
+		var APINi string
 		if CnAllInOneMode == true {
 			DNSIPV4Address = OaiObj.Conf.OaiCn.V2[0].OaiSpgwc.DNS
+			APINi = OaiObj.Conf.OaiCn.V2[0].ApnNi.Default
 		} else {
 			DNSIPV4Address = OaiObj.Conf.OaiSpgwc.V2[0].DNS
+			APINi = OaiObj.Conf.OaiSpgwc.V2[0].ApnNi.Default
 		}
 
 		sedCommand := "s:DEFAULT_DNS_IPV4_ADDRESS.*;:DEFAULT_DNS_IPV4_ADDRESS     = \"" + DNSIPV4Address + "\";:g"
@@ -116,7 +119,8 @@ func startSpgwcV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, spgwConf)
 		}
 
-		retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", "s/oai.openair5G.eur/"+"oai.ipv4"+"/g", spgwConf)
+		retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", "s/oai.openair5G.eur/"+APINi+"/g", spgwConf)
+		// retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", "s/oai.openair5G.eur/"+"oai.ipv4"+"/g", spgwConf)
 
 		if CnAllInOneMode == false {
 			// Get interface IP and outbound interface

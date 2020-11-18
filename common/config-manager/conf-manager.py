@@ -63,8 +63,9 @@ COMMON_DIR_CRD = "{}/openshift/kube5g-operator/deploy/crds".format(PWD)
 COMMON_DIR_DOCKER = "{}/dockers/docker-compose".format(PWD)
 
 class ConfigManager(object):
-    def __init__(self, global_config):
-        self.config_file = global_config
+    def __init__(self, conf_short, conf_global_default, config_short):
+        self.config_file_short = conf_short
+        self.config_file = conf_global_default
         self.common_dir_crs = COMMON_DIR_CRD
         self.common_dir_docker = COMMON_DIR_DOCKER
         self.config_global_data = None
@@ -75,6 +76,10 @@ class ConfigManager(object):
         
         self.yaml_config()
         self.open_config_global()
+        if config_short:
+            # open short config file and configure global long file
+            pass
+
     def yaml_config(self):
         ruamel.yaml.YAML().indent(mapping=4, sequence=6, offset=3)
     def open_config_global(self):
@@ -83,6 +88,84 @@ class ConfigManager(object):
             with open(self.config_file) as file_conf_global:
                 self.config_global_data = ruamel.yaml.round_trip_load(file_conf_global, preserve_quotes=True)
             logger.info("global configuration is successfully retrieved")
+        except Exception as ex:
+            message = "Error while trying to open the file: {}".format(ex) 
+            logger.error(message)
+            exit(0)
+    def open_short_config_and_configure_config_global(self):
+        logger.info("getting the short configuration from {}".format(self.config_file_short))
+        try:
+            with open(self.config_file_short) as file_conf_short:
+                config_short_data = ruamel.yaml.round_trip_load(file_conf_short, preserve_quotes=True)
+            # mcc
+            self.config_global_data["spec"]["oaiEnb"][0]["mcc"]["default"] = \
+                    config_short_data["common"][0]["mcc"]
+            # mnc
+            self.config_global_data["spec"]["oaiEnb"][0]["mnc"]["default"] = \
+                    config_short_data["common"][0]["mnc"]
+            # eutra_band
+            self.config_global_data["spec"]["oaiEnb"][0]["eutra_band"]["default"] = \
+                    config_short_data["oaiEnb"][0]["eutra_band"]["default"]
+            # downlink_frequency
+            self.config_global_data["spec"]["oaiEnb"][0]["downlink_frequency"]["default"] = \
+                    config_short_data["oaiEnb"][0]["downlink_frequency"]["default"]
+            # uplink_frequency_offset
+            self.config_global_data["spec"]["oaiEnb"][0]["uplink_frequency_offset"]["default"] = \
+                    config_short_data["oaiEnb"][0]["uplink_frequency_offset"]["default"]
+            # N_RB_DL
+            self.config_global_data["spec"]["oaiEnb"][0]["N_RB_DL"]["default"] = \
+                    config_short_data["oaiEnb"][0]["N_RB_DL"]["default"]
+            # tx_gain
+            self.config_global_data["spec"]["oaiEnb"][0]["tx_gain"]["default"] = \
+                    config_short_data["oaiEnb"][0]["tx_gain"]["default"]
+            # rx_gain
+            self.config_global_data["spec"]["oaiEnb"][0]["rx_gain"]["default"] = \
+                    config_short_data["oaiEnb"][0]["rx_gain"]["default"]
+            # pusch_p0_Nominal
+            self.config_global_data["spec"]["oaiEnb"][0]["pusch_p0_Nominal"]["default"] = \
+                    config_short_data["oaiEnb"][0]["pusch_p0_Nominal"]["default"]
+            # pucch_p0_Nominal
+            self.config_global_data["spec"]["oaiEnb"][0]["pucch_p0_Nominal"]["default"] = \
+                    config_short_data["oaiEnb"][0]["pucch_p0_Nominal"]["default"]
+            # pdsch_referenceSignalPower
+            self.config_global_data["spec"]["oaiEnb"][0]["pdsch_referenceSignalPower"]["default"] = \
+                    config_short_data["oaiEnb"][0]["pdsch_referenceSignalPower"]["default"]
+            # puSch10xSnr
+            self.config_global_data["spec"]["oaiEnb"][0]["puSch10xSnr"]["default"] = \
+                    config_short_data["oaiEnb"][0]["puSch10xSnr"]["default"]
+            # puCch10xSnr
+            self.config_global_data["spec"]["oaiEnb"][0]["puCch10xSnr"]["default"] = \
+                    config_short_data["oaiEnb"][0]["puCch10xSnr"]["default"]
+            # parallel_config
+            self.config_global_data["spec"]["oaiEnb"][0]["parallel_config"]["default"] = \
+                    config_short_data["oaiEnb"][0]["parallel_config"]["default"]
+            # max_rxgain
+            self.config_global_data["spec"]["oaiEnb"][0]["max_rxgain"]["default"] = \
+                    config_short_data["oaiEnb"][0]["max_rxgain"]["default"]
+            """ CN: DNS """
+            # oaiCn v1
+            self.config_global_data["spec"]["oaiCn"]["v1"][0]["oaiSpgw"]["dns"] = \
+                config_short_data["oaiCn"][0]["dns"]
+            # oaiCn v2
+            self.config_global_data["spec"]["oaiCn"]["v2"][0]["oaiSpgwc"]["dns"] = \
+                            config_short_data["oaiCn"][0]["dns"]
+            # oaiSpgw v1
+            self.config_global_data["spec"]["oaiSpgw"]["v1"][0]["dns"] = \
+                            config_short_data["oaiCn"][0]["dns"]
+            # oaiSpgwc v2
+            self.config_global_data["spec"]["oaiSpgwc"]["v2"][0]["dns"] = \
+                            config_short_data["oaiCn"][0]["dns"]
+            """ CN: APN v2 """
+            self.config_global_data["spec"]["oaiCn"]["v2"][0]["APN_NI"]["default"] = \
+                            config_short_data["oaiCn"][0]["v2"]["APN_NI"]["default"]
+            # oaiHss v2
+            self.config_global_data["spec"]["oaiHss"]["v2"][0]["APN_NI"]["default"] = \
+                            config_short_data["oaiCn"][0]["v2"]["APN_NI"]["default"]
+            # oaiSpgwc v2
+            self.config_global_data["spec"]["oaiSpgwc"]["v2"][0]["APN_NI"]["default"] = \
+                            config_short_data["oaiCn"][0]["v2"]["APN_NI"]["default"]
+                            
+            logger.info("configuration is successfully retrieved from short configuration file")
         except Exception as ex:
             message = "Error while trying to open the file: {}".format(ex) 
             logger.error(message)
@@ -346,18 +429,27 @@ class ConfigManager(object):
             logger.error(message)
             exit(0)
         
-if __name__ == "__main__":                                                         
-
-    global_config = "{}/{}".format(CURRENT_DIR, "conf_global.yaml")
+if __name__ == "__main__":
+    conf_global_default = "{}/{}".format(CURRENT_DIR, "conf_global_default.yaml")
+    conf_short_default = "{}/{}".format(CURRENT_DIR, "conf_short_default.yaml")
     parser = argparse.ArgumentParser(description='configure the custom resources for kube5g-operator')
-    parser.add_argument('-c', '--global-config', metavar='[option]', action='store', type=str,
-                        required=False, default='{}'.format(global_config), 
-                        help="global configuration file of crs, default: {}".format(global_config))
+    parser.add_argument('-g', '--conf-global', metavar='[option]', action='store', type=str,
+                        required=False, default='{}'.format(conf_global_default), 
+                        help="global configuration file, default: {}".format(conf_global_default))
+    parser.add_argument('-s', '--conf-short', metavar='[option]', action='store', type=str,
+                            required=False, default='{}'.format(conf_short_default), 
+                            help="short configuration file, default: {}".format(conf_short_default))
 
     args = parser.parse_args()
+    config_short = False
+    if(args.conf_short):
+        logger.info("short configuration file: {}".format(args.conf_short))
+        config_short = True
+    else:
+        logger.info("global configuration file: {}".format(args.conf_global))
 
-    logger.info("global configuration file of crs: {}".format(args.global_config))
-    conf_manager = ConfigManager(args.global_config)
+    
+    conf_manager = ConfigManager(args.conf_short, args.conf_global, config_short)
     versions = ["v1", "v2"]
     for version in versions:
         conf_manager.config_lte_all_in_one(version)

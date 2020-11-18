@@ -107,6 +107,34 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	sedCommand = "s:N_RB_DL.*;:N_RB_DL                                         = " + c.OaiEnb[0].NumberRbDl.Default + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
+	// tx_gain
+	sedCommand = "s:tx_gain.*;:tx_gain                                         = " + c.OaiEnb[0].TxGain.Default + ";:g"
+	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+
+	// rx_gain
+	sedCommand = "s:rx_gain.*;:rx_gain                                         = " + c.OaiEnb[0].RxGain.Default + ";:g"
+	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+
+	// pusch_p0_Nominal
+	sedCommand = "s:pusch_p0_Nominal.*;:pusch_p0_Nominal                                         = " + c.OaiEnb[0].PuschP0Nominal.Default + ";:g"
+	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+
+	// pucch_p0_Nominal
+	sedCommand = "s:pucch_p0_Nominal.*;:pucch_p0_Nominal                                         = " + c.OaiEnb[0].PucchP0Nominal.Default + ";:g"
+	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+
+	// pdsch_referenceSignalPower
+	sedCommand = "s:pdsch_referenceSignalPower.*;:pdsch_referenceSignalPower                                         = " + c.OaiEnb[0].PdschReferenceSignalPower.Default + ";:g"
+	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+
+	// puSch10xSnr
+	sedCommand = "s:puSch10xSnr.*;:puSch10xSnr                                         = " + c.OaiEnb[0].PuSch10xSnr.Default + ";:g"
+	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+
+	// puCch10xSnr
+	sedCommand = "s:puCch10xSnr.*;:puCch10xSnr                                         = " + c.OaiEnb[0].PuCch10xSnr.Default + ";:g"
+	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+
 	// Get Outbound IP and Interface name
 	outIP := util.GetOutboundIP()
 	outInterface, err := util.GetInterfaceByIP(outIP)
@@ -238,7 +266,8 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 
 				mmeActiveTime = 0
 				// counterMmeActiveTime = 30
-				counterMmeActiveTime = 50
+				// counterMmeActiveTime = 50
+				counterMmeActiveTime = 75
 
 				resp, err := http.Get(urlMme)
 				for {
@@ -272,8 +301,8 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 								fmt.Println("The service " + mmeStat[0].Service + " is active")
 								break
 							} else {
-								OaiObj.Logger.Print("Waiting time" + strconv.FormatInt(mmeActiveTime, 10) + "/" + strconv.FormatInt(counterMmeActiveTime, 10) + " seconds to make sure that the service " + mmeServiceName + " is active")
-								fmt.Println("Waiting time" + strconv.FormatInt(mmeActiveTime, 10) + "/" + strconv.FormatInt(counterMmeActiveTime, 10) + " seconds to make sure that the service " + mmeServiceName + " is active")
+								OaiObj.Logger.Print("Waiting time " + strconv.FormatInt(mmeActiveTime, 10) + "/" + strconv.FormatInt(counterMmeActiveTime, 10) + " seconds to make sure that the service " + mmeServiceName + " is active")
+								fmt.Println("Waiting time " + strconv.FormatInt(mmeActiveTime, 10) + "/" + strconv.FormatInt(counterMmeActiveTime, 10) + " seconds to make sure that the service " + mmeServiceName + " is active")
 							}
 						} else {
 							mmeActiveTime = 0
@@ -298,7 +327,7 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 		OaiObj.Logger.Print("Start enb daemon")
 
 		retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
-		time.Sleep(3 * time.Second)
+		time.Sleep(5 * time.Second)
 		var counterOairabActiveTime int64
 
 		counter = 0
@@ -316,13 +345,13 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 				oairanStatus := strings.Join(retStatus.Stdout, " ")
 				checkInactive := strings.Contains(oairanStatus, "inactive")
 				if checkInactive != true {
-					if counter == 3 {
-						OaiObj.Logger.Print("retart enb to make sure that it is working properly ...")
-						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
-						time.Sleep(3 * time.Second)
-						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
-						time.Sleep(3 * time.Second)
-					}
+					// if counter == 3 {
+					// 	OaiObj.Logger.Print("retart enb to make sure that it is working properly ...")
+					// 	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+					// 	time.Sleep(3 * time.Second)
+					// 	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+					// 	time.Sleep(3 * time.Second)
+					// }
 					if counter >= counterOairabActiveTime {
 						OaiObj.Logger.Print("enb is working, exit...")
 						// if mmeSnapVersion == "v2" {
@@ -340,15 +369,15 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 				} else {
 					OaiObj.Logger.Print("enb is in inactive status, restarting the service")
 					util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
-					time.Sleep(3 * time.Second)
+					time.Sleep(5 * time.Second)
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
-					time.Sleep(3 * time.Second)
+					time.Sleep(5 * time.Second)
 					counter = 0
 				}
 			} else {
 				OaiObj.Logger.Print("Start enb failed, try again later")
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
-				time.Sleep(3 * time.Second)
+				time.Sleep(5 * time.Second)
 				counter = 0
 			}
 		}

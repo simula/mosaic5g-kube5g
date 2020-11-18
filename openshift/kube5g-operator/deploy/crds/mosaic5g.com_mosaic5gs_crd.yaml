@@ -494,6 +494,18 @@ spec:
                     items:
                       description: CfgCnV2 the configuration of flexran
                       properties:
+                        APN_NI:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
                         k8sDeploymentName:
                           type: string
                         k8sEntityNamespace:
@@ -698,6 +710,7 @@ spec:
                           - description
                           type: object
                       required:
+                      - APN_NI
                       - k8sDeploymentName
                       - k8sEntityNamespace
                       - k8sLabelSelector
@@ -882,6 +895,78 @@ spec:
                       - default
                       - description
                       type: object
+                    pdsch_referenceSignalPower:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    puCch10xSnr:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    puSch10xSnr:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    pucch_p0_Nominal:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    pusch_p0_Nominal:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
+                    rx_gain:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
+                      type: object
                     snap:
                       description: SnapDescriptionFinal this type is to descripe the
                         details of the snap to be used for the current application
@@ -902,6 +987,18 @@ spec:
                       - devmode
                       - name
                       - refresh
+                      type: object
+                    tx_gain:
+                      description: GeneralDescription This is general description
+                        for every parameters defined above
+                      properties:
+                        default:
+                          type: string
+                        description:
+                          type: string
+                      required:
+                      - default
+                      - description
                       type: object
                     uplink_frequency_offset:
                       description: GeneralDescription This is general description
@@ -934,7 +1031,14 @@ spec:
                   - oaiEnbImage
                   - oaiEnbSize
                   - parallel_config
+                  - pdsch_referenceSignalPower
+                  - puCch10xSnr
+                  - puSch10xSnr
+                  - pucch_p0_Nominal
+                  - pusch_p0_Nominal
+                  - rx_gain
                   - snap
+                  - tx_gain
                   - uplink_frequency_offset
                   type: object
                 type: array
@@ -1072,6 +1176,18 @@ spec:
                     items:
                       description: CfgHssV2 the configuration of flexran
                       properties:
+                        APN_NI:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
                         databaseServiceName:
                           type: string
                         hssServiceName:
@@ -1185,6 +1301,7 @@ spec:
                         spgwcServiceName:
                           type: string
                       required:
+                      - APN_NI
                       - databaseServiceName
                       - hssServiceName
                       - k8sDeploymentName
@@ -1621,6 +1738,18 @@ spec:
                     items:
                       description: CfgSpgwcV2 the configuration of flexran
                       properties:
+                        APN_NI:
+                          description: GeneralDescription This is general description
+                            for every parameters defined above
+                          properties:
+                            default:
+                              type: string
+                            description:
+                              type: string
+                          required:
+                          - default
+                          - description
+                          type: object
                         dns:
                           type: string
                         k8sDeploymentName:
@@ -1728,6 +1857,7 @@ spec:
                           - refresh
                           type: object
                       required:
+                      - APN_NI
                       - dns
                       - k8sDeploymentName
                       - k8sEntityNamespace

@@ -209,6 +209,8 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 
 		if CnAllInOneMode == true {
 			// deuplicated from oai-hss
+			var APINi string
+			APINi = OaiObj.Conf.OaiCn.V2[0].ApnNi.Default
 			cassandraIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiCn.V2[0].OaiHss.DatabaseServiceName)
 			OaiObj.Logger.Print("cassandraIP " + cassandraIP)
 			for {
@@ -247,7 +249,7 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			}
 			// oai-hss.add-users -I208950000000001-208950000000010 -a oai.ipv4 -C 172.18.0.2
 			OaiObj.Logger.Print("Adding users to Cassanra DB ")
-			retStatus = util.RunCmd(OaiObj.Logger, "/snap/bin/oai-hss.add-users", "-I", "208950000000001-208950000000010", "-a", "oai.ipv4", "-C", cassandraIP)
+			retStatus = util.RunCmd(OaiObj.Logger, "/snap/bin/oai-hss.add-users", "-I", "208950000000001-208950000000010", "-a", APINi, "-C", cassandraIP)
 			for {
 				if retStatus.Exit != 0 {
 					OaiObj.Logger.Print("Adding users to hss database failed")
@@ -261,7 +263,7 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 				time.Sleep(1 * time.Second)
 				OaiObj.Logger.Print("Retrying to add users to hss database")
 				fmt.Println("Retrying to add users to hss database")
-				retStatus = util.RunCmd(OaiObj.Logger, "/snap/bin/oai-hss.add-users", "-I", "208950000000001-208950000000010", "-a", "oai.ipv4", "-C", cassandraIP)
+				retStatus = util.RunCmd(OaiObj.Logger, "/snap/bin/oai-hss.add-users", "-I", "208950000000001-208950000000010", "-a", APINi, "-C", cassandraIP)
 			}
 		}
 		// oai-mme.start

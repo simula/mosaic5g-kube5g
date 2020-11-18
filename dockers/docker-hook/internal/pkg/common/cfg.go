@@ -86,6 +86,34 @@ type CfgOaiEnb struct {
 		Default     string `yaml:"default"`
 		Description string `yaml:"description"`
 	} `yaml:"N_RB_DL"`
+	TxGain struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"tx_gain"`
+	RxGain struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"rx_gain"`
+	PuschP0Nominal struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"pusch_p0_Nominal"`
+	PucchP0Nominal struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"pucch_p0_Nominal"`
+	PdschReferenceSignalPower struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"pdsch_referenceSignalPower"`
+	PuSch10xSnr struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"puSch10xSnr"`
+	PuCch10xSnr struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"puCch10xSnr"`
 	ParallelConfig struct {
 		Default     string `yaml:"default"`
 		Description string `yaml:"description"`
@@ -141,6 +169,10 @@ type CfgHssV2 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
+	ApnNi struct {
+		Description string `yaml:"description"`
+		Default     string `yaml:"default"`
+	} `yaml:"APN_NI"`
 	Snap struct {
 		Description string `yaml:"description"`
 		Name        string `yaml:"name"`
@@ -216,6 +248,10 @@ type CfgSpgwcV2 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
+	ApnNi struct {
+		Description string `yaml:"description"`
+		Default     string `yaml:"default"`
+	} `yaml:"APN_NI"`
 	Snap struct {
 		Description string `yaml:"description"`
 		Name        string `yaml:"name"`
@@ -301,6 +337,10 @@ type CfgCnV2 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
+	ApnNi struct {
+		Description string `yaml:"description"`
+		Default     string `yaml:"default"`
+	} `yaml:"APN_NI"`
 	OaiHss struct {
 		Snap struct {
 			Description string `yaml:"description"`
