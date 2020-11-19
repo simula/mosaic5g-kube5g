@@ -26,7 +26,11 @@
 # Dependencies  Here is the list of dependencies for this python script:
 #               - ruamel.yaml==0.16.12 
 #               - colorlog==4.6.2
-#               To install these dependencies: pip3 install ruamel.yaml==0.16.12 colorlog==4.6.2
+#                   
+#               To install these dependencies: 
+#               1- suddo apt install python3-pip
+#               2- pip3 install --upgrade pip
+#               3- pip3 install ruamel.yaml==0.16.12 colorlog==4.6.2
 import os, sys, subprocess, argparse, copy, logging
 
 ## Install ruamel.yaml if it does not exist
@@ -84,7 +88,7 @@ class ConfigManager(object):
         self.open_config_global()
         if config_short:
             # open short config file and configure global long file
-            pass
+            self.open_short_config_and_configure_config_global()
 
     def yaml_config(self):
         ruamel.yaml.YAML().indent(mapping=4, sequence=6, offset=3)
@@ -321,6 +325,18 @@ class ConfigManager(object):
         for key in entity_param:
             try:
                 del conf_crs_lte_data["spec"][key][alter_version]
+            except:
+                logger.debug("the key [{}][{}] does not exist in {}, skipping".format(key, alter_version, conf_crs_lte_data["spec"]))
+        # delete "oaiSpgw" for v2, and ("oaiSpgwc" and "oaiSpgwu") for v1
+        entity_param = list()
+        if alter_version == "v1":
+            entity_param.append("oaiSpgw")
+        else:
+            entity_param.append("oaiSpgwc")
+            entity_param.append("oaiSpgwu")
+        for key in entity_param:
+            try:
+                del conf_crs_lte_data["spec"][key]
             except:
                 logger.debug("the key [{}][{}] does not exist in {}, skipping".format(key, alter_version, conf_crs_lte_data["spec"]))
 
