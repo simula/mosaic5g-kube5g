@@ -192,7 +192,7 @@ class ConfigManager(object):
             logger.error(message)
             exit(0)
     
-    # config docker compose and crs of kube5g-operators for lte-all-in-one
+    # config docker compose and crs of kube5g-operator for lte-all-in-one
     def config_lte_all_in_one(self, version):
         logger.debug("configuring crs of lte_all_in_one for the version {}".format(version))
         alter_version = "v1" if version == "v2" else "v2"
@@ -292,7 +292,113 @@ class ConfigManager(object):
             message = "Error while trying to open the file: {}".format(ex) 
             logger.error(message)
             exit(0)
-    # config docker compose and crs of kube5g-operators for lte
+    # config docker compose and crs of kube5g-operator for lte-all-in-one-with-flexran
+    def config_lte_all_in_one_flexran(self, version):
+        logger.debug("configuring crs of lte_all_in_one with flexran for the version {}".format(version))
+        alter_version = "v1" if version == "v2" else "v2"
+        alter_database_type = "cassandra" if version == "v1" else "mysql"
+        database_type = "mysql" if version == "v1" else "cassandra"
+        conf_file_out_crs = "{}/cr-{}/lte-all-in-one-with-flexran/mosaic5g_v1alpha1_cr_{}_lte_all_in_one_flexran.yaml".format(self.common_dir_crs, version, version)
+        
+        conf_file_out_docker = "{}/oai-{}/lte-all-in-one-with-flexran/conf.yaml".format(self.common_dir_docker, version)
+        docker_compose_file = "{}/oai-{}/lte-all-in-one-with-flexran/docker-compose.yaml".format(self.common_dir_docker, version)
+        docker_compose_file_output = "{}/oai-{}/lte-all-in-one-with-flexran/docker-compose.yaml".format(self.common_dir_docker, version)
+        """                    crs v1/v2 lte-all-in-one-with-flexran                        """
+        # change mme config of oaiEnb
+        conf_crs_lte_all_in_one_data = copy.deepcopy(self.config_global_data)
+        conf_crs_lte_all_in_one_data["spec"]["oaiEnb"][0]["mmeService"]["snapVersion"] = version
+        conf_crs_lte_all_in_one_data["spec"]["oaiEnb"][0]["mmeService"]["name"] = \
+                conf_crs_lte_all_in_one_data["spec"]["oaiCn"][version][0]["k8sServiceName"]
+        conf_crs_lte_all_in_one_data["spec"]["oaiEnb"][0]["flexRAN"] = True
+        # delete "oaiCn" 
+        try:
+            del conf_crs_lte_all_in_one_data["spec"]["oaiCn"][alter_version]
+        except:
+            logger.debug("the key {} does not exist in {}, skipping".format(alter_version, conf_crs_lte_all_in_one_data["spec"]["oaiCn"]))
+        
+        # delete "llmec", "oaiHss", "oaiMme", "oaiSpgw", "oaiSpgwc", "oaiSpgwu"        
+        oaispgwu_param = ["llmec", "oaiHss", "oaiMme", "oaiSpgw", "oaiSpgwc", "oaiSpgwu"]
+        for key in oaispgwu_param:
+            try:
+                del conf_crs_lte_all_in_one_data["spec"][key]
+            except:
+                logger.debug("the key {} does not exist in {}, skipping".format(key, conf_crs_lte_all_in_one_data["spec"]))
+
+        # getting the right database
+        for item in range(len(conf_crs_lte_all_in_one_data["spec"]["database"])):
+            if conf_crs_lte_all_in_one_data["spec"]["database"][item]["databaseType"] == alter_database_type:
+                del conf_crs_lte_all_in_one_data["spec"]["database"][item]
+                break
+        # This will be skipped, as it is not supported yet
+        skip = True 
+        if not skip:
+            try:
+                with open(conf_file_out_crs, 'w') as outfile:
+                    ruamel.yaml.dump(conf_crs_lte_all_in_one_data, outfile, Dumper=ruamel.yaml.RoundTripDumper)
+                self.list_configured_files_crs.append(conf_file_out_crs)
+                logger.debug("configuration of crs for lte_all_in_one {} is successfully written in {}".format(version, conf_file_out_crs))
+            except Exception as ex:
+                message = "Error while trying to open the file: {}".format(ex) 
+                logger.error(message)
+                exit(0) 
+
+        """                    docker v1/v2 lte-all-in-one-with-flexran                        """
+        ## Docker config
+        # getting the config from global 
+        conf_docker_lte_all_in_one_with_flexran_data = copy.deepcopy(conf_crs_lte_all_in_one_data['spec'])
+        self.open_docker_compose(docker_compose_file)
+        self.docker_compose_data["services"]["oairan"]["image"] = conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0]["oaiEnbImage"]
+        self.docker_compose_data["services"]["oaicn"]["image"] = conf_docker_lte_all_in_one_with_flexran_data["oaiCn"][version][0]["oaiCnImage"]
+        self.docker_compose_data["services"]["flexran"]["image"] = conf_docker_lte_all_in_one_with_flexran_data["flexran"][0]["flexranImage"]
+        self.docker_compose_data["services"][database_type]["image"] = conf_docker_lte_all_in_one_with_flexran_data["database"][0]["databaseImage"]
+
+        # remove un-necessary parameters for docker
+        k8s_param = ["k8sGlobalNamespace", "database"]
+        for key in k8s_param:
+            try:
+                del conf_docker_lte_all_in_one_with_flexran_data[key]
+            except:
+                logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_with_flexran_data))
+
+        oaienb_param = ["oaiEnbSize", "oaiEnbImage"]
+        oaicn_param = ["oaiCnSize", "oaiCnImage"]
+        k8s_param = ["k8sDeploymentName", "k8sServiceName", "k8sLabelSelector", "k8sEntityNamespace", "k8sNodeSelector"]
+        # remove un-necessary parameters from oaiEnb for docker
+        oaienb_param_total = oaienb_param + k8s_param
+        for key in oaienb_param_total:
+            try:
+                del conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0][key]
+            except:
+                logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0]))
+        # remove un-necessary parameters from oaiCn for docker
+        oaicn_param_total = oaicn_param + k8s_param
+        for key in oaicn_param_total:
+            try:
+                del conf_docker_lte_all_in_one_with_flexran_data["oaiCn"][version][0][key]
+            except:
+                logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_with_flexran_data["oaiCn"][version][0]))
+
+        # write config of docker-compose
+        try:
+            with open(conf_file_out_docker, 'w') as outfile:
+                ruamel.yaml.dump(conf_docker_lte_all_in_one_with_flexran_data, outfile, Dumper=ruamel.yaml.RoundTripDumper)
+            self.list_configured_files_docker.append(conf_file_out_docker)
+            logger.debug("configuration for docker lte_all_in_one is successfully written in {}".format(conf_file_out_docker))
+        except Exception as ex:
+            message = "Error while trying to open the file: {}".format(ex) 
+            logger.error(message)
+            exit(0)
+        # write docker-compose
+        try:
+            with open(docker_compose_file_output, 'w') as outfile:
+                ruamel.yaml.dump(self.docker_compose_data, outfile, Dumper=ruamel.yaml.RoundTripDumper)
+            self.list_configured_files_docker_compose.append(docker_compose_file_output)
+            logger.debug("configuration for docker lte_all_in_one is successfully written in {}".format(docker_compose_file_output))
+        except Exception as ex:
+            message = "Error while trying to open the file: {}".format(ex) 
+            logger.error(message)
+            exit(0)
+    # config docker compose and crs of kube5g-operator for lte
     def config_lte(self, version):
         logger.debug("configuring crs of lte for the version {}".format(version))
         alter_version = "v1" if version == "v2" else "v2"
@@ -476,6 +582,7 @@ if __name__ == "__main__":
     for version in versions:
         conf_manager.config_lte_all_in_one(version)
         conf_manager.config_lte(version)
+    conf_manager.config_lte_all_in_one_flexran("v1")
     logger.info("configuration of crs for the versions {} is successfully finished".format(versions))
     logger.info("Here is the list of configured files:")
 
