@@ -28,7 +28,7 @@
 #               - colorlog==4.6.2
 #                   
 #               To install these dependencies: 
-#               1- suddo apt install python3-pip
+#               1- sudo apt install python3-pip
 #               2- pip3 install --upgrade pip
 #               3- pip3 install ruamel.yaml==0.16.12 colorlog==4.6.2
 import os, sys, subprocess, argparse, copy, logging
