@@ -2,7 +2,7 @@ version: '2'
 
 services:
   oaicn: # Domain name of container
-    image: mosaic5gecosys/oaicn:v2.1.0
+    image: "mosaic5gecosys/oaicn:v2.1.0"
     restart: always # Operation Policy
     container_name: oaicn # Name of the container
     hostname: ubuntu # hostname
@@ -18,7 +18,7 @@ services:
     networks: # the network this container attached to
     - oai
   oairan:
-    image: mosaic5gecosys/oairan:v1.1.0
+    image: "mosaic5gecosys/oairan:v1.1.0"
     restart: always
     container_name: oairan
     hostname: ubuntu
@@ -34,7 +34,7 @@ services:
     networks:
     - oai
   cassandra:
-    image: mosaic5gecosys/cassandra-m5g:1.1
+    image: "mosaic5gecosys/cassandra-m5g:1.1"
     restart: always
     container_name: cassandra
     hostname: ubuntu

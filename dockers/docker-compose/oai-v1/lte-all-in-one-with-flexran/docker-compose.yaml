@@ -2,7 +2,7 @@ version: '2'
 
 services:
   oaicn: # Domain name of container
-    image: mosaic5gecosys/oaicn:v1.1.0 # image of the container
+    image: "mosaic5gecosys/oaicn:v1.1.0" # image of the container
     restart: always # Operation Policy
     container_name: oaicn # Name of the container
     hostname: ubuntu # hostname
@@ -17,7 +17,7 @@ services:
     - oai
 
   oairan:
-    image: mosaic5gecosys/oairan:v1.1.0
+    image: "mosaic5gecosys/oairan:v1.1.0"
     restart: always
     container_name: oairan
     hostname: oairan
@@ -34,7 +34,7 @@ services:
     - oai
 
   flexran:
-    image: mosaic5gecosys/flexran:v1.1.0
+    image: "mosaic5gecosys/flexran:v1.1.0"
     restart: always
     container_name: flexran
     hostname: flexran
@@ -51,7 +51,7 @@ services:
     - oai
 
   mysql:
-    image: mysql:5.6
+    image: "mysql:5.6"
     restart: always
     container_name: mysql
     environment: # shell variables

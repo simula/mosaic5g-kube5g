@@ -73,6 +73,7 @@ oaiHss:
       refresh: false
     databaseServiceName: "mysql"
     mmeServiceName: "oaimme"
+    hssServiceName: oaihss
 oaiMme:
   v1:
   - realm:

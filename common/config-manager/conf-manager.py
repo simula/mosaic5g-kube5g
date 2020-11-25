@@ -634,6 +634,6 @@ if __name__ == "__main__":
     for file in conf_manager.list_configured_files_docker:
         logger.info(file)
     
-    logger.info("\ndocker-compose config files:")
+    logger.info("\ndocker-compose files:")
     for file in conf_manager.list_configured_files_docker_compose:
         logger.info(file)
