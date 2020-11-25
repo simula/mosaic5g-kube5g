@@ -8,15 +8,15 @@ services:
     hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
-      - "cassandra"
+    - "cassandra"
     # cap_add:
     #   - SYS_ADMIN
     volumes: # Mounted from host
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
-      - oai
+    - oai
   oaimme: # Domain name of container
     image: mosaic5gecosys/oaimme:v2.1.0
     restart: always # Operation Policy
@@ -24,16 +24,16 @@ services:
     hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
-      - "cassandra"
-      - "oaihss"
+    - "cassandra"
+    - "oaihss"
     # cap_add:
     #   - SYS_ADMIN
     volumes: # Mounted from host
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
-      - oai
+    - oai
   oaispgwc: # Domain name of container
     image: mosaic5gecosys/oaispgwc:v2.1.0
     restart: always # Operation Policy
@@ -41,15 +41,15 @@ services:
     hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
-      - "cassandra"
-      - "oaihss"
-      - "oaimme"
+    - "cassandra"
+    - "oaihss"
+    - "oaimme"
     volumes: # Mounted from host
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
-      - oai
+    - oai
   oaispgwu: # Domain name of container
     image: mosaic5gecosys/oaispgwu:v2.1.0
     restart: always # Operation Policy
@@ -57,16 +57,16 @@ services:
     hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
-      - "cassandra"
-      - "oaihss"
-      - "oaimme"
-      - "oaispgwc"
+    - "cassandra"
+    - "oaihss"
+    - "oaimme"
+    - "oaispgwc"
     volumes: # Mounted from host
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
-      - oai
+    - oai
   oairan:
     image: mosaic5gecosys/oairan:v1.1.0
     restart: always
@@ -74,25 +74,25 @@ services:
     hostname: ubuntu
     privileged: true
     depends_on:
-      - "cassandra"
-      - "oaihss"
-      - "oaimme"
-      - "oaispgwc"
-      - "oaispgwu"
+    - "cassandra"
+    - "oaihss"
+    - "oaimme"
+    - "oaispgwc"
+    - "oaispgwu"
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - /dev/bus/usb:/dev/bus/usb
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - /dev/bus/usb:/dev/bus/usb
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks:
-      - oai
+    - oai
   cassandra:
     image: mosaic5gecosys/cassandra-m5g:1.1
     restart: always
     container_name: cassandra
     hostname: ubuntu
     networks:
-      - oai
+    - oai
 
 networks: # Define our network here
   oai:

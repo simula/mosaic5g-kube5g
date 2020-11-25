@@ -36,7 +36,6 @@ oaiEnb:
         Setting the bandwidth in terms of number of available PRBS, 
         25 (5MHz), 50 (10MHz), and 100 (20MHz)."
       default: "25"
-    ##########################
     tx_gain:
       description: "transmission gain"
       default: "90"
@@ -58,7 +57,6 @@ oaiEnb:
     puCch10xSnr:
       description: ""
       default: "200"
-    ##########################
     parallel_config:
       description: |
         Defines the level of parallelism. There are three available values;
@@ -72,7 +70,7 @@ flexran:
       description: |
         Define the version of the snap to be used
       name: "flexran"
-      channel: "edge/ci"
+      channel: "edge"
       devmode: true
       refresh: false
 llmec:
@@ -107,11 +105,9 @@ oaiCn:
   - realm: 
       description: "Realm of oai"
       default: "openair5G.eur"
-    ##########################
     APN_NI:
       description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
       default: "oai.ipv4"
-    ##########################
     oaiHss:
       snap:
         description: "snap of oai-hss"
@@ -162,11 +158,9 @@ oaiHss:
   - realm: 
       description: "Realm of oai"
       default: "openair5G.eur"
-    ##########################
     APN_NI:
       description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
       default: "oai.ipv4"
-    ##########################
     snap:
       description: |
         Define the version of the snap to be used
@@ -229,11 +223,9 @@ oaiSpgwc:
   - realm: 
       description: "Realm of oai"
       default: "openair5G.eur"
-    ##########################
     APN_NI:
       description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
       default: "oai.ipv4"
-    ##########################
     snap:
       description: |
         Define the version of the snap to be used

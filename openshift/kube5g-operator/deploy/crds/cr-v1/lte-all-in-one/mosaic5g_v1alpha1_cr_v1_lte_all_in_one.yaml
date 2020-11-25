@@ -3,172 +3,144 @@ kind: Mosaic5g
 metadata:
   name: mosaic5g
 spec:
-  # k8sGlobalNamespace will override the values "k8sEntityNamespace" defined for every entitity
+  k8sGlobalNamespace: "default"
+  # k8sGlobalNamespace will override the values "k8sEntityNamespace" defined for every entity
   # if k8sGlobalNamespace is empty string , i.e. k8sGlobalNamespace: "", every entity will be deployed in the namesmape defined by "k8sEntityNamespace"
   # if k8sGlobalNamespace is NOT "" empty string, e.g. k8sGlobalNamespace: "default", all the entities will be deployed in the defined namespace
-  k8sGlobalNamespace: "default"
   oaiEnb:
-    - oaiEnbSize: 1
-      oaiEnbImage: "mosaic5gecosys/oairan:v11.test"
-      k8sDeploymentName: "oairan"
-      k8sServiceName: "oairan"
-      # k8sPodResources:
+  - oaiEnbSize: 1
+    oaiEnbImage: "mosaic5gecosys/oairan:v1.1.0"
+    k8sDeploymentName: "oairan"
+    k8sServiceName: "oairan"
+      # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
       #   limits:
       #       resourceCPU: "1000m"
       #       resourceMemory: "2500Mi"
       #   requests:
       #       resourceCPU: "10m"
       #       resourceMemory: "250Mi"
-      k8sLabelSelector: # labels for the deployments/services
-        - key: "app"
-          value: "oairan"
-      k8sEntityNamespace: "default"
-      k8sNodeSelector: # nodes' labels to choose the node on which the service will be deployed
-        - key: "oai"
-          value: "ran"
-      mcc: "208"                 
-      mnc: "95"
-      mmeService: 
-        description: |
-          If 'ipv4' is provided, the enb connects to MME using the provied ip address.
-          Otherwise, it will connect to the service provided by 'name'        
-        name: "oaicnv1"
-        snapVersion: "v1" # allowed values: v1, v2
-        ipv4: ""
-      flexRAN: false
-      flexRANServiceName: "flexran"
-      snap:
-        description: |
-          Define the version of the snap to be used
-          The field "refresh", if true, it will get the lates version of snap.
-          Otherwise, the current version (supposing that it is already installed) will be kept
-        name: "oai-ran"
-        channel: "edge"
-        devmode: true
-        refresh: false 
-      eutra_band:
-        description: "Setting the LTE  EUTRA frequency band."
-        default: "7"
-      downlink_frequency:
-        description: "Setting the downlink frequency band."
-        default: "2685000000L"
-      uplink_frequency_offset:
-        description: "Setting the uplink frequency offset."
-        default: "-120000000"
-      N_RB_DL:
-        description: |
-          Setting the bandwidth in terms of number of available PRBS, 
-          25 (5MHz), 50 (10MHz), and 100 (20MHz)."
-        default: "25"
-      tx_gain:
-        description: "transmission gain"
-        default: "90"
-      rx_gain:
-        description: "reception gain"
-        default: "125"
-      pusch_p0_Nominal:
-        description: ""
-        default: "-96"
-      pucch_p0_Nominal:
-        description: ""
-        default: "-104"
-      pdsch_referenceSignalPower:
-        description: ""
-        default: "-27"
-      puSch10xSnr:
-        description: ""
-        default: "200"
-      puCch10xSnr:
-        description: ""
-        default: "200"
-      parallel_config:
-        description: |
-          Defines the level of parallelism. There are three available values;
-          'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
-        default: "PARALLEL_SINGLE_THREAD"
-      max_rxgain:
-        description: "defines the maximum Rx gain"  
-        default: "111"
-  ################################
-  # flexran:
-  #   - flexranSize: 1
-  #     flexranImage: "mosaic5gecosys/flexran:v1.test"
-  #     k8sDeploymentName: "flexran"
-  #     k8sServiceName: "flexran"
-  #     k8sPodResources:
-  #       limits:
-  #           resourceCPU: "500m"
-  #           resourceMemory: "100Mi"
-  #       requests:
-  #           resourceCPU: "10m"
-  #           resourceMemory: "250Mi"
-  #     k8sLabelSelector:
-  #       - key: "app"
-  #         value: "flexran"
-  #     k8sEntityNamespace: "default"
-  #     k8sNodeSelector:  # nodes' labels to choose the node on which the service will be deployed
-  #       - key: "usrp"
-  #         value: "true"
-  #     snap:
-  #       description: |
-  #         Define the version of the snap to be used
-  #       name: "flexran"
-  #       channel: "edge/ci"
-  #       devmode: true
-  #       refresh: false
-  ################################
+    k8sLabelSelector:   # labels for the deployments/services. You can define as many pairs of key/value as you want/need
+    - key: "app"
+      value: "oairan"
+    k8sEntityNamespace: "default"
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+    k8sNodeSelector:
+    - key: "oai"
+      value: "ran"
+    mcc: "208"
+    mnc: "95"
+    mmeService:
+      description: |
+        If (ipv4) is provided, the enb connects to MME using the provied ip address. 
+        Otherwise, it will connect to the service provided by (name)
+      name: "oaicnv1"
+      snapVersion: "v1"   # allowed values: v1, v2
+      ipv4: ""
+    flexRAN: false
+    flexRANServiceName: "flexran"
+    snap:
+      description: |
+        Define the version of the snap to be used. The field (refresh), if true, it will get the lates version of snap. 
+        Otherwise, the current version (supposing that it is already installed) will be kept
+      name: "oai-ran"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    eutra_band:
+      description: "Setting the LTE  EUTRA frequency band."
+      default: "7"
+    downlink_frequency:
+      description: "Setting the downlink frequency band."
+      default: "2685000000L"
+    uplink_frequency_offset:
+      description: "Setting the uplink frequency offset."
+      default: "-120000000"
+    N_RB_DL:
+      description: "Setting the bandwidth in terms of number of available PRBS, 25\
+        \ (5MHz), 50 (10MHz), and 100 (20MHz)"
+      default: "25"
+    tx_gain:
+      description: "transmission gain"
+      default: "90"
+    rx_gain:
+      description: "reception gain"
+      default: "125"
+    pusch_p0_Nominal:
+      description: ""
+      default: "-96"
+    pucch_p0_Nominal:
+      description: ""
+      default: "-104"
+    pdsch_referenceSignalPower:
+      description: ""
+      default: "-27"
+    puSch10xSnr:
+      description: ""
+      default: "200"
+    puCch10xSnr:
+      description: ""
+      default: "200"
+    parallel_config:
+      description: |
+        Defines the level of parallelism. There are three available values 
+        PARALLEL_SINGLE_THREAD, PARALLEL_RU_L1_SPLIT, or PARALLEL_RU_L1_TRX_SPLIT
+      default: "PARALLEL_SINGLE_THREAD"
+    max_rxgain:
+      description: "defines the maximum Rx gain"
+      default: "110"
   database:
-    - databaseSize: 1
-      databaseType: "mysql" # accepted values: "mysql", "cassandra"
-      databaseImage: "mysql:5.6"
-      # databaseImage: "mosaic5gecosys/cassandra-m5g:1.1"
-      k8sDeploymentName: "mysql"
-      # k8sDeploymentName: "cassandra"
-      k8sServiceName: "mysql"
-      # k8sServiceName: "cassandra"
-      # k8sPodResources:
+  - databaseSize: 1
+    databaseType: "mysql"   # accepted values: "mysql", "cassandra"
+    databaseImage: "mysql:5.6"
+    k8sDeploymentName: "mysql"
+    k8sServiceName: "mysql"
+      # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
       #   limits:
-      #       resourceCPU: "1000m"
-      #       resourceMemory: "4740Mi"
+      #       resourceCPU: "500m"
+      #       resourceMemory: "100Mi"
       #   requests:
       #       resourceCPU: "10m"
-      #       resourceMemory: "474Mi"
-      k8sLabelSelector:
-        - key: "app"
-          value: "mysql"
-        # - key: "app"
-        #   value: "cassandra"
-      k8sEntityNamespace: "default"
+      #       resourceMemory: "250Mi"
+    k8sLabelSelector:   # labels for the deployments/services. You can define as many pairs of key/value as you want/need
+    - key: "app"
+      value: "mysql"
+    k8sEntityNamespace: "default"
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
       # k8sNodeSelector:
       #   - key: "usrp"
-      #     value: "true"
-  ################################
+      #     value: "false"
   oaiCn:
     v1:
     - oaiCnSize: 1
-      oaiCnImage: "mosaic5gecosys/oaicn:v1.test"
+      oaiCnImage: "mosaic5gecosys/oaicn:v1.1.0"
       k8sDeploymentName: "oaicnv1"
       k8sServiceName: "oaicnv1"
-      # k8sPodResources:
+      # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
       #   limits:
-      #       resourceCPU: "500m" #"1500m"
-      #       resourceMemory: "600Mi" #"1500Mi" 
+      #       resourceCPU: "1000m"
+      #       resourceMemory: "2500Mi"
       #   requests:
-      #       resourceCPU: "10m" #"230m"
-      #       resourceMemory: "250Mi" #"330Mi"
-      k8sLabelSelector:
-        - key: "app"
-          value: "oaicnv1"
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services. You can define as many pairs of key/value as you want/need
+      - key: "app"
+        value: "oaicnv1"
       k8sEntityNamespace: "default"
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
       # k8sNodeSelector:
       #   - key: "usrp"
-      #     value: "true"
-      realm: 
+      #     value: "false"
+      realm:
         description: "Realm of oai"
         default: "openair4G.eur"
       snap:
-        description: |
-          Define the version of the snap to be used
+        description: "Define the version of the snap to be used"
         name: "oai-cn"
         channel: "edge"
         devmode: true
@@ -179,4 +151,4 @@ spec:
         mcc: "208"
         mnc: "95"
       oaiSpgw:
-        dns: "192.168.1.1"
+        dns: "192.168.1.1" # DNS of your network

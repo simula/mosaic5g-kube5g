@@ -6,9 +6,9 @@ services:
     restart: always
     container_name: mysql
     environment: # shell variables
-      - MYSQL_ROOT_PASSWORD=linux
+    - MYSQL_ROOT_PASSWORD=linux
     networks:
-      - oai
+    - oai
   oaihss: # Domain name of container
     image: mosaic5gecosys/oaihss:v1.1.0
     restart: always # Operation Policy
@@ -16,13 +16,13 @@ services:
     hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
-      - "mysql"
+    - "mysql"
     volumes: # Mounted from host
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
-      - oai
+    - oai
   oaimme: # Domain name of container
     image: mosaic5gecosys/oaimme:v1.1.0
     restart: always # Operation Policy
@@ -30,15 +30,15 @@ services:
     hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
-      - "mysql"
-      - "oaihss"
-      - "oaispgw"
+    - "mysql"
+    - "oaihss"
+    - "oaispgw"
     volumes: # Mounted from host
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
-      - oai
+    - oai
   oaispgw: # Domain name of container
     image: mosaic5gecosys/oaispgw:v1.1.0
     restart: always # Operation Policy
@@ -46,14 +46,14 @@ services:
     hostname: ubuntu # hostname
     privileged: true # Give the container the permission to manipulate the host
     depends_on: # Before starting this container, what should be ready
-      - "mysql"
-      - "oaihss"
+    - "mysql"
+    - "oaihss"
     volumes: # Mounted from host
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
-      - oai
+    - oai
   oairan:
     image: mosaic5gecosys/oairan:v1.1.0
     restart: always
@@ -61,17 +61,17 @@ services:
     hostname: oairan
     privileged: true
     depends_on:
-      - "mysql"
-      - "oaihss"
-      - "oaimme"
-      - "oaispgw"
+    - "mysql"
+    - "oaihss"
+    - "oaimme"
+    - "oaispgw"
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /lib/modules:/lib/modules:ro
-      - /dev/bus/usb:/dev/bus/usb
-      - ./conf.yaml:/root/config/conf.yaml:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+    - /dev/bus/usb:/dev/bus/usb
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks:
-      - oai
+    - oai
 
 networks: # Define our network here
   oai:

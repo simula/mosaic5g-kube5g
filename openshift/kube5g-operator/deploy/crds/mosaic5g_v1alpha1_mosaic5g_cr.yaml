@@ -9,7 +9,7 @@ spec:
   # if k8sGlobalNamespace is NOT "" empty string, e.g. k8sGlobalNamespace: "default", all the entities will be deployed in the defined namespace
   oaiEnb:
     - oaiEnbSize: 1
-      oaiEnbImage: "mosaic5gecosys/oairan:v11.test"
+      oaiEnbImage: "mosaic5gecosys/oairan:v1.1.0"
       k8sDeploymentName: "oairan"
       k8sServiceName: "oairan"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -23,7 +23,10 @@ spec:
         - key: "app"
           value: "oairan"
       k8sEntityNamespace: "default"
-      k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      k8sNodeSelector:
         - key: "oai"
           value: "ran"
       mcc: "208"                 
@@ -83,7 +86,7 @@ spec:
   
   flexran:
     - flexranSize: 1
-      flexranImage: "mosaic5gecosys/flexran:v1.test"
+      flexranImage: "mosaic5gecosys/flexran:v1.1.0"
       k8sDeploymentName: "flexran"
       k8sServiceName: "flexran"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -97,7 +100,10 @@ spec:
         - key: "app"
           value: "flexran"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       snap:
@@ -124,7 +130,10 @@ spec:
         - key: "app"
           value: "mysql"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
     - databaseSize: 1
@@ -143,14 +152,17 @@ spec:
         - key: "app"
           value: "cassandra"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
   
   oaiCn:
     v1:
     - oaiCnSize: 1
-      oaiCnImage: "mosaic5gecosys/oaicn:v1.test"
+      oaiCnImage: "mosaic5gecosys/oaicn:v1.1.0"
       k8sDeploymentName: "oaicnv1"
       k8sServiceName: "oaicnv1"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -164,7 +176,10 @@ spec:
         - key: "app"
           value: "oaicnv1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 
@@ -185,7 +200,7 @@ spec:
         dns: "192.168.1.1" # DNS of your network
     v2:
     - oaiCnSize: 1
-      oaiCnImage: "mosaic5gecosys/oaicn:v2.test"
+      oaiCnImage: "mosaic5gecosys/oaicn:v2.1.0"
       k8sDeploymentName: "oaicnv2"
       k8sServiceName: "oaicnv2"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -199,7 +214,10 @@ spec:
         - key: "app"
           value: "oaicnv2"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 
@@ -244,7 +262,7 @@ spec:
   oaiHss:
     v1:
     - oaiHssSize: 1
-      oaiHssImage: "mosaic5gecosys/oaihss:v1.test"
+      oaiHssImage: "mosaic5gecosys/oaihss:v1.1.0"
       k8sDeploymentName: "oaihssv1"
       k8sServiceName: "oaihssv1"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -258,7 +276,10 @@ spec:
         - key: "app"
           value: "oaihssv1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 
@@ -274,7 +295,7 @@ spec:
       mmeServiceName: "oaimmev1"
     v2:
     - oaiHssSize: 1
-      oaiHssImage: "mosaic5gecosys/oaihss:v2.test"
+      oaiHssImage: "mosaic5gecosys/oaihss:v2.1.0"
       k8sDeploymentName: "oaihssv2"
       k8sServiceName: "oaihssv2"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -288,7 +309,10 @@ spec:
         - key: "app"
           value: "oaihssv2"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 
@@ -311,7 +335,7 @@ spec:
   oaiMme:
     v1:
     - oaiMmeSize: 1
-      oaiMmeImage: "mosaic5gecosys/oaimme:v1.test"
+      oaiMmeImage: "mosaic5gecosys/oaimme:v1.1.0"
       k8sDeploymentName: "oaimmev1"
       k8sServiceName: "oaimmev1"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -325,7 +349,10 @@ spec:
         - key: "app"
           value: "oaimmev1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 
@@ -343,7 +370,7 @@ spec:
       spgwServiceName: "oaispgwv1"
     v2:
     - oaiMmeSize: 1
-      oaiMmeImage: "mosaic5gecosys/oaimme:v2.test"
+      oaiMmeImage: "mosaic5gecosys/oaimme:v2.1.0"
       k8sDeploymentName: "oaimmev2"
       k8sServiceName: "oaimmev2"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -357,7 +384,10 @@ spec:
         - key: "app"
           value: "oaimmev2"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 
@@ -377,7 +407,7 @@ spec:
   oaiSpgw: 
     v1: # Do not change, Always v1
     - oaiSpgwSize: 1
-      oaiSpgwImage: "mosaic5gecosys/oaispgw:v1.test"
+      oaiSpgwImage: "mosaic5gecosys/oaispgw:v1.1.0"
       k8sDeploymentName: "oaispgwv1"
       k8sServiceName: "oaispgwv1"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -391,7 +421,10 @@ spec:
         - key: "app"
           value: "oaispgwv1"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 
@@ -410,7 +443,7 @@ spec:
   oaiSpgwc: 
     v2: # Do not change, Always v2
     - oaiSpgwcSize: 1
-      oaiSpgwcImage: "mosaic5gecosys/oaispgwc:v2.test"
+      oaiSpgwcImage: "mosaic5gecosys/oaispgwc:v2.1.0"
       k8sDeploymentName: "oaispgwcv2"
       k8sServiceName: "oaispgwcv2"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -424,7 +457,10 @@ spec:
         - key: "app"
           value: "oaispgwcv2"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 
@@ -444,7 +480,7 @@ spec:
   oaiSpgwu:
     v2: # Do not change, Always v2
     - oaiSpgwuSize: 1
-      oaiSpgwuImage: "mosaic5gecosys/oaispgwu:v2.test"
+      oaiSpgwuImage: "mosaic5gecosys/oaispgwu:v2.1.0"
       k8sDeploymentName: "oaispgwuv2"
       k8sServiceName: "oaispgwuv2"
       # k8sPodResources: kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -458,7 +494,10 @@ spec:
         - key: "app"
           value: "oaispgwuv2"
       k8sEntityNamespace: "default"
-      # k8sNodeSelector: # nodes labels to choose the node on which the service will be deployed. Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
       #   - key: "usrp"
       #     value: "false"
       realm: 

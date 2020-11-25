@@ -32,27 +32,8 @@
 #               2- pip3 install --upgrade pip
 #               3- pip3 install ruamel.yaml==0.16.12 colorlog==4.6.2
 import os, sys, subprocess, argparse, copy, logging
-
-## Install ruamel.yaml if it does not exist
-try:
-    import ruamel.yaml
-except ImportError:
-    try:
-        subprocess.check_call(["pip3", "install", "uamel.yaml==0.16.12"])
-        # subprocess.check_call([sys.executable, "-m", "pip", "install", "uamel.yaml==0.16.12"])
-    except FileNotFoundError:
-        print("pip3 is not installed. Install pip3 and try again")
-        exit(0)
-finally:
-    import ruamel.yaml
-## Install colorlog if it does not exist
-try:
-    from colorlog import ColoredFormatter
-except ImportError:
-    subprocess.check_call(["pip3", "install", "colorlog==4.6.2"])
-    # subprocess.check_call([sys.executable, "-m", "pip", "install", "colorlog==4.6.2"])
-finally:
-    from colorlog import ColoredFormatter
+import ruamel.yaml
+from colorlog import ColoredFormatter
 
 #Logging
 logger = logging.getLogger('conf.manager')
@@ -246,6 +227,14 @@ class ConfigManager(object):
         self.docker_compose_data["services"]["oaicn"]["image"] = conf_docker_lte_all_in_one_data["oaiCn"][version][0]["oaiCnImage"]
         self.docker_compose_data["services"][database_type]["image"] = conf_docker_lte_all_in_one_data["database"][0]["databaseImage"]
 
+        # getting names of docker and other values for the concerned entities
+        # oaiEnb
+        conf_docker_lte_all_in_one_data["oaiEnb"][0]["mmeService"]["snapVersion"] = version
+        conf_docker_lte_all_in_one_data["oaiEnb"][0]["mmeService"]["name"] = self.docker_compose_data["services"]["oaicn"]["container_name"]
+        conf_docker_lte_all_in_one_data["oaiEnb"][0]["flexRAN"] = False
+        # oaiCn
+        conf_docker_lte_all_in_one_data["oaiCn"][version][0]["oaiHss"]["databaseServiceName"] = self.docker_compose_data["services"][database_type]["container_name"]
+
         # remove un-necessary parameters for docker
         k8s_param = ["k8sGlobalNamespace", "database"]
         for key in k8s_param:
@@ -352,6 +341,15 @@ class ConfigManager(object):
         self.docker_compose_data["services"]["flexran"]["image"] = conf_docker_lte_all_in_one_with_flexran_data["flexran"][0]["flexranImage"]
         self.docker_compose_data["services"][database_type]["image"] = conf_docker_lte_all_in_one_with_flexran_data["database"][0]["databaseImage"]
 
+        # getting names of docker and other values for the concerned entities
+        # oaiEnb
+        conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0]["mmeService"]["snapVersion"] = version
+        conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0]["mmeService"]["name"] = self.docker_compose_data["services"]["oaicn"]["container_name"]
+        conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0]["flexRAN"] = True
+        conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0]["flexRANServiceName"] = self.docker_compose_data["services"]["flexran"]["container_name"]
+        # oaiCn
+        conf_docker_lte_all_in_one_with_flexran_data["oaiCn"][version][0]["oaiHss"]["databaseServiceName"] = self.docker_compose_data["services"][database_type]["container_name"]
+
         # remove un-necessary parameters for docker
         k8s_param = ["k8sGlobalNamespace", "database"]
         for key in k8s_param:
@@ -370,6 +368,16 @@ class ConfigManager(object):
                 del conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0][key]
             except:
                 logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_with_flexran_data["oaiEnb"][0]))
+
+        # remove un-necessary parameters from flexran for docker
+        flexran_param = ["flexranSize", "flexranImage"]
+        flexran_param_total = flexran_param + k8s_param
+        for key in flexran_param_total:
+            try:
+                del conf_docker_lte_all_in_one_with_flexran_data["flexran"][0][key]
+            except:
+                logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_with_flexran_data["flexran"][0]))
+
         # remove un-necessary parameters from oaiCn for docker
         oaicn_param_total = oaicn_param + k8s_param
         for key in oaicn_param_total:
@@ -468,11 +476,38 @@ class ConfigManager(object):
         self.docker_compose_data["services"]["oairan"]["image"] = conf_docker_lte_data["oaiEnb"][0]["oaiEnbImage"]
         self.docker_compose_data["services"]["oaihss"]["image"] = conf_docker_lte_data["oaiHss"][version][0]["oaiHssImage"]
         self.docker_compose_data["services"]["oaimme"]["image"] = conf_docker_lte_data["oaiMme"][version][0]["oaiMmeImage"]
+        # getting names of docker and other values for the concerned entities
+        ## oaiEnb
+        conf_docker_lte_data["oaiEnb"][0]["mmeService"]["snapVersion"] = version
+        conf_docker_lte_data["oaiEnb"][0]["mmeService"]["name"] = self.docker_compose_data["services"]["oaimme"]["container_name"]
+        conf_docker_lte_data["oaiEnb"][0]["flexRAN"] = False
+        ## oaiHss
+        conf_docker_lte_data["oaiHss"][version][0]["databaseServiceName"] = self.docker_compose_data["services"][database_type]["container_name"]
+        conf_docker_lte_data["oaiHss"][version][0]["hssServiceName"] = self.docker_compose_data["services"]["oaihss"]["container_name"]
+        conf_docker_lte_data["oaiHss"][version][0]["mmeServiceName"] = self.docker_compose_data["services"]["oaimme"]["container_name"]
+        ## oaiMme
+        conf_docker_lte_data["oaiMme"][version][0]["hssServiceName"] = self.docker_compose_data["services"]["oaihss"]["container_name"]
+
         if version == "v1":
             self.docker_compose_data["services"]["oaispgw"]["image"] = conf_docker_lte_data["oaiSpgw"][version][0]["oaiSpgwImage"]
+
+            # getting name of docker of oaispgw for the oaiMme entity
+            conf_docker_lte_data["oaiMme"][version][0]["spgwServiceName"] = self.docker_compose_data["services"]["oaispgw"]["container_name"]
+            # getting name of docker of oaihss and oaimme for the oaiSpgw entity
+            conf_docker_lte_data["oaiSpgw"][version][0]["hssServiceName"] = self.docker_compose_data["services"]["oaihss"]["container_name"]
+            conf_docker_lte_data["oaiSpgw"][version][0]["mmeServiceName"] = self.docker_compose_data["services"]["oaimme"]["container_name"]
         else:
             self.docker_compose_data["services"]["oaispgwc"]["image"] = conf_docker_lte_data["oaiSpgwc"][version][0]["oaiSpgwcImage"]
             self.docker_compose_data["services"]["oaispgwu"]["image"] = conf_docker_lte_data["oaiSpgwu"][version][0]["oaiSpgwuImage"]
+            # getting name of docker of oaispgwc for the oaiHss entity
+            conf_docker_lte_data["oaiHss"][version][0]["spgwcServiceName"] = self.docker_compose_data["services"]["oaispgwc"]["container_name"]
+            # getting name of docker of oaispgwc for the oaiMme entity
+            conf_docker_lte_data["oaiMme"][version][0]["spgwcServiceName"] = self.docker_compose_data["services"]["oaispgwc"]["container_name"]
+
+            # getting name of docker of oaispgwc for the oaispgwu entity
+            conf_docker_lte_data["oaiSpgwu"][version][0]["spgwcServiceName"] = self.docker_compose_data["services"]["oaispgwc"]["container_name"]
+
+
         self.docker_compose_data["services"][database_type]["image"] = conf_docker_lte_data["database"][0]["databaseImage"]
 
         # remove un-necessary parameters for docker
@@ -569,13 +604,14 @@ if __name__ == "__main__":
                             help="short configuration file, default: {}".format(conf_short_default))
 
     args = parser.parse_args()
+
     config_short = False
     if(args.conf_short):
         logger.info("short configuration file: {}".format(args.conf_short))
         config_short = True
     else:
         logger.info("global configuration file: {}".format(args.conf_global))
-
+    
     
     conf_manager = ConfigManager(args.conf_short, args.conf_global, config_short)
     versions = ["v1", "v2"]
@@ -590,21 +626,14 @@ if __name__ == "__main__":
     formatter = ColoredFormatter(LOGFORMAT)
     handler.setFormatter(formatter)
     
+    logger.info("Custom Resources (CRs) files:")
     for file in conf_manager.list_configured_files_crs:
         logger.info(file)
-    n = 0
+
+    logger.info("\ndocker config files:")
     for file in conf_manager.list_configured_files_docker:
-        if n== 0:
-            message = "{} {}".format("\n", file)
-            logger.info(message)
-            n = 1
-        else: 
-            logger.info(file)
-    n = 0
+        logger.info(file)
+    
+    logger.info("\ndocker-compose config files:")
     for file in conf_manager.list_configured_files_docker_compose:
-        if n== 0:
-            message = "{} {}".format("\n", file)
-            logger.info(message)
-            n = 1
-        else: 
-            logger.info(file)
+        logger.info(file)
