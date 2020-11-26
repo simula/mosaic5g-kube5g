@@ -194,6 +194,7 @@ pipeline {
                             sh(
                                 label: 'flexran unit test script',
                                 script: '''
+                                    chmod 777 unit-flexran.sh
                                     ./unit-flexran.sh
                                 '''
                             )
