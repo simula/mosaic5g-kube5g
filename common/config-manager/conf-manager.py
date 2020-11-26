@@ -52,13 +52,15 @@ CURRENT_DIR = os.environ['PWD']
 PWD = (CURRENT_DIR.split("/common/config-manager"))[0]
 COMMON_DIR_CRD = "{}/openshift/kube5g-operator/deploy/crds".format(PWD)
 COMMON_DIR_DOCKER = "{}/dockers/docker-compose".format(PWD)
+COMMON_DIR_DOCKER_BUILD = "{}/dockers/docker-build".format(PWD)
 
 class ConfigManager(object):
-    def __init__(self, conf_short, conf_global_default, config_short):
+    def __init__(self, conf_short, conf_global_default, config_short, entity_test_cicd):
         self.config_file_short = conf_short
         self.config_file = conf_global_default
         self.common_dir_crs = COMMON_DIR_CRD
         self.common_dir_docker = COMMON_DIR_DOCKER
+        self.common_dir_docker_build = COMMON_DIR_DOCKER_BUILD
         self.config_global_data = None
         self.docker_compose_data = None
         self.list_configured_files_crs = list()
@@ -70,7 +72,9 @@ class ConfigManager(object):
         if config_short:
             # open short config file and configure global long file
             self.open_short_config_and_configure_config_global()
-
+        if entity_test_cicd != "none":
+            # configure the config file of docker build for testing purposes in ci/cd jenkins
+            self.config_ci_cd_test(entity_test_cicd)
     def yaml_config(self):
         ruamel.yaml.YAML().indent(mapping=4, sequence=6, offset=3)
     def open_config_global(self):
@@ -173,6 +177,239 @@ class ConfigManager(object):
             logger.error(message)
             exit(0)
     
+    # change the concerned parameters for testing purpose in ci/cd jenkins
+    def config_ci_cd_test(self, entity_test_cicd):
+        def config_cicd_test_oairan(self):
+            # oaiEnb
+            self.config_global_data['spec']["oaiEnb"][0]["oaiEnbImage"]             = "mosaic5gecosys/oairan:v1.test"
+            self.config_global_data['spec']["oaiEnb"][0]["snap"]["channel"]         = "edge/ci"
+            self.config_global_data['spec']["oaiEnb"][0]["snap"]["devmode"]         = True
+            self.config_global_data['spec']["oaiEnb"][0]["snap"]["refresh"]         = False
+        def config_cicd_test_flexran(self):
+            # flexran
+            self.config_global_data['spec']["flexran"][0]["flexranImage"]           = "mosaic5gecosys/flexran:v1.test"
+            self.config_global_data['spec']["flexran"][0]["snap"]["channel"]        = "edge/ci"
+            self.config_global_data['spec']["flexran"][0]["snap"]["devmode"]        = True
+            self.config_global_data['spec']["flexran"][0]["snap"]["refresh"]        = False
+        def config_cicd_test_oaiCn(self):
+            # oaiCn v1
+            self.config_global_data['spec']["oaiCn"]["v1"][0]["oaiCnImage"]         = "mosaic5gecosys/oaicn:v1.test"
+            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["channel"]    = "edge/ci"
+            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["refresh"]    = False
+            # oaiCn v2
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiCnImage"]         = "mosaic5gecosys/oaicn:v2.test"
+            # oaiCn:oaiHss v2
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["channel"]    = "edge/ci"
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["refresh"]    = False
+            # oaiCn:oaiMme v2
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["channel"]    = "edge/ci"
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["refresh"]    = False
+            # oaiCn:oaiSpgwc v2
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["channel"]    = "edge/ci"
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["refresh"]    = False
+            # oaiCn:oaiSpgwu v2
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["channel"]    = "edge/ci"
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["refresh"]    = False
+
+
+            # oaiHss
+        def config_cicd_test_oaiHss(self):
+            # oaiHss v1
+            self.config_global_data['spec']["oaiHss"]["v1"][0]["oaiHssImage"]       = "mosaic5gecosys/oaihss:v1.test"
+            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["channel"]   = "edge/ci"
+            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["refresh"]   = False
+            # oaiHss v2
+            self.config_global_data['spec']["oaiHss"]["v2"][0]["oaiHssImage"]       = "mosaic5gecosys/oaihss:v2.test"
+            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["channel"]   = "edge/ci"
+            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["refresh"]   = False
+        def config_cicd_test_oaiMme(self):
+            # oaiMme v1
+            self.config_global_data['spec']["oaiMme"]["v1"][0]["oaiMmeImage"] = "mosaic5gecosys/oaimme:v1.test"
+            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["channel"]   = "edge/ci"
+            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["refresh"]   = False
+            # oaiMme v2
+            self.config_global_data['spec']["oaiMme"]["v2"][0]["oaiMmeImage"] = "mosaic5gecosys/oaimme:v2.test"
+            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["channel"]   = "edge/ci"
+            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["refresh"]   = False
+        def config_cicd_test_oaiSpgw(self):
+            # oaiSpgw v1
+            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["oaiSpgwImage"] = "mosaic5gecosys/oaispgw:v1.test"
+            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["channel"]   = "edge/ci"
+            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["refresh"]   = False
+        def config_cicd_test_oaiSpgwc(self):
+            # oaiSpgwc v2
+            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["oaiSpgwcImage"] = "mosaic5gecosys/oaispgwc:v2.test"
+            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["channel"]   = "edge/ci"
+            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["refresh"]   = False
+        def config_cicd_test_oaiSpgwu(self):
+            # oaiSpgwu v2
+            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["oaiSpgwuImage"] = "mosaic5gecosys/oaispgwu:v2.test"
+            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["channel"]   = "edge/ci"
+            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["refresh"]   = False
+        if entity_test_cicd == "all":
+            config_cicd_test_oairan(self)
+            config_cicd_test_oaiHss(self)
+            config_cicd_test_oaiSpgw(self)
+            config_cicd_test_oaiSpgwc(self)
+            config_cicd_test_oaiSpgwu(self)
+            config_cicd_test_oaiMme(self)
+            config_cicd_test_oaiCn(self)
+            config_cicd_test_flexran(self)
+        elif entity_test_cicd == "oai-ran":
+            config_cicd_test_oairan(self)
+        elif entity_test_cicd == "oai-hss":
+            config_cicd_test_oaiHss(self)
+        elif entity_test_cicd == "oai-spgw":
+            config_cicd_test_oaiSpgw(self)
+        elif entity_test_cicd == "oai-spgwc":
+            config_cicd_test_oaiSpgwc(self)
+        elif entity_test_cicd == "oai-spgwu":
+            config_cicd_test_oaiSpgwu(self)
+        elif entity_test_cicd == "oai-mme":
+            config_cicd_test_oaiMme(self)
+        elif entity_test_cicd == "oai-cn":
+            config_cicd_test_oaiCn(self)
+        elif entity_test_cicd == "flexran":
+            config_cicd_test_flexran(self)
+        else:
+            logger.error("The entity {} is not supported yet, exit ...".format(entity_test_cicd))
+            exit(0)
+    ##################################################################
+    # change the parameters for testing purpose in ci/cd jenkins
+    def config_docker_build(self):
+        logger.debug("configuring docker-build config fule")
+        conf_file_out_docker_build = "{}/build/conf.yaml".format(self.common_dir_docker_build)
+        """                    docker-build config file                        """
+        ## Docker config
+        # getting the config from global
+        conf_docker_lte_all_in_one_data = copy.deepcopy(self.config_global_data['spec'])
+
+        # getting names of docker and other values for the concerned entities
+        # oaiEnb
+        conf_docker_lte_all_in_one_data["oaiEnb"][0]["flexRAN"] = False
+
+        # remove un-necessary parameters for docker
+        k8s_param = ["k8sGlobalNamespace", "database"]
+        for key in k8s_param:
+            try:
+                del conf_docker_lte_all_in_one_data[key]
+            except:
+                logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data))
+
+        oaienb_param = ["oaiEnbSize", "oaiEnbImage"]
+        oaicn_param = ["oaiCnSize", "oaiCnImage"]
+        flexran_param = ["flexranSize", "flexranImage"]
+        oaiHss_param = ["oaiHssSize", "oaiHssImage"]
+        oaiMme_param = ["oaiMmeSize", "oaiMmeImage"]
+        oaiSpgw_param = ["oaiSpgwSize", "oaiSpgwImage"]
+        oaiSpgwc_param = ["oaiSpgwcSize", "oaiSpgwcImage"]
+        oaiSpgwu_param = ["oaiSpgwuSize", "oaiSpgwuImage"]
+        k8s_param = ["k8sDeploymentName", "k8sServiceName", "k8sLabelSelector", "k8sEntityNamespace", "k8sNodeSelector"]
+        versions = ["v1", "v2"]
+        # remove un-necessary parameters from oaiEnb for docker
+        oaienb_param_total = oaienb_param + k8s_param
+        for key in oaienb_param_total:
+            try:
+                del conf_docker_lte_all_in_one_data["oaiEnb"][0][key]
+            except:
+                logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data["oaiEnb"][0]))
+        # oaimme
+        conf_docker_lte_all_in_one_data["oaiEnb"][0]["mmeService"]["name"] = "oaimme"
+        conf_docker_lte_all_in_one_data["oaiEnb"][0]["mmeService"]["snapVersion"] = "v1"
+        conf_docker_lte_all_in_one_data["oaiEnb"][0]["mmeService"]["ipv4"] = ""
+        # remove un-necessary parameters from oaiCn for docker
+        oaicn_param_total = oaicn_param + k8s_param
+        for key in oaicn_param_total:
+            for version in versions:
+                try:
+                    del conf_docker_lte_all_in_one_data["oaiCn"][version][0][key]
+                except:
+                    logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data["oaiCn"][version][0]))
+
+        # remove un-necessary parameters from flexran for docker
+        flexran_param_total = flexran_param + k8s_param
+        for key in flexran_param_total:
+            try:
+                del conf_docker_lte_all_in_one_data["flexran"][0][key]
+            except:
+                logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data["flexran"][0]))
+        # remove un-necessary parameters from oaiHss for docker
+        oaiHss_param_total = oaiHss_param + k8s_param
+        for key in oaiHss_param_total:
+            for version in versions:
+                try:
+                    del conf_docker_lte_all_in_one_data["oaiHss"][version][0][key]
+                except:
+                    logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data["oaiHss"][version][0]))
+        conf_docker_lte_all_in_one_data["oaiHss"]["v1"][0]["databaseServiceName"] = "mysql"
+        conf_docker_lte_all_in_one_data["oaiHss"]["v1"][0]["mmeServiceName"] = "oaimme"
+        conf_docker_lte_all_in_one_data["oaiHss"]["v2"][0]["databaseServiceName"] = "cassandra"
+        conf_docker_lte_all_in_one_data["oaiHss"]["v2"][0]["hssServiceName"] = "oaihss"
+        conf_docker_lte_all_in_one_data["oaiHss"]["v2"][0]["mmeServiceName"] = "oaimme"
+        conf_docker_lte_all_in_one_data["oaiHss"]["v2"][0]["spgwcServiceName"] = "oaispgwc"
+
+        # remove un-necessary parameters from oaiMme for docker
+        oaiMme_param_total = oaiMme_param + k8s_param
+        for key in oaiMme_param_total:
+            for version in versions:
+                try:
+                    del conf_docker_lte_all_in_one_data["oaiMme"][version][0][key]
+                except:
+                    logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data["oaiMme"][version][0]))
+        conf_docker_lte_all_in_one_data["oaiMme"]["v1"][0]["hssServiceName"] = "oaihss"
+        conf_docker_lte_all_in_one_data["oaiMme"]["v1"][0]["spgwServiceName"] = "oaispgw"
+        conf_docker_lte_all_in_one_data["oaiMme"]["v2"][0]["hssServiceName"] = "oaihss"
+        conf_docker_lte_all_in_one_data["oaiMme"]["v2"][0]["spgwcServiceName"] = "oaispgwc"
+        # remove un-necessary parameters from oaiSpgw for docker
+        oaiSpgw_param_total = oaiSpgw_param + k8s_param
+        for key in oaiSpgw_param_total:
+            for version in versions:
+                try:
+                    del conf_docker_lte_all_in_one_data["oaiSpgw"]["v1"][0][key]
+                except:
+                    logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data["oaiSpgw"]["v1"][0]))
+        conf_docker_lte_all_in_one_data["oaiSpgw"]["v1"][0]["hssServiceName"] = "oaihss"
+        conf_docker_lte_all_in_one_data["oaiSpgw"]["v1"][0]["mmeServiceName"] = "oaimme"
+        # remove un-necessary parameters from oaiSpgwc for docker
+        oaiSpgwc_param_total = oaiSpgwc_param + k8s_param
+        for key in oaiSpgwc_param_total:
+            for version in versions:
+                try:
+                    del conf_docker_lte_all_in_one_data["oaiSpgwc"]["v2"][0][key]
+                except:
+                    logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data["oaiSpgwc"]["v2"][0]))
+        # remove un-necessary parameters from oaiSpgwu for docker
+        oaiSpgwu_param_total = oaiSpgwu_param + k8s_param
+        for key in oaiSpgwu_param_total:
+            for version in versions:
+                try:
+                    del conf_docker_lte_all_in_one_data["oaiSpgwu"]["v2"][0][key]
+                except:
+                    logger.debug("the key {} does not exist in {}, skipping".format(key, conf_docker_lte_all_in_one_data["oaiSpgwu"]["v2"][0]))
+        conf_docker_lte_all_in_one_data["oaiSpgwu"]["v2"][0]["spgwcServiceName"] = "oaispgwc"
+        # write config of docker-compose
+        try:
+            with open(conf_file_out_docker_build, 'w') as outfile:
+                ruamel.yaml.dump(conf_docker_lte_all_in_one_data, outfile, Dumper=ruamel.yaml.RoundTripDumper)
+            self.list_configured_files_docker.append(conf_file_out_docker_build)
+            logger.debug("configuration for docker lte_all_in_one is successfully written in {}".format(conf_file_out_docker_build))
+        except Exception as ex:
+            message = "Error while trying to open the file: {}".format(ex) 
+            logger.error(message)
+            exit(0)
+    ##################################################################
     # config docker compose and crs of kube5g-operator for lte-all-in-one
     def config_lte_all_in_one(self, version):
         logger.debug("configuring crs of lte_all_in_one for the version {}".format(version))
@@ -602,7 +839,12 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--conf-short', metavar='[option]', action='store', type=str,
                             required=False, default='{}'.format(conf_short_default), 
                             help="short configuration file, default: {}".format(conf_short_default))
-
+    parser.add_argument('-t', '--test', metavar='[option]', action='store', type=str,
+                        required=False, default='none', 
+                        choices=("none", "all", "oai-ran", "oai-hss", "oai-spgw", "oai-spgwc", "oai-spgwu", "oai-mme", "oai-cn", "flexran"),
+                            help="THis is intended ONLY for testing in CI/CD. Specify the entity to be tested"
+                            "this will replace the tag of the concerned docker images by v1.test (for snap version v1) and v2.test (for snap version v2)")
+    
     args = parser.parse_args()
 
     config_short = False
@@ -613,12 +855,13 @@ if __name__ == "__main__":
         logger.info("global configuration file: {}".format(args.conf_global))
     
     
-    conf_manager = ConfigManager(args.conf_short, args.conf_global, config_short)
+    conf_manager = ConfigManager(args.conf_short, args.conf_global, config_short, args.test)
     versions = ["v1", "v2"]
     for version in versions:
         conf_manager.config_lte_all_in_one(version)
         conf_manager.config_lte(version)
     conf_manager.config_lte_all_in_one_flexran("v1")
+    conf_manager.config_docker_build()
     logger.info("configuration of crs for the versions {} is successfully finished".format(versions))
     logger.info("Here is the list of configured files:")
 
