@@ -195,6 +195,7 @@ pipeline {
                                 label: 'flexran unit test script',
                                 script: '''
                                     chmod 777 unit-flexran.sh
+                                    sleep 10
                                     ./unit-flexran.sh
                                 '''
                             )
