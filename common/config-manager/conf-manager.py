@@ -184,37 +184,37 @@ class ConfigManager(object):
             self.config_global_data['spec']["oaiEnb"][0]["oaiEnbImage"]             = "mosaic5gecosys/oairan:v1.test"
             self.config_global_data['spec']["oaiEnb"][0]["snap"]["channel"]         = "edge/ci"
             self.config_global_data['spec']["oaiEnb"][0]["snap"]["devmode"]         = True
-            self.config_global_data['spec']["oaiEnb"][0]["snap"]["refresh"]         = False
+            self.config_global_data['spec']["oaiEnb"][0]["snap"]["refresh"]         = True
         def config_cicd_test_flexran(self):
             # flexran
             self.config_global_data['spec']["flexran"][0]["flexranImage"]           = "mosaic5gecosys/flexran:v1.test"
             self.config_global_data['spec']["flexran"][0]["snap"]["channel"]        = "edge/ci"
             self.config_global_data['spec']["flexran"][0]["snap"]["devmode"]        = True
-            self.config_global_data['spec']["flexran"][0]["snap"]["refresh"]        = False
+            self.config_global_data['spec']["flexran"][0]["snap"]["refresh"]        = True
         def config_cicd_test_oaiCn(self):
             # oaiCn v1
             self.config_global_data['spec']["oaiCn"]["v1"][0]["oaiCnImage"]         = "mosaic5gecosys/oaicn:v1.test"
             self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["channel"]    = "edge/ci"
             self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["devmode"]    = True
-            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["refresh"]    = False
+            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["refresh"]    = True
             # oaiCn v2
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiCnImage"]         = "mosaic5gecosys/oaicn:v2.test"
             # oaiCn:oaiHss v2
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["channel"]    = "edge/ci"
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["devmode"]    = True
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["refresh"]    = False
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["refresh"]    = True
             # oaiCn:oaiMme v2
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["channel"]    = "edge/ci"
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["devmode"]    = True
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["refresh"]    = False
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["refresh"]    = True
             # oaiCn:oaiSpgwc v2
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["channel"]    = "edge/ci"
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["devmode"]    = True
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["refresh"]    = False
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["refresh"]    = True
             # oaiCn:oaiSpgwu v2
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["channel"]    = "edge/ci"
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["devmode"]    = True
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["refresh"]    = False
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["refresh"]    = True
 
 
             # oaiHss
@@ -223,41 +223,41 @@ class ConfigManager(object):
             self.config_global_data['spec']["oaiHss"]["v1"][0]["oaiHssImage"]       = "mosaic5gecosys/oaihss:v1.test"
             self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["channel"]   = "edge/ci"
             self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["devmode"]   = True
-            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["refresh"]   = False
+            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["refresh"]   = True
             # oaiHss v2
             self.config_global_data['spec']["oaiHss"]["v2"][0]["oaiHssImage"]       = "mosaic5gecosys/oaihss:v2.test"
             self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["channel"]   = "edge/ci"
             self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["devmode"]   = True
-            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["refresh"]   = False
+            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["refresh"]   = True
         def config_cicd_test_oaiMme(self):
             # oaiMme v1
             self.config_global_data['spec']["oaiMme"]["v1"][0]["oaiMmeImage"] = "mosaic5gecosys/oaimme:v1.test"
             self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["channel"]   = "edge/ci"
             self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["devmode"]   = True
-            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["refresh"]   = False
+            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["refresh"]   = True
             # oaiMme v2
             self.config_global_data['spec']["oaiMme"]["v2"][0]["oaiMmeImage"] = "mosaic5gecosys/oaimme:v2.test"
             self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["channel"]   = "edge/ci"
             self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["devmode"]   = True
-            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["refresh"]   = False
+            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["refresh"]   = True
         def config_cicd_test_oaiSpgw(self):
             # oaiSpgw v1
             self.config_global_data['spec']["oaiSpgw"]["v1"][0]["oaiSpgwImage"] = "mosaic5gecosys/oaispgw:v1.test"
             self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["channel"]   = "edge/ci"
             self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["devmode"]   = True
-            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["refresh"]   = False
+            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["refresh"]   = True
         def config_cicd_test_oaiSpgwc(self):
             # oaiSpgwc v2
             self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["oaiSpgwcImage"] = "mosaic5gecosys/oaispgwc:v2.test"
             self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["channel"]   = "edge/ci"
             self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["devmode"]   = True
-            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["refresh"]   = False
+            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["refresh"]   = True
         def config_cicd_test_oaiSpgwu(self):
             # oaiSpgwu v2
             self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["oaiSpgwuImage"] = "mosaic5gecosys/oaispgwu:v2.test"
             self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["channel"]   = "edge/ci"
             self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["devmode"]   = True
-            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["refresh"]   = False
+            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["refresh"]   = True
         if entity_test_cicd == "all":
             config_cicd_test_oairan(self)
             config_cicd_test_oaiHss(self)
