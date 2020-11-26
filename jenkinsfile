@@ -49,7 +49,7 @@ pipeline {
                     // Get the files from the GitLab
                     git credentialsId: 'mosaic5g_jenkins',
                         url: 'git@gitlab.eurecom.fr:mosaic5g/store.git',
-                        branch: 'develop'
+                        branch: '$STORE_BRANCH'
 
                     echo "STAGE #1 OUTPUT SUCCESS"
                 }
