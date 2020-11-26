@@ -1,0 +1,320 @@
+/*
+#! /bin/groovy
+########################################################################################################################
+# Licensed to the Mosaic5G under one or more contributor license agreements. See the NOTICE file distributed with this
+# work for additional information regarding copyright ownership. The Mosaic5G licenses this file to You under the
+# Apache License, Version 2.0  (the "License"); you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#   
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+#   an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+#   specific language governing permissions and limitations under the License.
+########################################################################################################################
+# file          flexran/snap-build.jenkinsfile
+# brief         Build snap versions of Mosaic5G using different versions of ubuntu (e.g., 16.04 and 18.04) using
+                docker, push them to official channels (e.g., edge) or temporary channels (e.g., edge/ci)
+# authors       Alireza Mohammadi (C) - 2020 alireza.mohammadi@eurecom.fr
+                Osama Arouk (C) - 2020 osama.arouk@eurecom.fr
+*/
+
+// TODO: Add the parameters for ease of edit and access
+def pipelineContext = [:] // Parameters will go here
+
+pipeline {
+    // Here we define the node that will run this script using the labels assigned to them previously
+    agent { 
+        node { 
+            //label '18.04'
+            label 'cigarier'
+        } 
+    }
+
+    // The pipeline will contain a set of stages grouped here, that will run sequentially
+    // Each stage itself contains a sequence of steps that may contain some scripts to run
+    stages {
+        stage('Clone') {
+            checkout scm
+        }
+        // STAGE 1: PREPARE THE ENVIRONMENT FOR BUILDING THE SNAP
+        stage('snap-prepare') {
+            steps {
+                sh 'mkdir -p snap-build-publish'
+                echo "STAGE #1: Prepare the snap environment"
+                dir("snap-build-publish")
+                {
+                    // Get the files from the GitLab
+                    git credentialsId: 'mosaic5g_jenkins',
+                        url: 'git@gitlab.eurecom.fr:mosaic5g/store.git',
+                        branch: 'develop'
+
+                    echo "STAGE #1 OUTPUT SUCCESS"
+                }
+                // script {
+                //     try {
+                //         // Check the docker images, if the Ubuntu image present, then remove it
+                //         // TODO: Use parameters to select the correct image version
+                //         echo "Remove the docker container"
+                //         sh(
+                //             label: 'remove the docker container used to build the snap', 
+                //             script: '''
+                //                 if docker ps --all | grep -q snap-build; then
+                //                     docker rm --force snap-build-ubuntu1804
+                //                 fi
+                //             '''
+                //         )
+                //     } catch (err) {
+                //         error("Failed to finish the stage #1. Check if the docker is working properly.")
+                //     }
+                // }
+                
+                // // Get the files from the GitLab
+                // // WARNING: Using develop branch
+                // git credentialsId: 'mosaic5g_jenkins',
+                //     url: 'git@gitlab.eurecom.fr:mosaic5g/store.git',
+                //     branch: 'develop'
+                
+                // echo "STAGE #1 OUTPUT SUCCESS"
+            }
+        }
+        
+        // STAGE 2: BUILD THE SNAP INSIDE THE DOCKER IMAGE
+        stage('snap-build') {
+            steps {
+                echo "STAGE #2: Building the snap"
+                
+                dir("snap-build-publish/snaps"){
+                    script{
+                        try{
+                            // Set the name, build the snap, get te version, and change the owner user
+                            // TODO: Added login for docker
+                            echo "Run the build script"
+                            sh(
+                                label: 'building the snap within docker container',
+                                script: '''pwd
+                                    snap list
+                                    export snap_remote=flexran
+                                    export STORE=$WORKSPACE
+                                    ./build-final.sh -n $snap_remote -c all
+                                    #echo "skipping snap build only for testing"
+                                '''
+                            )
+
+                            echo "Change the ownership"
+                            sh(
+                                label: 'change the ownership',
+                                script: '''
+                                    snap_remote=flexran
+                                    version=$(grep -m1 version: $snap_remote/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
+                                    snap_name=$snap_remote"_"$version"_multi.snap"
+                                    sudo chown -R jenkins:jenkins $snap_remote/$snap_name
+                                    #echo "skipping snap build only for testing"
+                                '''
+                            )
+                            
+                            echo "STAGE #2 OUTPUT SUCCESS"
+                        } catch (err) {
+                            error("Failed to finish the stage #2. Check the script output and access rights.")
+                        }
+                    }
+                }
+                
+                echo "STAGE #2 OUTPUT SUCCESS"
+            }
+        }
+
+        // STAGE 3: NOW PUSH THE SNAP TO THE CI CHANNEL
+        stage('snap-push') {
+            steps {
+                echo "STAGE #3: Publishing the snap"
+                
+                dir('snap-build-publish/snaps'){
+                    script{
+                        echo "Pushing the snap to the CI channel"
+                        
+                        // Push the build to the snap store
+                        try{                            
+                            sh(
+                                label: 'push the snap to temporary channel /ci',
+                                script: '''
+                                    #echo "skipping snap push only for testing"
+                                    ./publish-final.sh -s flexran -c edge/ci
+                                '''
+                            )
+                        } catch (err) {
+                            error("Failed to finish the stage #3. Check the script output and access rights.")
+                        }
+                    }
+                }
+                
+                echo "STAGE #3 OUTPUT SUCCESS"
+            }
+        }
+    // }
+    ////////////////////////////////////////////////////////////////////////////////////
+    // stages {
+        // STAGE 1: INSTALL THE SNAP
+        stage('snap-install') {
+            steps {
+                echo "STAGE #1: Install the snap on the machine"
+                script{
+                    try{
+                        // Remove the older versions that maybe present from older usages
+                        echo "Remove the older version if present"
+                        sh(
+                            label: 'install the snap',
+                            script: '''
+                                if snap list --all | grep -q flexran; then
+                                    sudo snap remove flexran
+                                fi
+                            '''
+                        )
+
+                        // Get and install the snap from the store on the CI channel
+                        echo "Install the snap"
+                        sh(
+                            label: 'install the snap',
+                            script: '''
+                                sudo snap install flexran --devmode --channel=edge/ci
+                            '''
+                        )
+                        echo "STAGE #1 OUTPUT SUCCESS"
+                    } catch (err) {
+                        error("Failed to finish the stage #1. Check if the snap is available.")
+                    }
+                }
+            }
+        }
+        
+        // STAGE 2: UNIT TEST
+        stage('snap-pretest') {
+            steps {
+                echo "STAGE #2: Building the snap"
+                
+                script{
+                    try{
+                        // Run the check command to test
+                        echo "Checking the snap"
+                        sh(
+                            label: 'check the snap',
+                            script: '''
+                                
+                                sudo flexran.check
+                            '''
+                        )
+
+                        echo "STAGE #2 OUTPUT SUCCESS"
+                    } catch (err) {
+                        error("Failed to finish the stage #2. Check the snap logs.")
+                    }
+                }
+            }
+        }
+
+        // STAGE 3: CLEAN UP
+        stage('snap-clean') {
+            steps {
+                echo "STAGE #3: Publishing the snap"
+                
+                script{
+                    echo "Roll back everything"
+                    try{                            
+                        sh(
+                            label: 'remove the snap',
+                            script: '''
+                                sudo snap remove flexran
+                            '''
+                        )
+                    
+                        echo "STAGE #3 OUTPUT SUCCESS"
+                    } catch (err) {
+                        error("Failed to finish the stage #3. Check if the snap is correctly installed.")
+                    }
+                }
+            }
+        }
+    // }
+    ////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    // stages {
+        // 
+        // stage('docker-prepare') {
+        //     steps {
+        //         sh 'mkdir -p docker-build-publish'
+        //         echo "STAGE #1: Prepare the docker environment"
+        //         dir("docker-build-publish")
+        //         {
+        //             // Get the files from the GitLab
+        //             git credentialsId: 'mosaic5g_jenkins',
+        //                 url: 'git@gitlab.eurecom.fr:mosaic5g/kube5g.git',
+        //                 branch: 'develop'
+
+        //             echo "STAGE #1 OUTPUT SUCCESS"
+        //         }
+        //     }
+        // }
+        stage('docker-build') {
+            steps {
+                
+                // dir('/home/jenkins/go/src/mosaic5g/docker-hook/cmd/hook'){
+                //     script { 
+                //         sh label: 'generate binary file of dokcer-hook', script: '''pwd
+                //         export PATH=$PATH:/usr/local/go/bin
+                //         export GOPATH=/home/jenkins/go/src
+                //         which go
+                //         rm -rf hook
+                //         go build -o hook main.go
+                //         '''
+                //     }
+                // }
+                // dir("docker-build-publish"){
+                    script { 
+                        sh label: 'copy dokcer-hook', script: '''pwd
+                        cp dockers/docker-hook/cmd/hook/hook dockers/docker-build/build/
+                        '''
+                    }
+                // }                
+                // dir('/home/jenkins/mosaic5g'){
+                //     script { 
+                //         sh label: 'copy dokcer-hook', script: '''pwd
+                //         cp dockers/docker-hook/cmd/hook/hook dockers/docker-build/build/
+                //         '''
+                //     }
+                // }
+                
+                script {
+                    try {
+                        sh label: 'remove the docker container base used to build the docker images', script: '''
+                        docker rm --force build_base 
+                        '''
+                    } catch (err) {
+                        echo err.getMessage()
+                        echo "Ignoring; the docker container base does not exist"
+                    }
+                }
+                dir('dockers/docker-build/build'){   //dir('docker-build-publish/dockers/docker-build/build'){   
+                    sh label: 'Build docker images', script: '''pwd
+                            ./build.sh flexran v1.test v1
+                    '''
+                }
+            }
+        }
+        //
+        stage('docker-Push') {
+            steps {
+                script { 
+                    sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                    docker.withRegistry('https://index.docker.io/v1/', 'RegDockerMosaic5g') { //https://docker.io
+                            docker.image('mosaic5gecosys/flexran:v1.test').push 'v1.test'
+                            // dockerImageFinal.push 'mytest'
+                            // dockerImageFinal.push()
+                        }
+                    }
+            }
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////
+}
+
+
