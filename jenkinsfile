@@ -35,7 +35,9 @@ pipeline {
     // Each stage itself contains a sequence of steps that may contain some scripts to run
     stages {
         stage('Clone') {
+            steps {
             checkout scm
+            }
         }
         // STAGE 1: PREPARE THE ENVIRONMENT FOR BUILDING THE SNAP
         stage('snap-prepare') {
