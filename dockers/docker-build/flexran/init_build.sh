@@ -1,6 +1,4 @@
 #!/bin/sh
 
-/root/hook -installFlexRAN  -build &
-
-
+/root/hook -installFlexRAN -build &
 

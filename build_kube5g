@@ -1,0 +1,330 @@
+#!/bin/bash
+################################################################################
+# Licensed to the Mosaic5G under one or more contributor license
+# agreements. See the NOTICE file distributed with this
+# work for additional information regarding copyright ownership.
+# The Mosaic5G licenses this file to You under the
+# Apache License, Version 2.0  (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#  
+#    	http://www.apache.org/licenses/LICENSE-2.0
+  
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+# -------------------------------------------------------------------------------
+#   For more information about the Mosaic5G:
+#   	contact@mosaic-5g.io
+#
+#
+################################################################################
+# file build_kube5g
+# brief  build and install kube5G
+# author  Osama Arouk
+
+export DEBIAN_FRONTEND=noninteractive
+
+###################################
+# colorful echos
+###################################
+black='\E[30m'
+red='\E[31m'
+green='\E[32m'
+yellow='\E[33m'
+blue='\E[1;34m'
+magenta='\E[35m'
+cyan='\E[36m'
+white='\E[37m'
+reset_color='\E[00m'
+COLORIZE=1
+################################
+# Set the vars 
+################################
+SUDO='sudo -E'
+os_pm="apt"
+ORIGIN_PATH=$PWD
+os=$(grep "^ID=" /etc/os-release | sed "s/ID=//" | sed "s/\"//g")
+os_release=$(grep "^VERSION_ID=" /etc/os-release | sed "s/VERSION_ID=//" | sed "s/\"//g")
+os_dist=$os$os_release
+arch_os=$(dpkg --print-architecture)
+
+cecho()  {  
+    local default_msg="No Message."
+    message=${1:-$default_msg}
+    color=${2:-$green}
+    [ "$COLORIZE" = "1" ] && message="$color$message$reset_color"
+    echo -e "$message"
+    return
+}
+
+echo_error()   { cecho "$*" $red          ;}
+echo_fatal()   { cecho "$*" $red; exit -1 ;}
+echo_warn()    { cecho "$*" $yellow       ;}
+echo_success() { cecho "$*" $green        ;}
+echo_info()    { cecho "$*" $blue         ;}
+
+if [ "$os_dist" != "ubuntu16.04" ] && [ "$os_dist" != "ubuntu18.04" ]; then
+    echo_warn "kube5g is not tested on ubuntu-16.04 and ubuntu-18.04. it may not work with $os_dist"
+fi 
+
+install_required_packages(){
+    $SUDO $os_pm update -y
+    $SUDO $os_pm install -y python3 python3-pip curl wget git
+    pip3 install --upgrade pip
+    pip3 install ruamel.yaml==0.16.12 colorlog==4.6.2
+    install_docker_dockercompose
+    Install_microk8s_kubectl
+}
+
+install_docker_dockercompose(){
+    #================= Install docker =====================================#
+    echo_info "Adding Docker gpg key"
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | $SUDO apt-key add -
+
+    echo_info "Add the Docker repository"
+    $SUDO add-apt-repository "deb [arch=$arch_os] https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) stable"
+    $SUDO $os_pm update -y
+    $SUDO $os_pm autoremove -y
+    $SUDO $os_pm autoclean -y
+    if [ $os_dist == "ubuntu16.04" ]; then
+        $SUDO $os_pm install -y \
+            docker-ce=5:19.03.12~3-0~ubuntu-xenial
+    elif [ $os_dist == "ubuntu18.04" ]; then
+        $SUDO $os_pm install -y \
+        docker-ce=5:19.03.12~3-0~ubuntu-bionic
+    else
+        echo_error "kube5g is not testd for $os_dist"
+        exit 0
+    fi 
+    echo_info "Hold them at the current version, to save the same version not to be updated"
+    $SUDO apt-mark hold docker-ce
+    #================= Install docker-compose =====================================#
+    echo_info "download the current stable release 1.27.4 of Docker Compose"
+    $SUDO curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    
+    echo_info "Apply executable permissions to the binary: chmod +x /usr/local/bin/docker-compose"
+    $SUDO chmod +x /usr/local/bin/docker-compose
+    echo_info "create sympolic link: ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose"
+    $SUDO ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+    #================= Adding docker group =====================================#
+    echo_info "Adding docker group"
+    $SUDO adduser $USER docker
+    /usr/bin/newgrp docker <<EONG
+    groups
+    # id
+EONG
+    echo_warn "You many need to restart or log-off and login again before using docker"
+
+
+}
+
+
+install_optional_packages(){
+    
+    echo_info "gettting golang binary code from source"
+    wget https://dl.google.com/go/go1.14.1.linux-amd64.tar.gz
+    
+    echo_info "cpoying golang bin to /usr/local"
+    $SUDO tar -C /usr/local -xzf go1.14.1.linux-amd64.tar.gz
+
+    echo_info "Add /usr/local/go/bin to the PATH environment variable"
+    echo 'export PATH=$PATH:/usr/local/go/bin' >> $HOME/.bashrc
+    echo 'export GOPATH=$HOME/go' >> $HOME/.bashrc
+    echo 'export GOROOT=/usr/local/go' >> $HOME/.bashrc
+    echo 'export GO111MODULE=on' >> $HOME/.bashrc
+    source $HOME/.bashrc
+
+    echo_info "testing the installation of golang"
+    echo_info "mkdir -p $HOME/go/src/hello"
+    mkdir -p $HOME/go/src/hello
+    cat <<EOF > $HOME/go/src/hello/hello.go
+    package main
+
+    import "fmt"
+
+    func main() {
+        fmt.Printf("hello, world\n")
+    }
+EOF
+    cd $HOME/go/src/hello/
+    go run hello.go
+    echo_info "If you see 'hello, world', your golang is successfully installed"
+}
+
+Install_microk8s_kubectl(){
+    echo "sudo without password is recommended"
+    $SUDO snap install microk8s --classic --channel=1.14/stable
+    $SUDO snap install kubectl --classic
+    microk8s.start
+    microk8s.enable dns
+    # kubeconfig is used by operator
+    $SUDO chown $USER -R $HOME/.kube
+    microk8s.kubectl config view --raw > $HOME/.kube/config
+    # enable privileged
+    $SUDO bash -c 'echo "--allow-privileged=true" >> /var/snap/microk8s/current/args/kubelet'
+    $SUDO bash -c 'echo "--allow-privileged=true" >> /var/snap/microk8s/current/args/kube-apiserver'
+    # Restart kube
+    $SUDO systemctl restart snap.microk8s.daemon-kubelet.service
+    $SUDO systemctl restart snap.microk8s.daemon-apiserver.service
+
+    # apply label to the node so that the entity oai-ran can be deployed, 
+    # since the default configuration of oaiEnb in "common/config-manager/conf_global_default.yaml" is set to deploy oai-ran on the node with the label oai=ran
+    sleep 10
+    node_name=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
+    kubectl label nodes $node_name oai=ran
+    # verify that the label was added    
+    node_labels=$(kubectl get nodes -o jsonpath='{.items[*].metadata.labels}')
+    case "$node_labels" in
+        *'"oai":"ran"'*)
+            echo_success "the label oai=ran is successfully added"
+            ;;
+        *)
+            sleep 10
+            node_name=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
+            kubectl label nodes $node_name oai=ran
+    esac
+
+    # Configure DNS if it's not working 
+    echo_warn "Now you need to configure DNS of kubernetes"
+    echo_info '
+1. get the dns of your network, e.g. by (replace enp0s31f6 by the name of the interface connected to the internet)
+    $ nmcli device show enp0s31f6 |grep -i dns
+    IP4.DNS[1]:                             192.168.1.1
+2. Add the dns of your network to the config of kubectl
+    $ microk8s.kubectl -n kube-system edit configmap/kube-dns
+    You need to update "upstreamNameservers"
+3. check if kubernets is working 
+    $ microk8s.status 
+    $ kubectl get pods -A
+    $ kubectl get nodes
+    '
+}
+
+
+prepare_env_kube5g_develop(){
+    source $HOME/.bashrc
+    echo_info "mkdir -p $HOME/go/src/mosaic5g"
+    mkdir -p $HOME/go/src/mosaic5g
+    CURRENT_PATH=$PWD
+    echo_info "ln -s $CURRENT_PATH/dockers/docker-hook $HOME/go/src/mosaic5g/"
+    ln -s $CURRENT_PATH/dockers/docker-hook $HOME/go/src/mosaic5g/
+    echo_info "ln -s $CURRENT_PATH/openshift/kube5g-operator $HOME/go/src/mosaic5g/"
+    ln -s $CURRENT_PATH/openshift/kube5g-operator $HOME/go/src/mosaic5g/
+}
+
+configure_kube5g(){
+    conf_file_short="conf_short_default.yaml"
+    conf_file_global="conf_global_default.yaml"
+    CURRENT_PWD=$PWD
+    case ${1} in
+        -s | --short-conf)
+            echo_info "getting short config file ${2}"
+            conf_file_short=${2}
+            case ${3} in
+                -g | --global-conf)
+                    echo_info "getting global config file ${4}"
+                    conf_file_global=${4}
+                    ## start conf with short and global files
+                    cd common/config-manager/
+                    ./conf-manager.py -s $conf_file_short -g $conf_file_global
+                    cd $CURRENT_PWD
+                ;;
+                *)
+                    ## start conf with short file  only
+                    cd common/config-manager/
+                    ./conf-manager.py -s $conf_file_short
+                    cd $CURRENT_PWD
+            esac
+        ;;
+
+        -g | --global-conf)
+            echo_info "getting global config file ${2}"
+            conf_file_global=${2}
+            case ${3} in
+                -s | --short-conf)
+                    echo_info "getting short config file ${4}"
+                    conf_file_short=${4}
+                    ## start conf with short and global files
+                    cd common/config-manager/
+                    ./conf-manager.py -s $conf_file_short -g $conf_file_global
+                    cd $CURRENT_PWD
+                ;;
+                *)
+                    ## start conf with global file only
+                    cd common/config-manager/
+                    ./conf-manager.py -g $conf_file_global
+                    cd $CURRENT_PWD
+            esac
+        ;;
+        *)
+            if [ "${1}" == "" ]; then
+                # start conf with short
+                cd common/config-manager/
+                ./conf-manager.py -s $conf_file_short
+                cd $CURRENT_PWD
+            else
+                echo_error "Unkown option '${1}' for config manager"
+            fi 
+            
+    esac
+}
+
+main() {
+    case ${1} in
+        -i | --install-required)
+            echo_info "Installing the required packages for kube5g"
+            install_required_packages
+        shift
+        ;;
+        
+        -I | --install-optional)
+            echo_info "Installing optional packages for kube5g"
+            install_optional_packages
+        shift
+        ;;
+
+        -dev | --develop)
+            echo_info "Start preparing ENV for Kube5G developement"
+            prepare_env_kube5g_develop
+        shift
+        ;;
+
+        
+        -c | --config)
+            echo_info "configure kube5g"
+            configure_kube5g ${2} ${3} ${4} ${4}
+        shift
+        ;;
+
+        *)
+        echo_info 'This program builds kube5g, where it can install the required and optional (intended for development) requirements.
+It also helps in configuring kube5g according to your setup with minimal changes
+Options:
+-i | --install-required
+    Install the required dependencies for kube5g
+-I | --install-optional
+    Install the required dependencies for kube5g
+-dev | --develop
+    Prepare the environment to develop kube5g
+-c | --config [-s file-short|-g file-global]
+    configure kube5g using file-short and/or file-global
+    -c -s file-short: configure kube5g using short version of configuration defined by file-short, and the default global configuration (common/config-manager/conf_global_default.yaml)
+    -c -g file-global: configure kube5g using global version of configuration defined by file-global
+    -c -s file-short -g file-global: configure kube5g using short version of configuration defined by file-short, and global version of configuration defined by file-global
+    NOTE: if (file-global), alternatively (file-short), exists in the directory (common/config-manager/), 
+            you can specify only the file name, otherwise, the FULL PATH where the file exists is REQUIRED
+example usage:
+    ./build_kube5g -i
+    ./build_kube5g -I
+    ./build_kube5g -dev
+    ./build_kube5g -c -s conf_short_default.yaml
+    ./build_kube5g -c -s conf_short_default.yaml -g conf_global_default.yaml
+            '
+        ;;
+    esac
+}
+main "$@"

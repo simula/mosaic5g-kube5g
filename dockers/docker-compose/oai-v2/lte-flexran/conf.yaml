@@ -1,199 +1,137 @@
-mcc: "208"                 
-mnc: "95"
-# eutraBand: "7"
-# downlinkFrequency: "2685000000L"    
-# uplinkFrequencyOffset: "-120000000"
-configurationPathofCN: "/var/snap/oai-cn/current/"
-configurationPathofRAN: "/var/snap/oai-ran/current/"
-snapBinaryPath: "/snap/bin/"
-cuDomainName: "rancu"
-duDomainName: "randu"
-rccDomainName: "ranrcc"
-rruDomainName: "ranrru"
-hssDomainName: "oaihss"
-mmeDomainName: "oaimme"
-spgwDomainName: "oaispgw"
-spgwcDomainName: "oaispgwc"
-spgwuDomainName: "oaispgwu"
-mysqlDomainName: "mysql"
-cassandraDomainName: "cassandra"
-dns: "192.168.106.10"
-flexRAN: true
-flexRANDomainName: "flexran"
-test: false
-#############################################
-realm: 
-  default: "openair5G.eur"
-  description: "Realm of oai"
-  type: string
-snap:
-  description: "snap indicates which channel to use for the installation hook."
-  name: "oai-ran"
-  channel: "edge"
-  devmode: true
-  type: string
-node_function: 
-  default: "ENB"
-  description: "set the function of this BS node. Available Options: enb, cu and du, rcc and rru."
-  type: string
-mme_ip_addr: 
-  default: ""
-  description: "If the MME IP address is provided, the BS node connects to MME without waiting for S1-C relation. Default is an empty string."
-  type: string  
-eutra_band:
-  default: "7"
-  description: "Setting the LTE  EUTRA frequency band."
-  type: int
-downlink_frequency:
-  default: "2685000000L"
-  description: "Setting the downlink frequency band."
-  type: string
-uplink_frequency_offset:
-  default: "-120000000"
-  description: "Setting the uplink frequency offset."
-  type: string
-N_RB_DL:
-  default: 25
-  description: "Setting the bandwidth in terms of number of available PRBS, 25 (5MHz), 50 (10MHz), and 100 (20MHz)."
-  type: int
-nb_antennas_tx:
-  default: 1
-  description: "Setting the number of tx antennas."
-  type: int
-nb_antennas_rx:
-  default: 1
-  description: "Setting the number of rx antennas."
-  type: int
-tx_gain:
-  default: 90
-  description: "Setting the tx antenna gain."
-  type: int
-rx_gain:
-  default: 125
-  description: "Setting the rx antenna gain."
-  type: int
-###################
+oaiEnb:
+  - mcc: "208"                 
+    mnc: "95"
+    mmeService: 
+      description: |
+        If 'ipv4' is provided, the enb connects to MME using the provied ip address.
+        Otherwise, it will connect to the service provided by 'name'        
+      name: "oaimme"
+      snapVersion: "v2" # allowed values: v1, v2
+      ipv4: ""
+    flexRAN: true
+    flexRANServiceName: "flexran"
+    snap:
+      description: |
+        Define the version of the snap to be used
+        The field "refresh", if true, it will get the lates version of snap.
+        Otherwise, the current version (supposing that it is already installed) will be kept
+      name: "oai-ran"
+      channel: "edge"
+      devmode: true
+      refresh: false 
+      
+    eutra_band:
+      description: "Setting the LTE  EUTRA frequency band."
+      default: "7"
+    downlink_frequency:
+      description: "Setting the downlink frequency band."
+      default: "2685000000L"
+    uplink_frequency_offset:
+      description: "Setting the uplink frequency offset."
+      default: "-120000000"
+    N_RB_DL:
+      description: |
+        Setting the bandwidth in terms of number of available PRBS, 
+        25 (5MHz), 50 (10MHz), and 100 (20MHz)."
+      default: "25"
+    tx_gain:
+      description: "transmission gain"
+      default: "90"
+    rx_gain:
+      description: "reception gain"
+      default: "125"
+    pusch_p0_Nominal:
+      description: ""
+      default: "-96"
+    pucch_p0_Nominal:
+      description: ""
+      default: "-104"
+    pdsch_referenceSignalPower:
+      description: ""
+      default: "-27"
+    puSch10xSnr:
+      description: ""
+      default: "200"
+    puCch10xSnr:
+      description: ""
+      default: "200"
+    parallel_config:
+      description: |
+        Defines the level of parallelism. There are three available values;
+        'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
+      default: "PARALLEL_SINGLE_THREAD"
+    max_rxgain:
+      description: "defines the maximum Rx gain"  
+      default: "110"
 
-#eth:
-#  default: "none"
-#  description: |
-#    If the value of this interface is "none", the interface name will be detected authomatically
-#    defines the interface for S1-U and S1-C. Set this option to the interface the machine onto you deploy this charm has. 
-#  type: string
-cu_ip_addr:
-  default: "127.0.0.1"
-  description: "The IP address of the CU module. Only valid if the node function is CU."
-  type: string
-du_ip_addr:
-  default: "127.0.0.1"
-  description: |
-    The IP address of the DU module. Only valid if the node function is DU.
-  type: string
-#cu_if_name:
-#  default: "none"
-#  description: "If the value of this interface is "none", the interface name will be detected authomatically The interface name of the CU module. Only valid if the node function is CU."
-#    
-#    
-#  type: string
-#du_if_name:
-#  default: "none"
-#  description: "If the value of this interface is "none", the interface name will be detected authomatically The interface name of the DU module. Only valid if the node function is DU."
-#    
-#  type: string
-cu_portc:
-  default: 501
-  description: "The port number of the CU module for control plane. Only valid if the node function is CU."
-  type: int
-du_portc:
-  default: 500
-  description: "The control port number of the DU module for control plane. Only valid if the node function is DU."
-  type: int
-cu_portd:
-  default: 601
-  description: "The port number of the CU module for data plane. Only valid if the node function is CU."
-  type: int
-du_portd:
-  default: 600 
-  description: "The control port number of the DU module for data plane. Only valid if the node function is DU."
-  type: int
-fh_transport_mode:
-  default: "udp_if4p5"
-  description: "defines the I/Q sample transport mode between RRU and RCC. Available mode are raw, udp, raw_if4p5, and udp_if4p5."
-  type: string
-rcc_portc:
-  default: 50000
-  description: "The port number of the RCC module for control plane. Only valid if the node function is RCC."
-  type: int
-rru_portc:
-  default: 50000
-  description: "The control port number of the RRU module for control plane. Only valid if the node function is RRU."
-  type: int
-rcc_portd:
-  default: 50001
-  description: "The port number of the RCC module for data plane. Only valid if the node function is RCC."
-  type: int
-rru_portd:
-  default: 50001 
-  description: "The control port number of the RRU module for data plane. Only valid if the node function is DU."
-  type: int 
-rcc_rru_tr_preference:
-  default: "udp_if4p5" 
-  description: ""
-  type: string
-TAC:
-  default: 1
-  description: "Set this option to the tracking area code you want this eNB to belong. Possible values are...Tracking area code, 0x0000 and 0xfffe are reserved values."
-  type: int
-enb_name:
-  default: "eNB_Eurecom_LTEBox"
-  description: "Set this option with the name you want for this eNodeB deployment."
-  type: string
-enb_id:
-  default: "0xe00"
-  description: "Set this option with the id number you want for this eNodeB deployment. "
-  type: string
-frame_type:
-  default: "FDD"
-  description: "Setting the frame type, FDD or TDD."
-  type: string
-tdd_config:
-  default: 3
-  description: "Setting the TDD frame configuration. Valid values, 0,1,2,3,4,5,6."
-  type: int
-tdd_config_s:
-  default: 0
-  description: "Setting the TDD special subframe configuration. Valid values, 0-9."
-  type: int
-
-flexran_if_name:
-  default: "eth0"
-  description: "defines the network interface name to connect to the controller. "
-  type: string
-fh_if_name:
-  default: "eth0"
-  description: "defines the network interface name to connect to the RRU. This required a dedicated fronthaul link between eNB and RRU and must not use the same interface as for the EPC.  "
-  type: string
-fh_local_port: 
-  default: 50000  
-  description: "defines the network interface port to connect to the RRU."
-  type: int
-rru_tx_shift: 
-  default: 4  
-  description: "defines the shift in is samples in tx"
-  type: int
-rru_tx_sampleadvance:
-  default: 80
-  description: "defines the tx i/q sample advace"
-  type: int
-rru_tx_schedadvance:
-  default: 9
-  description: "defines the tx i/q scheduling advance"
-  type: int
-parallel_config:
-  default: PARALLEL_SINGLE_THREAD
-  description: "defines the level of parallelism. There are three available values; 'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
-  type: string
-max_rxgain:
-  default: 110
-  description: "defines the maximum Rx gain"
-  type: int
+flexran:
+  - snap:
+      description: |
+        Define the version of the snap to be used
+      name: "flexran"
+      channel: "edge"
+      devmode: true
+      refresh: false
+      
+oaiHss:
+  v2:
+  - realm: 
+      description: "Realm of oai"
+      default: "openair5G.eur"
+    APN_NI:
+      description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
+      default: "oai.ipv4"
+    snap:
+      description: |
+        Define the version of the snap to be used
+      name: "oai-hss"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    databaseServiceName: "cassandra"
+    hssServiceName: "oaihss"
+    mmeServiceName: "oaimme"
+    spgwcServiceName: "oaispgwc"
+oaiMme:
+  v2:
+  - realm: 
+      description: "Realm of oai"
+      default: "openair5G.eur"
+    snap:
+      description: |
+        Define the version of the snap to be used
+      name: "oai-mme"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    hssServiceName: "oaihss"
+    spgwcServiceName: "oaispgwc"
+oaiSpgwc: 
+  v2: # Do not change, Always v2
+  - realm: 
+      description: "Realm of oai"
+      default: "openair5G.eur"
+    APN_NI:
+      description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
+      default: "oai.ipv4"
+    snap:
+      description: |
+        Define the version of the snap to be used
+      name: "oai-spgwc"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    dns: "192.168.1.1"
+oaiSpgwu:
+  v2: # Do not change, Always v2
+  - realm: 
+      description: "Realm of oai"
+      default: "openair5G.eur"
+    snap:
+      description: |
+        Define the version of the snap to be used
+      name: "oai-spgwu"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    spgwcServiceName: "oaispgwc"

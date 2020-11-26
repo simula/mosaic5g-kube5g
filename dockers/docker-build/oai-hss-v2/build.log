@@ -1,0 +1,66 @@
+Sending build context to Docker daemon  8.615MB
+Step 1/21 : FROM ubuntu:16.04
+ ---> dfeff22e96ae
+Step 2/21 : LABEL maintainer="Osama Arouk (arouk@eurecom.fr)"
+ ---> Using cache
+ ---> 63f651585552
+Step 3/21 : ENV container docker
+ ---> Using cache
+ ---> d25010261da0
+Step 4/21 : ENV PATH "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+ ---> Using cache
+ ---> b3f33f2602d6
+Step 5/21 : ENV LANG C.UTF-8
+ ---> Using cache
+ ---> c8e549852cc7
+Step 6/21 : ENV LC_ALL C.UTF-8
+ ---> Using cache
+ ---> 3db02dfa2321
+Step 7/21 : RUN echo exit 0 > /usr/sbin/policy-rc.d
+ ---> Using cache
+ ---> d2ceefcd1cd3
+Step 8/21 : RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fuse snapd snap-confine squashfuse sudo &&  apt-get autoremove -y &&  apt-get autoclean -y &&  dpkg-divert --local --rename --add /sbin/udevadm &&  ln -s /bin/true /sbin/udevadm
+ ---> Using cache
+ ---> 55e0e5dd3351
+Step 9/21 : RUN apt-get install -y apt-utils dnsutils net-tools iputils-ping vim tcpdump curl jq
+ ---> Using cache
+ ---> d66f7ee59eca
+Step 10/21 : RUN mv /usr/sbin/tcpdump /usr/bin/
+ ---> Using cache
+ ---> 62a95b0d00fe
+Step 11/21 : RUN sed -i "13s/^/\/root\/init.sh/g" /etc/rc.local
+ ---> Using cache
+ ---> 46f66ff5bfe9
+Step 12/21 : RUN chmod +x /etc/rc.local
+ ---> Using cache
+ ---> 2d2a64b35b99
+Step 13/21 : COPY ./init_build.sh /root/init.sh
+ ---> 0110473094eb
+Step 14/21 : COPY ./init_deploy.sh /root/
+ ---> fda4e7002d56
+Step 15/21 : COPY ./hook /root/
+ ---> 9f9d2bda1512
+Step 16/21 : RUN mkdir /root/config
+ ---> Running in 783cc59b5a1a
+Removing intermediate container 783cc59b5a1a
+ ---> 1c154434810a
+Step 17/21 : COPY ./conf.yaml /root/config/
+ ---> 24c06ba07f8f
+Step 18/21 : RUN systemctl enable snapd
+ ---> Running in 253bbaad9e64
+Removing intermediate container 253bbaad9e64
+ ---> 6c93e35bcee3
+Step 19/21 : RUN rm -f /lib/systemd/system/systemd*udev*   && rm -f /lib/systemd/system/getty.target
+ ---> Running in 2a4c849a6a63
+Removing intermediate container 2a4c849a6a63
+ ---> 1d05930602d9
+Step 20/21 : VOLUME ["/sys/fs/cgroup"]
+ ---> Running in f0d4552c832e
+Removing intermediate container f0d4552c832e
+ ---> 94035069c65e
+Step 21/21 : CMD ["/sbin/init"]
+ ---> Running in fc102256adef
+Removing intermediate container fc102256adef
+ ---> 6be1df33c661
+Successfully built 6be1df33c661
+Successfully tagged mosaic5gecosys/oaihss:base

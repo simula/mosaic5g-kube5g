@@ -15,8 +15,8 @@ spec:
       serviceAccountName: m5g-operator
       containers:
         - name: m5g-operator
-          # Replace this with the built image name mosaic5gecosys/m5g_operator:mytest  mosaic5gecosys/m5g_operator:1.0
-          image: mosaic5gecosys/m5g_operator:mytest
+          # Replace this with the built image name mosaic5gecosys/m5g_operator:v1.test
+          image: mosaic5gecosys/m5g_operator:v1.test
           command:
           - m5g-operator
           imagePullPolicy: Always

@@ -1,6 +1,4 @@
 #!/bin/sh
 
-/root/hook -installRAN  -build &
-#/root/hook -installRAN  &
-
+/root/hook -installRAN -build &
 

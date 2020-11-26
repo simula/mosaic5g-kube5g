@@ -1,28 +1,90 @@
+/*
+#!/usr/local/go/bin/go
+################################################################################
+* Copyright 2016-2019 Eurecom and Mosaic5G Platforms Authors
+* Licensed to the Mosaic5G under one or more contributor license
+* agreements. See the NOTICE file distributed with this
+* work for additional information regarding copyright ownership.
+* The Mosaic5G licenses this file to You under the
+* Apache License, Version 2.0  (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+################################################################################
+#-------------------------------------------------------------------------------
+# For more information about Mosaic5G:
+#                                   admin@mosaic-5g.io
+# file          mme.go
+# brief 		configure the snap of oai-mme v1, and start it
+# authors:
+	- Osama Arouk (arouk@eurecom.fr)
+	- Kevin Hsi-Ping Hsu (hsuh@eurecom.fr)
+*-------------------------------------------------------------------------------
+*/
+
 package oai
 
 import (
-	"docker-hook/internal/pkg/util"
 	"errors"
+	"fmt"
+	"mosaic5g/docker-hook/internal/pkg/util"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
 // StartMme : Start MME as a daemon
-func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
-	c := OaiObj.Conf
-	mmeConf := c.ConfigurationPathofCN + "mme.conf"
-	mmeFdConf := c.ConfigurationPathofCN + "mme_fd.conf"
-	mmeBin := c.SnapBinaryPath + "oai-cn.mme"
+func startMmeV1(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
+	fmt.Println("Starting configuring MME V1")
+
+	retStatus := util.RunCmd(OaiObj.Logger, "which", "oai-cn.mme-status")
+	s := strings.Split(retStatus.Stdout[0], "/")
+	snapBinaryPath := strings.Join(s[0:len(s)-1], "/")
+	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-cn.mme-conf-get"}, "/"))
+	s = strings.Split(retStatus.Stdout[0], "/")
+	confPath := strings.Join(s[0:len(s)-1], "/")
+
+	mmeConf := strings.Join([]string{confPath, "mme.conf"}, "/")
+	mmeFdConf := strings.Join([]string{confPath, "mme_fd.conf"}, "/")
+	mmeBin := strings.Join([]string{snapBinaryPath, "oai-cn.mme"}, "/")
+
+	OaiObj.Logger.Print("mmeConf=", mmeConf)
+	fmt.Println("mmeConf=", mmeConf)
+
+	OaiObj.Logger.Print("mmeFdConf=", mmeFdConf)
+	fmt.Println("mmeFdConf=", mmeFdConf)
+
+	OaiObj.Logger.Print("mmeBin=", mmeBin)
+	fmt.Println("mmeBin=", mmeBin)
+
 	hostname, _ := os.Hostname()
 
 	// Init mme
-	if OaiObj.Conf.Test == false {
-		OaiObj.Logger.Print("Init mme")
-		retStatus := util.RunCmd(OaiObj.Logger, mmeBin+"-init")
-		if retStatus.Exit != 0 {
-			return errors.New("mme init failed ")
-		}
+	var hssServiceName, spgwServiceName, mncValue, mccValue, realm string
+	if CnAllInOneMode == true {
+		mncValue = OaiObj.Conf.OaiCn.V1[0].OaiMme.MNC
+		mccValue = OaiObj.Conf.OaiCn.V1[0].OaiMme.MCC
+		realm = OaiObj.Conf.OaiCn.V1[0].Realm.Default
+	} else {
+		hssServiceName = OaiObj.Conf.OaiMme.V1[0].HssServiceName
+		spgwServiceName = OaiObj.Conf.OaiMme.V1[0].SpgwServiceName
+		mncValue = OaiObj.Conf.OaiMme.V1[0].MNC
+		mccValue = OaiObj.Conf.OaiMme.V1[0].MCC
+		realm = OaiObj.Conf.OaiMme.V1[0].Realm.Default
+	}
+
+	OaiObj.Logger.Print("Init mme")
+	retStatus = util.RunCmd(OaiObj.Logger, mmeBin+"-init")
+	if retStatus.Exit != 0 {
+		return errors.New("mme init failed ")
 	}
 
 	// Configure oai-mme
@@ -30,13 +92,13 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 
 	// hostname
 	sedCommand := "s:HSS_HOSTNAME.*;:HSS_HOSTNAME               = \"" + hostname + "\";:g"
-	retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeConf)
+	retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeConf)
 	if retStatus.Exit != 0 {
 		return errors.New("Set hss domain name in " + mmeConf + " failed")
 	}
 	// Replace GUMMEI
 	OaiObj.Logger.Print("Replace MNC")
-	sedCommand = "s/MNC=\"93\"/MNC=\"" + c.MNC + "\\\"/g"
+	sedCommand = "s/MNC=\"93\"/MNC=\"" + mncValue + "\\\"/g"
 	OaiObj.Logger.Print(sedCommand)
 	retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeConf)
 	if retStatus.Exit != 0 {
@@ -44,7 +106,7 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	}
 	OaiObj.Logger.Print("Replace MCC")
 	//Replace MCC
-	sedCommand = "s:{MCC=\"208\":{MCC=\"" + c.MCC + "\":g"
+	sedCommand = "s:{MCC=\"208\":{MCC=\"" + mccValue + "\":g"
 	OaiObj.Logger.Print(sedCommand)
 	retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeConf)
 	if retStatus.Exit != 0 {
@@ -95,11 +157,11 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 		}
 	}
 
-	spgwIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.SpgwDomainName)
-	///////////////////////////////
-	if buildSnap == true {
-		spgwIP = "127.0.11.2"
-	} else {
+	var spgwIP string
+	var err error
+	spgwIP = "127.0.11.2"
+	if (CnAllInOneMode != true) && (buildSnap != true) {
+		spgwIP, err = util.GetIPFromDomain(OaiObj.Logger, spgwServiceName)
 		for {
 			if err != nil {
 				OaiObj.Logger.Print(err)
@@ -113,28 +175,18 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			}
 			OaiObj.Logger.Print("Valid ip address for spgw not yet retreived")
 			time.Sleep(1 * time.Second)
-			spgwIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.SpgwDomainName)
+			spgwIP, err = util.GetIPFromDomain(OaiObj.Logger, spgwServiceName)
 		}
 	}
 
-	if CnAllInOneMode == true {
-		//S-GW binded interface for S11 communication (GTPV2-C): ip address
-		sedCommand = "s:SGW_IPV4_ADDRESS_FOR_S11.*;:SGW_IPV4_ADDRESS_FOR_S11          = \"" + "127.0.11.2" + "/8\";:g"
-		retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeConf)
-		if retStatus.Exit != 0 {
-			return errors.New("Set SGW_IPV4_ADDRESS_FOR_S11 in " + mmeConf + " failed")
-		}
-	} else {
-		//S-GW binded interface for S11 communication (GTPV2-C): ip address
-		sedCommand = "s:SGW_IPV4_ADDRESS_FOR_S11.*;:SGW_IPV4_ADDRESS_FOR_S11          = \"" + spgwIP + "/8\";:g"
-		retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeConf)
-		if retStatus.Exit != 0 {
-			return errors.New("Set SGW_IPV4_ADDRESS_FOR_S11 in " + mmeConf + " failed")
-		}
+	//S-GW binded interface for S11 communication (GTPV2-C): ip address
+	sedCommand = "s:SGW_IPV4_ADDRESS_FOR_S11.*;:SGW_IPV4_ADDRESS_FOR_S11          = \"" + spgwIP + "/8\";:g"
+	retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeConf)
+	if retStatus.Exit != 0 {
+		return errors.New("Set SGW_IPV4_ADDRESS_FOR_S11 in " + mmeConf + " failed")
 	}
 
 	// Identity
-	realm := "openair4G.eur"           // define the realm
 	identity := hostname + "." + realm // use the Hostname we got before
 	sedCommand = "s:Identity.*;:Identity = \"" + identity + "\";:g"
 	retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeFdConf)
@@ -156,8 +208,8 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	}
 	// Get the IP address of oai-hss
 
-	if CnAllInOneMode == false {
-		hssIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.HssDomainName)
+	if CnAllInOneMode != true {
+		hssIP, err := util.GetIPFromDomain(OaiObj.Logger, hssServiceName)
 		if buildSnap == true {
 			hssIP = "127.0.0.1"
 		} else {
@@ -174,7 +226,7 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 				}
 				OaiObj.Logger.Print("Valid ip address for oai-hss not yet retreived")
 				time.Sleep(1 * time.Second)
-				hssIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.HssDomainName)
+				hssIP, err = util.GetIPFromDomain(OaiObj.Logger, hssServiceName)
 			}
 		}
 
@@ -186,7 +238,7 @@ func startMme(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	}
 
 	// oai-cn.mme-start
-	if OaiObj.Conf.Test == false {
+	if buildSnap != true {
 		OaiObj.Logger.Print("start mme as daemon")
 		util.RunCmd(OaiObj.Logger, mmeBin+"-start")
 	}

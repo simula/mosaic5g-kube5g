@@ -1,48 +1,50 @@
 #! /bin/bash
-################################################################################
-# Licensed to the Mosaic5G under one or more contributor license
-# agreements. See the NOTICE file distributed with this
-# work for additional information regarding copyright ownership.
-# The Mosaic5G licenses this file to You under the
-# Apache License, Version 2.0  (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#  
-#       http://www.apache.org/licenses/LICENSE-2.0
+# ################################################################################
+# * Copyright 2016-2019 Eurecom and Mosaic5G Platforms Authors
+# * Licensed to the Mosaic5G under one or more contributor license
+# * agreements. See the NOTICE file distributed with this
+# * work for additional information regarding copyright ownership.
+# * The Mosaic5G licenses this file to You under the
+# * Apache License, Version 2.0  (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *      http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# ################################################################################
+# #-------------------------------------------------------------------------------
+# For more information about Mosaic5G:
+#                                   admin@mosaic-5g.io
+# file          build.sh
+# brief 		Build docker images for mosaic5g snaps v1 and v2
+# authors:
+# 	- Osama Arouk (arouk@eurecom.fr)
+# 	- Kevin Hsi-Ping Hsu (hsuh@eurecom.fr)
+# *-------------------------------------------------------------------------------
 
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-# -------------------------------------------------------------------------------
-#   For more information about the:
-#       
-#
-#
-################################################################################
-# file          build_snap_docker.sh
-# brief         Build and renew the local image  
-# author        Kevin Hsu (C) - 2019 hsuh@eurecom.fr
-
-# Information of the image
-REPO_NAME="mosaic5gecosys" # Change it to your repository
-TARGET="${REPO_NAME}/${TARGET_NAME}" # The name of our image
-TAG_BASE="base" # The tag for the base image
+REPO_NAME="mosaic5gecosys"  # dockerhub repository. Change it to your repository
+TAG_BASE="base"             # The tag for the base image
 BASE_CONTAINER="build_base" # The name of the temporary container
-RELEASE_TAG="latest" # Default release tag
-SNAP_VERSION="v1" # Default snap version: allowed values; v1, v2
+RELEASE_TAG="latest"        # Default release tag
+SNAP_VERSION="v1"           #snap version: allowed values; v1, v2. For more info: https://gitlab.eurecom.fr/mosaic5g/mosaic5g/-/wikis/tutorials
 DIR=""
+DOCKER_HOOK_DIR="$HOME/go/src/mosaic5g/docker-hook/cmd/hook" # source-code of docker-hook, if you would like to build the docker-hook
+
+# List of supported snaps
+declare -a snap_list=("oai-ran oai-cn oai-hss oai-mme oai-spgw oai-spgwc oai-spgwu flexran")
+declare -a snap_version_list=("v1 v2")
 
 
 # contains(string, substring)
-#
-# Returns 0 if the specified string contains the specified substring,
-# otherwise returns 1.
+# Returns 0 if the specified string contains the specified substring, otherwise returns 1.
 contains() {
     string="$1"
     substring="$2"
-
     if echo "$string" | $(type -p ggrep grep | head -1) -F -- "$substring" >/dev/null; then
         return 0    # $substring is in $string
     else
@@ -50,18 +52,19 @@ contains() {
     fi
 }
 
-# Rebuild hook to update the change
+# Build hook to update the change
 build_hook(){
+    export GOPATH=$HOME/go
     echo "build hook from source"
-    NOW=`pwd`
-    cd ${GOPATH}/src/oai-snap-in-docker/cmd/hook/
-    go build 
-    mv ./hook ${NOW}/
+    CURRENT_DIR=`pwd`
+    cd $DOCKER_HOOK_DIR
+    go build -o hook main.go
+    mv ./hook ${CURRENT_DIR}/
+    cd $CURRENT_DIR
 }
 
 # Set variables
 init() {
-
     TARGET="${REPO_NAME}/${TARGET_NAME}"
 }
 
@@ -76,17 +79,20 @@ build_base(){
 
 # Build the target image
 build_target(){
+    list_include_item  "$snap_list" $1
+    [[ $? -ne 0 ]] && echo "Error: Snap name \"$1\" not recognized" && echo "Allowed values are: $snap_list" && return $?
+    list_include_item  "$snap_version_list" $SNAP_VERSION
+    [[ $? -ne 0 ]] && echo "Error: Snap version \"${SNAP_VERSION}\" not recognized" && echo "Allowed values are: $snap_version_list" && return $?
+    
     init
-    build_base
+    build_base $1
     docker run --name=${BASE_CONTAINER} -ti --privileged -v /proc:/writable-proc -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v /lib/modules:/lib/modules:ro -h ubuntu -d ${TARGET}:${TAG_BASE}
     RET=1
-    echo "Installing snaps..."
+    echo "Waiting for the snaps to be installed insider dockers..."
     while  [ ${RET} -ne 0 ] ;
     do
-        sleep 5
+        sleep 3
         LIST=`docker exec ${BASE_CONTAINER} snap list`
-        # echo "Waiting for snap ${1} to be installed..."
-        
         if [ "${SNAP_VERSION}" = "v1" ] ; then
             if [ "${1}" = "oai-hss" ] || [ "${1}" = "oai-mme" ] || [ "${1}" = "oai-spgw" ] ; then
                 echo "Waiting for snap oai-cn to be installed..."
@@ -95,14 +101,25 @@ build_target(){
                 echo "Waiting for snap ${1} to be installed..."
                 contains "${LIST}" "${1}"
             fi
+        elif [ "${SNAP_VERSION}" = "v2" ] ; then
+            
+            if [ "${1}" = "oai-hss" ] || [ "${1}" = "oai-mme" ] || [ "${1}" = "oai-spgwc" ] || [ "${1}" = "oai-spgwu" ] || [ "${1}" = "oai-ran" ] ; then
+                echo "Waiting for snap ${1} to be installed..."
+                contains "${LIST}" "${1}"
+            elif [ "${1}" = "oai-cn" ] ; then
+                echo "Waiting for snaps oai-hss, oai-mme, oai-spgwc, oai-spgwu to be installed..."
+                (contains "${LIST}" "oai-hss") && (contains "${LIST}" "oai-mme") && (contains "${LIST}" "oai-spgwc") && (contains "${LIST}" "oai-spgwu")
+            else
+                echo "Error: the snap ${1} is not recognized, exit ..."
+                exit 0
+            fi
         else
-            echo "Waiting for snap ${1} to be installed..."
-            contains "${LIST}" "${1}"
+            echo "Error: the snap version ${SNAP_VERSION} is not supported, exit ..."
+            exit 0
         fi
         RET=$?
         
     done
-
 
     # Wait until the hook inside docker image finish
     cmd="tail -n 1 /root/hook.log"
@@ -117,20 +134,30 @@ build_target(){
             RET=0
         fi
     done
-
-
-
-    sleep 5
+    
+    
     echo "copying init_deploy.sh to docker"
     cmd="mv /root/init_deploy.sh /root/init.sh"
     docker exec ${BASE_CONTAINER} $cmd
+    
     docker commit ${BASE_CONTAINER} ${TARGET}:${RELEASE_TAG}
     docker stop ${BASE_CONTAINER}
     docker container rm ${BASE_CONTAINER} -f
     docker image prune -f
     echo "Now ${TARGET}:${RELEASE_TAG} is ready"
     echo "All done, please use docker push ${TARGET}:${RELEASE_TAG} to push image to your repository"
+}
 
+function list_include_item {
+  local list="$1"
+  local item="$2"
+  if [[ $list =~ (^|[[:space:]])"$item"($|[[:space:]]) ]] ; then
+    # yes, list include item
+    result=0
+  else
+    result=1
+  fi
+  return $result
 }
 
 clean_up(){
@@ -153,23 +180,46 @@ main() {
     fi
     case ${1} in
         oai-cn)
-            DIR="oai-cn"
+            if [ "${SNAP_VERSION}" = "v1" ] ; then
+                DIR="oai-cn"
+            else
+                DIR="oai-cn-v2"
+            fi
             TARGET_NAME="oaicn"
+            
             build_target ${1}
         ;;
         oai-hss)
-            DIR="oai-hss"
+            if [ "${SNAP_VERSION}" = "v1" ] ; then
+                DIR="oai-hss"
+            else
+                DIR="oai-hss-v2"
+            fi
             TARGET_NAME="oaihss"
             build_target ${1}
         ;;
         oai-mme)
-            DIR="oai-mme"
+            if [ "${SNAP_VERSION}" = "v1" ] ; then
+                DIR="oai-mme"
+            else
+                DIR="oai-mme-v2"
+            fi
             TARGET_NAME="oaimme"
             build_target ${1}
         ;;
         oai-spgw)
             DIR="oai-spgw"
             TARGET_NAME="oaispgw"
+            build_target ${1}
+        ;;
+        oai-spgwc)
+            DIR="oai-spgwc-v2"
+            TARGET_NAME="oaispgwc"
+            build_target ${1}
+        ;;
+        oai-spgwu)
+            DIR="oai-spgwu-v2"
+            TARGET_NAME="oaispgwu"
             build_target ${1}
         ;;
         oai-ran)
@@ -189,7 +239,6 @@ main() {
         ;;
         build-hook)
             build_hook
-            exit 0
         ;;
         clean-all)
             clean_all
@@ -204,12 +253,12 @@ This Script will remove the old docker snap image and build a new one
 Usage:
         ./build.sh [oai-cn|oai-hss|oai-mme|oai-spgw|oai-ran|flexran|ll-mec] [release tag(default is latest)] [snap version(default is v1. alowed values: v1, v2)]
 Example:
-        ./build.sh oai-cn mytest v1
+        ./build.sh oai-cn mytestv1 v1
 '
             exit 0
         ;;
     esac
-    echo "All done, please use docker push [IMAGE NAME]:[TAG] to push image to your repository"
+    
     
 }
 main "$@"

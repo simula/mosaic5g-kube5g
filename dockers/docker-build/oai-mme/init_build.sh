@@ -1,7 +1,4 @@
 #!/bin/sh
 
-/root/hook -installMME -build &
-#/root/hook -installMME  &
-
-
+/root/hook -installMME -snapVersion="v1"  -build &
 

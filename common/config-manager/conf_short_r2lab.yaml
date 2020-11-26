@@ -1,0 +1,53 @@
+#******************** REQUIRED TO VERIFY ACCORDING TO YOUR SETUP ********************#
+common:
+  - mcc: "208" # mobile country code, required for RAN and core netwrok entities
+    mnc: "95" # mobile network code, required for RAN and core netwrok entities
+oaiCn:
+  - dns: "138.96.0.10" # DNS of your network
+    v2:
+      APN_NI: # ONLY SNAP VERSION V2
+        description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"
+        default: "oai.ipv4"
+oaiEnb:
+  - eutra_band:
+      description: "Setting the LTE  EUTRA frequency band."
+      default: "7"
+    downlink_frequency:
+      description: "Setting the downlink frequency band."
+      default: "2660000000L"
+    uplink_frequency_offset:
+      description: "Setting the uplink frequency offset."
+      default: "-120000000"
+#******************** OPTIONAL TO VERIFY ACCORDING TO YOUR SETUP ********************#
+    # NOTE: You can modify the following parameters, but the eNB should work normally with the default values
+    N_RB_DL:
+      description: "Setting the bandwidth in terms of number of available PRBS, 25 (5MHz), 50 (10MHz), and 100 (20MHz)"
+      default: "25" # "50"
+    tx_gain:
+      description: "transmission gain"
+      default: "100"
+    rx_gain:
+      description: "reception gain"
+      default: "125"
+    pusch_p0_Nominal:
+      description: ""
+      default: "-90"
+    pucch_p0_Nominal:
+      description: ""
+      default: "-96"
+    pdsch_referenceSignalPower:
+      description: ""
+      default: "-24" # "-27"
+    puSch10xSnr:
+      description: ""
+      default: "100" # "160"
+    puCch10xSnr:
+      description: ""
+      default: "100" # "160"
+    parallel_config:
+      description: "Defines the level of parallelism. There are three available values PARALLEL_SINGLE_THREAD, PARALLEL_RU_L1_SPLIT, or PARALLEL_RU_L1_TRX_SPLIT"
+      default: "PARALLEL_SINGLE_THREAD"
+    max_rxgain:
+      description: "defines the maximum Rx gain"  
+      default: "110"
+

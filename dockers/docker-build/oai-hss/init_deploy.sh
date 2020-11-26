@@ -1,3 +1,4 @@
 #!/bin/sh
 
-/root/hook -installHSS &
+/root/hook -installHSS -snapVersion="v1" &
+

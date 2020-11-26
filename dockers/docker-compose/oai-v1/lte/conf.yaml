@@ -1,22 +1,105 @@
-mcc: "208"                 
-mnc: "95"   
-
-eutraBand: "7"             
-downlinkFrequency: "2685000000L"    
-uplinkFrequencyOffset: "-120000000"
-NumberRbDl: "25"
-MaxRxGain: "110"
-ParallelConfig: "PARALLEL_SINGLE_THREAD"
-
-configurationPathofCN: "/var/snap/oai-cn/current/"
-configurationPathofRAN: "/var/snap/oai-ran/current/"
-snapBinaryPath: "/snap/bin/"
-hssDomainName: "oaihss"
-mmeDomainName: "oaimme"
-spgwDomainName: "oaispgw"
-mysqlDomainName: "mysql"
-dns: "192.168.106.10"
-
-flexRAN: false
-flexRANDomainName: "flexran"
-test: false
+oaiEnb:
+- mcc: "208"
+  mnc: "95"
+  mmeService:
+    description: |
+      If (ipv4) is provided, the enb connects to MME using the provied ip address. 
+      Otherwise, it will connect to the service provided by (name)
+    name: "oaimme"
+    snapVersion: "v1"     # allowed values: v1, v2
+    ipv4: ""
+  flexRAN: false
+  flexRANServiceName: "flexran"
+  snap:
+    description: |
+      Define the version of the snap to be used. The field (refresh), if true, it will get the lates version of snap. 
+      Otherwise, the current version (supposing that it is already installed) will be kept
+    name: "oai-ran"
+    channel: "edge"
+    devmode: true
+    refresh: false
+  eutra_band:
+    description: "Setting the LTE  EUTRA frequency band."
+    default: "7"
+  downlink_frequency:
+    description: "Setting the downlink frequency band."
+    default: "2685000000L"
+  uplink_frequency_offset:
+    description: "Setting the uplink frequency offset."
+    default: "-120000000"
+  N_RB_DL:
+    description: "Setting the bandwidth in terms of number of available PRBS, 25 (5MHz),\
+      \ 50 (10MHz), and 100 (20MHz)"
+    default: "25"
+  tx_gain:
+    description: "transmission gain"
+    default: "90"
+  rx_gain:
+    description: "reception gain"
+    default: "125"
+  pusch_p0_Nominal:
+    description: ""
+    default: "-96"
+  pucch_p0_Nominal:
+    description: ""
+    default: "-104"
+  pdsch_referenceSignalPower:
+    description: ""
+    default: "-27"
+  puSch10xSnr:
+    description: ""
+    default: "200"
+  puCch10xSnr:
+    description: ""
+    default: "200"
+  parallel_config:
+    description: |
+      Defines the level of parallelism. There are three available values 
+      PARALLEL_SINGLE_THREAD, PARALLEL_RU_L1_SPLIT, or PARALLEL_RU_L1_TRX_SPLIT
+    default: "PARALLEL_SINGLE_THREAD"
+  max_rxgain:
+    description: "defines the maximum Rx gain"
+    default: "110"
+oaiHss:
+  v1:
+  - realm:
+      description: "Realm of oai"
+      default: "openair4G.eur"
+    snap:
+      description: "Define the version of the snap to be used"
+      name: "oai-cn"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    databaseServiceName: "mysql"
+    mmeServiceName: "oaimme"
+    hssServiceName: oaihss
+oaiMme:
+  v1:
+  - realm:
+      description: "Realm of oai"
+      default: "openair4G.eur"
+    snap:
+      description: "Define the version of the snap to be used"
+      name: "oai-cn"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    mcc: "208"
+    mnc: "95"
+    hssServiceName: "oaihss"
+    spgwServiceName: "oaispgw"
+oaiSpgw:
+  v1:   # Do not change, Always v1
+  - realm:
+      description: "Realm of oai"
+      default: "openair4G.eur"
+    snap:
+      description: "Define the version of the snap to be used"
+      name: "oai-cn"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    dns: "192.168.1.1"   # DNS of your network
+    hssServiceName: "oaihss"
+    mmeServiceName: "oaimme"

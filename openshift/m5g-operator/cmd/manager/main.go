@@ -10,8 +10,9 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"github.com/m5g-operator/pkg/apis"
-	"github.com/m5g-operator/pkg/controller"
+	"mosaic5g/m5g-operator/pkg/apis"
+	"mosaic5g/m5g-operator/pkg/controller"
+
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -59,6 +60,11 @@ func main() {
 	logf.SetLogger(zap.Logger())
 
 	printVersion()
+
+	operatorName, err := k8sutil.GetOperatorName()
+	log.Info("operatorName is " + operatorName)
+	operatorNamespace, err := k8sutil.GetOperatorNamespace()
+	log.Info("operatorNamespace is " + operatorNamespace)
 
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {

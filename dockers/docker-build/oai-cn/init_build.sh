@@ -1,6 +1,4 @@
 #!/bin/sh
 
-/root/hook -installCN  -build &
-#/root/hook -installCN  &
-
+/root/hook -installCN -snapVersion="v1" -build &
 

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube5g-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: kube5g-operator
+  template:
+    metadata:
+      labels:
+        name: kube5g-operator
+    spec:
+      serviceAccountName: kube5g-operator
+      containers:
+        - name: kube5g-operator
+          # Replace this with the built image name mosaic5gecosys/kube5g-operator:v1.test
+          image: mosaic5gecosys/kube5g-operator:v1.test
+          command:
+          - kube5g-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "kube5g-operator"
