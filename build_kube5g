@@ -106,8 +106,9 @@ install_docker_dockercompose(){
     echo_info "download the current stable release 1.27.4 of Docker Compose"
     $SUDO curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     
-    echo_info "Apply executable permissions to the binary"
+    echo_info "Apply executable permissions to the binary: chmod +x /usr/local/bin/docker-compose"
     $SUDO chmod +x /usr/local/bin/docker-compose
+    echo_info "create sympolic link: ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose"
     $SUDO ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
     #================= Adding docker group =====================================#
     echo_info "Adding docker group"
@@ -206,9 +207,12 @@ Install_microk8s_kubectl(){
 
 prepare_env_kube5g_develop(){
     source $HOME/.bashrc
+    echo_info "mkdir -p $HOME/go/src/mosaic5g"
     mkdir -p $HOME/go/src/mosaic5g
     CURRENT_PATH=$PWD
+    echo_info "ln -s $CURRENT_PATH/dockers/docker-hook $HOME/go/src/mosaic5g/"
     ln -s $CURRENT_PATH/dockers/docker-hook $HOME/go/src/mosaic5g/
+    echo_info "ln -s $CURRENT_PATH/openshift/kube5g-operator $HOME/go/src/mosaic5g/"
     ln -s $CURRENT_PATH/openshift/kube5g-operator $HOME/go/src/mosaic5g/
 }
 
@@ -311,12 +315,14 @@ Options:
     -c -s file-short: configure kube5g using short version of configuration defined by file-short, and the default global configuration (common/config-manager/conf_global_default.yaml)
     -c -g file-global: configure kube5g using global version of configuration defined by file-global
     -c -s file-short -g file-global: configure kube5g using short version of configuration defined by file-short, and global version of configuration defined by file-global
+    NOTE: if (file-global), alternatively (file-short), exists in the directory (common/config-manager/), 
+            you can specify only the file name, otherwise, the FULL PATH where the file exists is REQUIRED
 example usage:
-    ./k5goperator.sh -i
-    ./k5goperator.sh -I
-    ./k5goperator.sh -dev
-    ./k5goperator.sh -c -s conf_short_default.yaml
-    ./k5goperator.sh -c -s conf_short_default.yaml -g conf_global_default.yaml
+    ./build_kube5g -i
+    ./build_kube5g -I
+    ./build_kube5g -dev
+    ./build_kube5g -c -s conf_short_default.yaml
+    ./build_kube5g -c -s conf_short_default.yaml -g conf_global_default.yaml
             '
         ;;
     esac
