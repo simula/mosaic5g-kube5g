@@ -163,27 +163,13 @@ pipeline {
         // STAGE 2: DOCKER COMPOSE
         stage('compose-unit') {
             steps {
-                echo "STAGE #2: Perform a unit test"
-
-                script{
-                    try{
-                        // Snap unit check
-                        echo "Snap unit check"
-                        sh(
-                            label: 'flexran snap unit check',
-                            script: '''
-                                docker exec flexran flexran.check
-                            '''
-                        )
-                    } catch (err) {
-                        error("Failed to finish stage #2. Snap unit test failed.")
-                    }
-                }
+                
 
                 git credentialsId: 'mosaic5g_jenkins',
                     url: 'git@gitlab.eurecom.fr:mosaic5g/store.git',
                     branch: 'jenkins'
                 
+                echo "STAGE #2 STEP #1 unit-test"
                 // Change the directory to an specific one for the scripts
                 // TODO: Use parameters for the directory naming
                 dir('ci-scripts/unit-test/flexran'){
@@ -204,7 +190,23 @@ pipeline {
                         }
                     }
                 }
+                echo "STAGE #2 STEP #1 SUCCESS"
 
+                echo "STAGE #2: Perform a unit test"
+                script{
+                    try{
+                        // Snap unit check
+                        echo "Snap unit check"
+                        sh(
+                            label: 'flexran snap unit check',
+                            script: '''
+                                docker exec flexran flexran.check
+                            '''
+                        )
+                    } catch (err) {
+                        error("Failed to finish stage #2. Snap unit test failed.")
+                    }
+                }
                 echo "STAGE #2 OUTPUT SUCCESS"
             }
         }
