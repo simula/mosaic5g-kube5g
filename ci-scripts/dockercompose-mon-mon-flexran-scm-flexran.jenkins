@@ -42,27 +42,16 @@ pipeline {
     // The pipeline will contain a set of stages grouped here, that will run sequentially
     
     stages {
-        // STAGE #2: Clone the project from git using source control management (scm)
+        // STAGE #1: Clone the project from git using source control management (scm)
         stage('Clone') {
             steps {
                 checkout scm
             }
         }
-         // STAGE #1: Prepare docker-compose 
+        // STAGE #2: Prepare docker-compose 
         stage('compose-prepare') {
             steps {
-                // echo "STAGE #1: create the directory dockercompose-test to get the project from git"
-                // sh 'mkdir -p dockercompose-test'
-                // dir("dockercompose-test")
-                // {
-                //     // Get the files from the GitLab
-                //     git credentialsId: 'mosaic5g_jenkins',
-                //         url: 'git@gitlab.eurecom.fr:mosaic5g/kube5g.git',
-                //         branch: 'develop'
-                //     echo "STAGE #1 Getting project from gitlab successfully"
-                // }
-                
-                // Change the directory to configure docker compose files for testing phase
+                echo "STEP #2.1 Configure Kube5G for testing phase"
                 dir('common/config-manager'){
                     script{
                         sh(
@@ -73,8 +62,7 @@ pipeline {
                         )
                     }
                 }
-                ////////////////////////////////////////////////////////////////////////////////
-                // Change the directory to an specific one for the compose
+                echo "STEP #2.2 bring the network down if it is already up"
                 dir('dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran'){
                     script{
                         try{
@@ -91,18 +79,15 @@ pipeline {
                         }
                     }
                 }
-                ////////////////////////////////////////////////////////////////////////////////
-                echo "STAGE #1 OUTPUT SUCCESS"
+                echo "STAGE #2 OUTPUT SUCCESS"
             }
         }
         
-        // STAGE 2: DOCKER COMPOSE
+        // STAGE #3: DOCKER COMPOSE
         stage('compose-up') {
             steps {
-                echo "STAGE #2: Build the docker hook"
-
+                echo "STEP #3.1 Build the docker hook"
                 // Change the directory to an specific one for the compose
-                // TODO: Use parameters for the directory naming
                 dir('dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran'){
                     script{
                         try{
@@ -120,18 +105,14 @@ pipeline {
                     }
                 }
 
-                echo "STAGE #2 OUTPUT SUCCESS"
+                echo "STAGE #3 OUTPUT SUCCESS"
             }
         }
         
-    // }
-    ////////////////////////////////////////////////////////////////////////////////////
-    // stages {
-        // STAGE 3 DOCKER COMPOSE TEST
+        // STAGE #3: DOCKER COMPOSE TEST
         stage('compose-test') {
             steps {
-                echo "STAGE #3: Test the docker-compose"
-
+                echo "STEP #3.1 Test lte with flexran network"
                 // Change the directory to an specific one for the compose
                 dir('dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran'){
                     script{
@@ -167,15 +148,14 @@ pipeline {
                     }
                 }
 
-                echo "STAGE #1 OUTPUT SUCCESS"
+                echo "STAGE #3 OUTPUT SUCCESS"
             }
         }
         
-        // STAGE 2: DOCKER COMPOSE
+        // STAGE #4: DOCKER COMPOSE
         stage('compose-unit') {
             steps {
-                echo "STAGE #2: Perform a unit test"
-
+                echo "STEP #4.1: Perform flexran check"
                 script{
                     try{
                         // Snap unit check
@@ -190,13 +170,9 @@ pipeline {
                         error("Failed to finish stage #2. Snap unit test failed.")
                     }
                 }
-
-                git credentialsId: 'mosaic5g_jenkins',
-                    url: 'git@gitlab.eurecom.fr:mosaic5g/store.git',
-                    branch: 'jenkins'
                 
                 // Change the directory to an specific one for the scripts
-                // TODO: Use parameters for the directory naming
+                echo "STEP #4.2: Perform a unit test of flexran"
                 dir('ci-scripts/unit-test/flexran'){
                     script{
                         try{
@@ -205,7 +181,6 @@ pipeline {
                             sh(
                                 label: 'flexran unit test script',
                                 script: '''
-                                    chmod 777 unit-flexran.sh
                                     ./unit-flexran.sh
                                 '''
                             )
@@ -215,15 +190,14 @@ pipeline {
                     }
                 }
 
-                echo "STAGE #2 OUTPUT SUCCESS"
+                echo "STAGE #4 OUTPUT SUCCESS"
             }
         }
         
-        // STAGE 3: DOCKER COMPOSE CLEAN
+        // STAGE 5: DOCKER COMPOSE CLEAN
         stage('compose-clean') {
             steps {
-                echo "STAGE #3: Rollback the docker-compse"
-
+                echo "STEP #5.1: Rollback the docker-compse"
                 // Change the directory to an specific one for the compose
                 dir('dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran'){
                     script{
@@ -242,10 +216,9 @@ pipeline {
                     }
                 }
 
-                echo "STAGE #3 OUTPUT SUCCESS"
+                echo "STAGE #5 OUTPUT SUCCESS"
             }
         }
     }
-    ////////////////////////////////////////////////////////////////////////////////////
 }
 
