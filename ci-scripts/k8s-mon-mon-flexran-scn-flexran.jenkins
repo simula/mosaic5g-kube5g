@@ -1,0 +1,265 @@
+/*
+#! /bin/groovy
+########################################################################################################################
+# Licensed to the Mosaic5G under one or more contributor license agreements. See the NOTICE file distributed with this
+# work for additional information regarding copyright ownership. The Mosaic5G licenses this file to You under the
+# Apache License, Version 2.0  (the "License"); you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#   
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+#   an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+#   specific language governing permissions and limitations under the License.
+########################################################################################################################
+# file          flexran/docker-compose-1mm.jenkinsfile
+# brief         Docker compose for the monolithic RAN and core and FlexRAN.
+# authors       Alireza Mohammadi (C) - 2020 alireza.mohammadi@eurecom.fr
+#               Osama Arouk (C) - 2020 osama.arouk@eurecom.fr
+*/
+
+// TODO: Add the parameters for ease of edit and access
+def pipelineContext = [:] // Parameters will go here
+
+pipeline {
+    // Here we define the node that will run this script using the labels assigned to them previously
+    agent { 
+        node { 
+            label 'cigarier'
+        } 
+    }
+
+    // The pipeline will contain a set of stages grouped here, that will run sequentially
+    // Each stage itself contains a sequence of steps that may contain some scripts to run
+    stages {
+        stage('Clone') {
+            steps {
+                checkout scm
+            }
+        }
+         // STAGE 1: COMPOSE PREPARE
+        stage('kubernetes-prepare') {
+            steps {
+                // Change the directory to configure docker compose files for testing phase
+                dir('common/config-manager'){
+                    script{
+                        sh(
+                            label: 'Configure docker compose for testing phase',
+                            script: '''
+                                ./conf-manager.py -s conf_short_default.yaml -t flexran
+                            '''
+                        )
+                    }
+                }
+                ////////////////////////////////////////////////////////////////////////////////
+                // Apply the Custom Resource Definition (CRD) to kubernetes
+                dir('openshift/kube5g-operator'){
+                    script{
+                        try{
+                            echo "Apply CRD to kubernetes"
+                            sh(
+                                label: 'Apply CRD to kubernetes',
+                                script: '''
+                                    ./k5goperator.sh -n
+                                '''
+                            )
+                        } catch (err) {
+                            error("Failed to apply CRD to kubernetes")
+                        }
+                    }
+                }
+                ////////////////////////////////////////////////////////////////////////////////
+                echo "STAGE #1 OUTPUT SUCCESS"
+            }
+        }
+        
+        // STAGE 2: DOCKER COMPOSE
+        stage('kube5g-operator-up') {
+            steps {
+                echo "STAGE #2: Deploy kube5g-operator as pod in K8S"
+
+                // Change the directory to an specific one for the compose
+                // TODO: Use parameters for the directory naming
+                dir('openshift/kube5g-operator'){
+                    script{
+                        try{
+                            // Setup the docker-compse
+                            echo "run kube5g-operator as pod in K8S"
+                            sh(
+                                label: 'kube5g-operator as pod in K8S',
+                                script: '''
+                                    ./k5goperator.sh container start
+                                '''
+                            )
+                        } catch (err) {
+                            error("Failed to deploy kube5g-operator as pod in K8S")
+                        }   
+                    }
+                }
+
+                echo "STAGE #2 OUTPUT SUCCESS"
+            }
+        }
+
+        // STAGE 3: Bring  lte all-ine-one-with-flexran network up
+        stage('kube5g-operator-up') {
+            steps {
+                echo "STAGE #2: Dpeloy lte all-ine-one-with-flexran mode"
+
+                // Change the directory to an specific one for the compose
+                // TODO: Use parameters for the directory naming
+                dir('openshift/kube5g-operator'){
+                    script{
+                        try{
+                            // Setup the docker-compse
+                            echo "deploy lte all-ine-one-with-flexran network"
+                            sh(
+                                label: 'deploy lte all-ine-one-with-flexran network',
+                                script: '''
+                                    ./k5goperator.sh deploy v1 all-in-one
+                                '''
+                            )
+                        } catch (err) {
+                            error("Failed to deploy lte all-ine-one-with-flexran network in K8S")
+                        }   
+                    }
+                }
+
+                echo "STAGE #3 OUTPUT SUCCESS"
+            }
+        }
+        
+    // }
+    ////////////////////////////////////////////////////////////////////////////////////
+    // stages {
+        // STAGE 3 DOCKER COMPOSE TEST
+        stage('lte-all-ine-one-with-flexran-test') {
+            steps {
+                echo "STAGE #3: Test the lte all-ine-one-with-flexran network"
+
+                // Change the directory to an specific one for the compose
+                dir('dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran'){
+                    script{
+                        try{
+                            // List and check the containers and snaps
+                            echo "Listing the containers and snaps"
+                            sh(
+                                label: 'list the docker containers to see the deployed networks',
+                                script: '''
+                                    # Sleep  for 10 seconds to make sure that the network is up
+                                    sleep 10
+                                    kubectl get pods -o wide
+                                    kubectl get deployments -o wide
+                                    kubectl get services -o wide
+                                    
+                                    
+                                    cmd="snap list"
+                                    cmd_info_cn="snap info oai-cn"
+                                    cmd_info_ran="snap info oai-ran"
+                                    cmd_info_flexran="snap info flexran"
+                    
+                                    kubectl exec oaicn $cmd
+                                    kubectl exec oaicn $cmd_info_cn
+
+                                    kubectl exec oairan $cmd
+                                    kubectl exec oairan $cmd_info_ran
+
+                                    kubectl exec flexran $cmd
+                                    kubectl exec flexran $cmd_info_flexran
+                                '''
+                            )
+                        } catch (err){
+                            error("Failed to finish the stage #1. Check the modules.")
+                        }
+                    }
+                }
+
+                echo "STAGE #1 OUTPUT SUCCESS"
+            }
+        }
+        
+        // STAGE 2: K8S unitary test in production phase
+        stage('k8s-flexran-unit') {
+            steps {
+                
+                echo "STAGE #2 STEP #1 unit-test"
+                // Change the directory to an specific one for the scripts
+                // TODO: Use parameters for the directory naming
+                dir('ci-scripts/unit-test/flexran'){
+                    script{
+                        try{
+                            // Unit test script
+                            echo "Unit test script"
+                            sh(
+                                label: 'flexran unit test script',
+                                script: '''
+                                    sleep 10
+                                    ./unit-flexran.sh
+                                '''
+                            )
+                        } catch (err) {
+                            error("Failed to finish the stage #2. Check the script output.")
+                        }
+                    }
+                }
+                echo "STAGE #2 STEP #1 SUCCESS"
+
+                echo "STAGE #2: Perform a unit test"
+                script{
+                    try{
+                        // Snap unit check
+                        echo "Snap unit check"
+                        sh(
+                            label: 'flexran snap unit check',
+                            script: '''
+                                kubectl exec flexran flexran.check
+                            '''
+                        )
+                    } catch (err) {
+                        error("Failed to finish stage #2. Snap unit test failed.")
+                    }
+                }
+                echo "STAGE #2 OUTPUT SUCCESS"
+            }
+        }
+        
+        // STAGE 3: K8S clean
+        stage('compose-clean') {
+            steps {
+                echo "STAGE #3: Rollback the lte-all-ine-one network"
+
+                // Change the directory to an specific one for the compose
+                dir('openshift/kube5g-operator'){
+                    script{
+                        try{
+                            // Rollback
+                            echo "Shutting down the lte-all-ine-one network"
+                            sh(
+                                label: 'bring the network down',
+                                script: '''
+                                    ./k5goperator.sh -d
+                                '''
+                            )
+                        } catch (err){
+                            echo "check the status of kubernets"
+                            sh(
+                                label: 'check the status of K8S',
+                                script: '''
+                                    kubectl get pods -o wide
+                                    kubectl get deployments -o wide
+                                    kubectl get services -o wide
+                                '''
+                            )
+                            error("Failed to finish the stage #3. Check the status above")
+                        }
+                    }
+                }
+
+                echo "STAGE #3 OUTPUT SUCCESS"
+            }
+        }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////
+}
+
+
