@@ -43,7 +43,7 @@ pipeline {
     // The pipeline will contain a set of stages grouped here, that will run sequentially
     // Each stage itself contains a sequence of steps that may contain some scripts to run
     stages {
-        // STAGE 1: Clone the project from git using source control management (scm)
+        // STAGE #1: Clone the project from git using source control management (scm)
         stage('Clone') {
             steps {
             checkout scm

@@ -155,21 +155,6 @@ pipeline {
         // STAGE #4: DOCKER COMPOSE
         stage('compose-unit') {
             steps {
-                echo "STEP #4.1: Perform flexran check"
-                script{
-                    try{
-                        // Snap unit check
-                        echo "Snap unit check"
-                        sh(
-                            label: 'flexran snap unit check',
-                            script: '''
-                                docker exec flexran flexran.check
-                            '''
-                        )
-                    } catch (err) {
-                        error("Failed to finish stage #2. Snap unit test failed.")
-                    }
-                }
                 
                 // Change the directory to an specific one for the scripts
                 echo "STEP #4.2: Perform a unit test of flexran"
@@ -187,6 +172,22 @@ pipeline {
                         } catch (err) {
                             error("Failed to finish the stage #2. Check the script output.")
                         }
+                    }
+                }
+                
+                echo "STEP #4.2: Perform flexran check"
+                script{
+                    try{
+                        // Snap unit check
+                        echo "Snap unit check"
+                        sh(
+                            label: 'flexran snap unit check',
+                            script: '''
+                                docker exec flexran flexran.check
+                            '''
+                        )
+                    } catch (err) {
+                        error("Failed to finish stage #2. Snap unit test failed.")
                     }
                 }
 
