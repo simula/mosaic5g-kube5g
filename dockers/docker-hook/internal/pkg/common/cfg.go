@@ -49,6 +49,14 @@ type MmeStatus struct {
 	Notes   string `json:"notes" yaml:"notes"`
 }
 
+// CnEntityV2Status parse the satus of oai-cn entity (i.e., oai-hss, oai-mme, oai-spgwc, and oai-spgwu) when interacting with it using url
+type CnEntityV2Status struct {
+	Service string `json:"service" yaml:"service"`
+	Startup string `json:"startup" yaml:"startup"`
+	Current string `json:"current" yaml:"current"`
+	Notes   string `json:"notes" yaml:"notes"`
+}
+
 // CfgOaiEnb the configuration of oai-enb
 type CfgOaiEnb struct {
 	// Configurations of ENB
@@ -61,7 +69,7 @@ type CfgOaiEnb struct {
 		IPV4        string `yaml:"ipv4"`
 	} `yaml:"mmeService"`
 	FlexRAN            bool   `yaml:"flexRAN"`
-	FlexranServiceName string `yaml:"flexranServiceName"`
+	FlexRANServiceName string `yaml:"flexRANServiceName"`
 	Snap               struct {
 		Description string `yaml:"description"`
 		Name        string `yaml:"name"`

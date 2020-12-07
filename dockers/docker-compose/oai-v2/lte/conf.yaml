@@ -5,6 +5,8 @@ oaiEnb:
     description: |
       If (ipv4) is provided, the enb connects to MME using the provied ip address. 
       Otherwise, it will connect to the service provided by (name)
+      If both are provied, "ipv4" will be taked. If none of them is provided, the configuration will skip it and mme will not be configured
+      snapVersion: the version of the snap, where the allowed versions are: "v1" and "v2"
     name: "oaimme"
     snapVersion: "v2"     # allowed values: v1, v2
     ipv4: ""
@@ -111,7 +113,7 @@ oaiSpgwc:
       channel: "edge"
       devmode: true
       refresh: false
-    dns: "192.168.1.1"   # DNS of your network
+    dns: "8.8.8.8"       # DNS of your network
 oaiSpgwu:
   v2:   # Do not change, Always v2
   - realm:

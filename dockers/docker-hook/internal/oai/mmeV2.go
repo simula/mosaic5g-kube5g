@@ -32,10 +32,17 @@
 package oai
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"mosaic5g/docker-hook/internal/pkg/common"
 	"mosaic5g/docker-hook/internal/pkg/util"
 	"net"
+	"net/http"
+	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -59,7 +66,16 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	mmeConf := strings.Join([]string{confPath, "mme.conf"}, "/")
 	mmeFdConf := strings.Join([]string{confPath, "mme_fd.conf"}, "/")
 
-	// hostname, _ := os.Hostname()
+	// get the dns
+	var mcc string
+	var mnc string
+	if CnAllInOneMode == true {
+		mcc = OaiObj.Conf.OaiCn.V2[0].OaiMme.MCC
+		mnc = OaiObj.Conf.OaiCn.V2[0].OaiMme.MNC
+	} else {
+		mcc = OaiObj.Conf.OaiMme.V2[0].MCC
+		mnc = OaiObj.Conf.OaiMme.V2[0].MNC
+	}
 
 	if buildSnap == false {
 		retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "init"}, "."))
@@ -118,7 +134,73 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			fmt.Println("Retrying to Set MME_IPV4_ADDRESS_FOR_S1_MME to the value " + outInterfaceIP + "/24 in " + mmeConf)
 			retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, mmeConf)
 		}
+
+		/*========================================= Open mmeConf as text-file =========================================*/
+		mmeConfInput, err := ioutil.ReadFile(mmeConf)
+		if err != nil {
+			OaiObj.Logger.Print(err)
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		mmeConfInputText := string(mmeConfInput)
+
+		// GUMMEI_LIST: MCC and MCC
+		gummeiListMccMnc := regexp.MustCompile(`{MCC="\d{3}"\s.*;\s.*MNC="\d{2}";\s.*MME_GID="\d{1}"\s.*;\s.*MME_CODE="\d{1}";\s.*}`)
+		submatchall := gummeiListMccMnc.FindAllString(mmeConfInputText, -1)
+		for _, element := range submatchall {
+			gummeiListMccMnc = regexp.MustCompile(element)
+			break
+		}
+		fmt.Println(gummeiListMccMnc)
+		OaiObj.Logger.Print(gummeiListMccMnc)
+
+		newStrExpr := `{MCC="` + mcc + `" ; MNC="` + mnc + `"; MME_GID="4" ; MME_CODE="1"; }`
+		repStr := `${1}` + newStrExpr + `$2`
+		mmeConfInputText = gummeiListMccMnc.ReplaceAllString(mmeConfInputText, repStr)
+
+		// TAI_LIST: MCC and MCC
+		taiListMccMnc := regexp.MustCompile(`{MCC="\d{3}" ; MNC="\d{2}";  TAC = "\d{1}"; }`)
+		submatchall = taiListMccMnc.FindAllString(mmeConfInputText, 3)
+		for _, element := range submatchall {
+			taiListMccMnc = regexp.MustCompile(element)
+		}
+		fmt.Println(taiListMccMnc)
+		OaiObj.Logger.Print(taiListMccMnc)
+
+		newStrExpr = `{MCC="` + mcc + `" ; MNC="` + mnc + `";  TAC = "1"; }`
+		repStr = `${1}` + newStrExpr + `$2`
+		mmeConfInputText = taiListMccMnc.ReplaceAllString(mmeConfInputText, repStr)
+
+		// WRR_LIST_SELECTION: MCC and MCC
+		if len(mnc) == 2 {
+			mnc = "0" + mnc
+		}
+		regExpStr := `{ID="` + `tac-lb01.tac-hb00.tac.epc.mnc` + `\d+` + `.mcc` + `\d+` + `.3gppnetwork.org"`
+		wrrListSelection := regexp.MustCompile(regExpStr)
+
+		submatchall = wrrListSelection.FindAllString(mmeConfInputText, 3)
+		for _, element := range submatchall {
+			wrrListSelection = regexp.MustCompile(element)
+		}
+		fmt.Println(wrrListSelection)
+		OaiObj.Logger.Print(wrrListSelection)
+
+		newStrExpr = `{ID="` + `tac-lb01.tac-hb00.tac.epc.mnc` + mnc + `.mcc` + mcc + `.3gppnetwork.org"`
+		repStr = `${1}` + newStrExpr + `$2`
+		mmeConfInputText = wrrListSelection.ReplaceAllString(mmeConfInputText, repStr)
+
+		mmeConfOutput := []byte(mmeConfInputText)
+		if err = ioutil.WriteFile(mmeConf, mmeConfOutput, 0666); err != nil {
+			OaiObj.Logger.Print(err)
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		//
+		hssIP := "127.0.0.1"
+		hssServiceName := "oai-hss"
 		if CnAllInOneMode == false {
+			hssServiceName = OaiObj.Conf.OaiMme.V2[0].HssServiceName
+
 			outInterfaceIP := util.GetOutboundIP()
 			outInterface, _ := util.GetInterfaceByIP(outInterfaceIP)
 
@@ -139,48 +221,38 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			if retStatus.Exit != 0 {
 				return errors.New("Set ListenOn in " + mmeFdConf + " failed")
 			}
-			/////////////////////////////////////////////////////////
-			hssIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].HssServiceName)
-
-			if buildSnap == true {
-				hssIP = "127.0.0.10"
-			} else {
-				for {
-					if err != nil {
-						OaiObj.Logger.Print(err)
+			hssIP, err := util.GetIPFromDomain(OaiObj.Logger, hssServiceName)
+			for {
+				if err != nil {
+					OaiObj.Logger.Print(err)
+				} else {
+					hostNameHss, err := net.LookupHost(hssIP)
+					if len(hostNameHss) > 0 {
+						break
 					} else {
-						hostNameHss, err := net.LookupHost(hssIP)
-						if len(hostNameHss) > 0 {
-							break
-						} else {
-							OaiObj.Logger.Print(err)
-						}
+						OaiObj.Logger.Print(err)
 					}
-					OaiObj.Logger.Print("Valid ip address for oai-hss not yet retreived")
-					time.Sleep(1 * time.Second)
-					hssIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].HssServiceName)
 				}
+				OaiObj.Logger.Print("Valid ip address for oai-hss not yet retreived")
+				time.Sleep(1 * time.Second)
+				hssIP, err = util.GetIPFromDomain(OaiObj.Logger, hssServiceName)
 			}
 
 			spgwcIP, err := util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].SpgwcServiceName)
-			if buildSnap == true {
-				spgwcIP = "127.0.11.2"
-			} else {
-				for {
-					if err != nil {
-						OaiObj.Logger.Print(err)
+			for {
+				if err != nil {
+					OaiObj.Logger.Print(err)
+				} else {
+					hostNameSpgwc, err := net.LookupHost(spgwcIP)
+					if len(hostNameSpgwc) > 0 {
+						break
 					} else {
-						hostNameSpgwc, err := net.LookupHost(spgwcIP)
-						if len(hostNameSpgwc) > 0 {
-							break
-						} else {
-							OaiObj.Logger.Print(err)
-						}
+						OaiObj.Logger.Print(err)
 					}
-					OaiObj.Logger.Print("Valid ip address for oai-spgwc not yet retreived")
-					time.Sleep(1 * time.Second)
-					spgwcIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].SpgwcServiceName)
 				}
+				OaiObj.Logger.Print("Valid ip address for oai-spgwc not yet retreived")
+				time.Sleep(1 * time.Second)
+				spgwcIP, err = util.GetIPFromDomain(OaiObj.Logger, OaiObj.Conf.OaiMme.V2[0].SpgwcServiceName)
 			}
 
 			// replace the ip address of hss
@@ -266,33 +338,158 @@ func startMmeV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 				retStatus = util.RunCmd(OaiObj.Logger, "/snap/bin/oai-hss.add-users", "-I", "208950000000001-208950000000010", "-a", APINi, "-C", cassandraIP)
 			}
 		}
-		// oai-mme.start
-		time.Sleep(10 * time.Second)
-		retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "start"}, "."))
-		counter := 0
-		maxCounter := 2
+
+		// curl http://127.0.0.1:5551/hss/status
+		urlHssStatus := "http://" + hssIP + ":5552/hss/status"
+		var counter int64
+		counter = 0
+
+		var hssActiveTime int64
+		var counterHssActiveTime int64
+		var maxWaitTimeHssStatus int64
+
+		hssActiveTime = 0
+		counterHssActiveTime = 3
+		maxWaitTimeHssStatus = 15
+		resp, err := http.Get(urlHssStatus)
 		for {
+			if err != nil {
+				OaiObj.Logger.Print(err)
+			} else {
+				defer resp.Body.Close()
+				bodyBytes, _ := ioutil.ReadAll(resp.Body)
+				bodyString := string(bodyBytes)
+
+				var hssStat []common.CnEntityV2Status
+				json.Unmarshal([]byte(bodyString), &hssStat)
+
+				OaiObj.Logger.Print(hssStat)
+				fmt.Println(hssStat)
+				/*
+					hssStat=
+					[
+						{
+							"service": "oai-mme.mmed",
+							"startup": "enabled",
+							"current": "active",
+							"notes": "-"
+						}
+					]
+				*/
+				if len(hssStat) > 0 {
+					if (hssStat[0].Startup == "enabled") && (hssStat[0].Current == "active") {
+						hssActiveTime++
+						if hssActiveTime >= counterHssActiveTime {
+							OaiObj.Logger.Print("The service " + hssStat[0].Service + " is active")
+							fmt.Println("The service " + hssStat[0].Service + " is active")
+							break
+						} else {
+							OaiObj.Logger.Print("Waiting time " + strconv.FormatInt(hssActiveTime, 10) + "/" + strconv.FormatInt(counterHssActiveTime, 10) + " seconds to make sure that the service " + hssServiceName + " is active")
+							fmt.Println("Waiting time " + strconv.FormatInt(hssActiveTime, 10) + "/" + strconv.FormatInt(counterHssActiveTime, 10) + " seconds to make sure that the service " + hssServiceName + " is active")
+						}
+					}
+				} else {
+					hssActiveTime = 0
+					OaiObj.Logger.Print("The service " + hssServiceName + " is NOT active yet, waiting ...")
+					fmt.Println("The service " + hssServiceName + " is NOT active yet, waiting ...")
+				}
+			}
+			counter++
+			if counter >= maxWaitTimeHssStatus {
+				OaiObj.Logger.Print("Waiting for " + strconv.FormatInt(maxWaitTimeHssStatus, 10) + " seconds while the service " + hssServiceName + " is not ready yet, exit...")
+				fmt.Println("Waiting for " + strconv.FormatInt(maxWaitTimeHssStatus, 10) + " seconds while the service " + hssServiceName + " is not ready yet, exit...")
+				break
+			}
+			time.Sleep(1 * time.Second)
+			resp, err = http.Get(urlHssStatus)
+		}
+		// oai-mme.start
+		// time.Sleep(10 * time.Second)
+		retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "start"}, "."))
+		time.Sleep(5 * time.Second)
+		var maxCounterHssStatus int64
+
+		// curl http://127.0.0.1:5551/hss/journal
+		urlHssJournal := "http://" + hssIP + ":5551/hss/journal"
+		OaiObj.Logger.Print("urlHssJournal=", urlHssJournal)
+
+		counter = 0
+		maxCounterHssStatus = 3
+		for {
+			time.Sleep(1 * time.Second)
 			if len(retStatus.Stderr) == 0 {
-				time.Sleep(5 * time.Second)
 				counter = counter + 1
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "status"}, "."))
-				oairanStatus := strings.Join(retStatus.Stdout, " ")
-				checkInactive := strings.Contains(oairanStatus, "inactive")
+				oaiMmeStatus := strings.Join(retStatus.Stdout, " ")
+				checkInactive := strings.Contains(oaiMmeStatus, "inactive")
 				if checkInactive != true {
 					OaiObj.Logger.Print("Waiting to make sure that oai-mme is working properly")
 					fmt.Println("Waiting to make sure that oai-mme is working properly")
-					if counter >= maxCounter {
+					resp, err := http.Get(urlHssJournal)
+					time.Sleep(1 * time.Second)
+					for {
+						if err != nil {
+							OaiObj.Logger.Print(err)
+						} else {
+							defer resp.Body.Close()
+							bodyBytes, _ := ioutil.ReadAll(resp.Body)
+							hssJournal := string(bodyBytes)
+							ClosedToOpenStateStr := `NOTI\s*'STATE_CLOSED'\s*->\s*'STATE_OPEN'\s*`
+							ClosedToOpenStateStr2 := `\s*->\s*'STATE_OPEN'\s*`
+							OaiObj.Logger.Print("ClosedToOpenStateStr=", ClosedToOpenStateStr)
+							reClosedToOpenState := regexp.MustCompile(ClosedToOpenStateStr)
+							reClosedToOpenState2 := regexp.MustCompile(ClosedToOpenStateStr2)
+
+							submatchall := reClosedToOpenState.FindAllString(hssJournal, -1)
+							submatchall2 := reClosedToOpenState2.FindAllString(hssJournal, -1)
+							if (len(submatchall) >= 1) || (len(submatchall2) >= 1) {
+								// oai-hss is in STATE_OPEN
+								counter = maxCounterHssStatus
+								OaiObj.Logger.Print("oai-hss switched from STATE_CLOSED to STATE_OPEN , exit...")
+								break
+							} else {
+								// oai-hss is not in STATE_OPEN
+								OaiObj.Logger.Print("oai-hss is not in STATE_OPEN, restarting the service")
+								retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "stop"}, "."))
+								for {
+									retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "status"}, "."))
+									oaiMmeStatus = strings.Join(retStatus.Stdout, " ")
+									if strings.Contains(oaiMmeStatus, "disabled") && strings.Contains(oaiMmeStatus, "inactive") {
+										break
+									}
+								}
+								retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "start"}, "."))
+								time.Sleep(5 * time.Second)
+								counter = 0
+								break
+							}
+
+						}
+						time.Sleep(1 * time.Second)
+						resp, err = http.Get(urlHssJournal)
+					}
+					if counter >= maxCounterHssStatus {
 						break
 					}
 				} else {
 					OaiObj.Logger.Print("oai-mme is in inactive status, restarting the service")
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "stop"}, "."))
+					for {
+						time.Sleep(1 * time.Second)
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "status"}, "."))
+						oaiMmeStatus = strings.Join(retStatus.Stdout, " ")
+						if strings.Contains(oaiMmeStatus, "disabled") && strings.Contains(oaiMmeStatus, "inactive") {
+							break
+						}
+					}
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "start"}, "."))
+					time.Sleep(5 * time.Second)
 					counter = 0
 				}
 			} else {
 				OaiObj.Logger.Print("Start oai-mme failed, try again later")
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{mmeBin, "start"}, "."))
+				time.Sleep(2 * time.Second)
 				counter = 0
 			}
 		}

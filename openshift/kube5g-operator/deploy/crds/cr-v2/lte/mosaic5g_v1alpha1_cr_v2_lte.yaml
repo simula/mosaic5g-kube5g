@@ -9,7 +9,7 @@ spec:
   # if k8sGlobalNamespace is NOT "" empty string, e.g. k8sGlobalNamespace: "default", all the entities will be deployed in the defined namespace
   oaiEnb:
   - oaiEnbSize: 1
-    oaiEnbImage: "mosaic5gecosys/oairan:v1.1.0"
+    oaiEnbImage: "mosaic5gecosys/oairan:v1-1.0-1"
     k8sDeploymentName: "oairan"
     k8sServiceName: "oairan"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -35,6 +35,8 @@ spec:
       description: |
         If (ipv4) is provided, the enb connects to MME using the provied ip address. 
         Otherwise, it will connect to the service provided by (name)
+        If both are provied, "ipv4" will be taked. If none of them is provided, the configuration will skip it and mme will not be configured
+        snapVersion: the version of the snap, where the allowed versions are: "v1" and "v2"
       name: "oaimmev2"
       snapVersion: "v2"   # allowed values: v1, v2
       ipv4: ""
@@ -116,7 +118,7 @@ spec:
   oaiHss:
     v2:
     - oaiHssSize: 1
-      oaiHssImage: "mosaic5gecosys/oaihss:v2.1.0"
+      oaiHssImage: "mosaic5gecosys/oaihss:v2-1.0-1"
       k8sDeploymentName: "oaihssv2"
       k8sServiceName: "oaihssv2"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -157,7 +159,7 @@ spec:
   oaiMme:
     v2:
     - oaiMmeSize: 1
-      oaiMmeImage: "mosaic5gecosys/oaimme:v2.1.0"
+      oaiMmeImage: "mosaic5gecosys/oaimme:v2-1.0-1"
       k8sDeploymentName: "oaimmev2"
       k8sServiceName: "oaimmev2"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -193,7 +195,7 @@ spec:
   oaiSpgwc:
     v2: # Do not change, Always v2
     - oaiSpgwcSize: 1
-      oaiSpgwcImage: "mosaic5gecosys/oaispgwc:v2.1.0"
+      oaiSpgwcImage: "mosaic5gecosys/oaispgwc:v2-1.0-1"
       k8sDeploymentName: "oaispgwcv2"
       k8sServiceName: "oaispgwcv2"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
@@ -227,11 +229,11 @@ spec:
         channel: "edge"
         devmode: true
         refresh: false
-      dns: "192.168.1.1" # DNS of your network
+      dns: "8.8.8.8"     # DNS of your network
   oaiSpgwu:
     v2: # Do not change, Always v2
     - oaiSpgwuSize: 1
-      oaiSpgwuImage: "mosaic5gecosys/oaispgwu:v2.1.0"
+      oaiSpgwuImage: "mosaic5gecosys/oaispgwu:v2-1.0-1"
       k8sDeploymentName: "oaispgwuv2"
       k8sServiceName: "oaispgwuv2"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.

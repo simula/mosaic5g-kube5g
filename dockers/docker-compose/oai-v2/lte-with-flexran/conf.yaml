@@ -7,10 +7,10 @@ oaiEnb:
       Otherwise, it will connect to the service provided by (name)
       If both are provied, "ipv4" will be taked. If none of them is provided, the configuration will skip it and mme will not be configured
       snapVersion: the version of the snap, where the allowed versions are: "v1" and "v2"
-    name: "oaicn"
-    snapVersion: "v1"     # allowed values: v1, v2
+    name: "oaimme"
+    snapVersion: "v2"     # allowed values: v1, v2
     ipv4: ""
-  flexRAN: false
+  flexRAN: true
   flexRANServiceName: "flexran"
   snap:
     description: |
@@ -62,21 +62,75 @@ oaiEnb:
   max_rxgain:
     description: "defines the maximum Rx gain"
     default: "110"
-oaiCn:
-  v1:
+flexran:
+- snap:
+    description: "Define the version of the snap to be used"
+    name: "flexran"
+    channel: "edge"
+    devmode: true
+    refresh: false
+
+oaiHss:
+  v2:
   - realm:
       description: "Realm of oai"
-      default: "openair4G.eur"
+      default: "openair5G.eur"
+    APN_NI:
+      description: |
+        APN of your network. Currently only one API is supported which will replace the default value of 
+        the first api (oai.openair5G.eur) to the defined value
+      default: "oai.ipv4"
     snap:
       description: "Define the version of the snap to be used"
-      name: "oai-cn"
+      name: "oai-hss"
       channel: "edge"
       devmode: true
       refresh: false
-    oaiHss:
-      databaseServiceName: "mysql"
-    oaiMme:
-      mcc: "208"
-      mnc: "95"
-    oaiSpgw:
-      dns: "8.8.8.8"       # DNS of your network
+    databaseServiceName: "cassandra"
+    hssServiceName: "oaihss"
+    mmeServiceName: "oaimme"
+    spgwcServiceName: "oaispgwc"
+oaiMme:
+  v2:
+  - realm:
+      description: "Realm of oai"
+      default: "openair5G.eur"
+    snap:
+      description: "Define the version of the snap to be used"
+      name: "oai-mme"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    mcc: "208"
+    mnc: "95"
+    hssServiceName: "oaihss"
+    spgwcServiceName: "oaispgwc"
+oaiSpgwc:
+  v2:   # Do not change, Always v2
+  - realm:
+      description: "Realm of oai"
+      default: "openair5G.eur"
+    APN_NI:
+      description: |
+        APN of your network. Currently only one API is supported which will replace the default value of 
+        the first api (oai.openair5G.eur) to the defined value
+      default: "oai.ipv4"
+    snap:
+      description: "Define the version of the snap to be used"
+      name: "oai-spgwc"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    dns: "8.8.8.8"       # DNS of your network
+oaiSpgwu:
+  v2:   # Do not change, Always v2
+  - realm:
+      description: "Realm of oai"
+      default: "openair5G.eur"
+    snap:
+      description: "Define the version of the snap to be used"
+      name: "oai-spgwu"
+      channel: "edge"
+      devmode: true
+      refresh: false
+    spgwcServiceName: "oaispgwc"

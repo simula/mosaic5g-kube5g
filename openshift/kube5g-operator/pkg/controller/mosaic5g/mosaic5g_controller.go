@@ -147,6 +147,11 @@ var ran *appsv1.Deployment
 var ranDeployment *appsv1.Deployment
 var ranService *v1.Service
 
+// oai-ran v1
+var flexran *appsv1.Deployment
+var flexranDeployment *appsv1.Deployment
+var flexranService *v1.Service
+
 // Reconcile reads that state of the cluster for a Mosaic5g object and makes changes based on the state read
 // and what is in the Mosaic5g.Spec
 // Note:
@@ -201,9 +206,6 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 		reqLogger.Error(err, "Get ConfigMap failed")
 		return reconcile.Result{}, err
 	}
-
-	/* START the new change from HERE*/
-	/*==============================================================================================*/
 
 	/***************************** Create the deployment and service of database *****************************/
 	// var databaseName string
@@ -302,7 +304,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("30s")
+			d, _ := time.ParseDuration("3s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "CN Failed to get Deployment")
@@ -347,7 +349,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("30s")
+			d, _ := time.ParseDuration("3s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "CN Failed to get Deployment")
@@ -391,7 +393,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("5s")
+			d, _ := time.ParseDuration("1s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "HSS Failed to get Deployment")
@@ -436,7 +438,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("5s")
+			d, _ := time.ParseDuration("1s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "HSS Failed to get Deployment")
@@ -478,7 +480,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("5s")
+			d, _ := time.ParseDuration("1s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "MME Failed to get Deployment")
@@ -496,7 +498,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 		}
-		time.Sleep(15 * time.Second)
+		// time.Sleep(15 * time.Second)
 
 	}
 	/***************************** Create the deployment and service of oai-spgwc v2 if exist *****************************/
@@ -520,7 +522,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("5s")
+			d, _ := time.ParseDuration("1s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "MME Failed to get Deployment")
@@ -536,7 +538,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 		}
-		time.Sleep(15 * time.Second)
+		// time.Sleep(15 * time.Second)
 
 	}
 	/***************************** Create the deployment and service of oai-spgwu v2 if exist *****************************/
@@ -559,7 +561,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("5s")
+			d, _ := time.ParseDuration("1s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "MME Failed to get Deployment")
@@ -576,7 +578,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 		}
-		time.Sleep(15 * time.Second)
+		// time.Sleep(15 * time.Second)
 
 	}
 	/***************************** Create the deployment and service of oai-mme v1 if exist *****************************/
@@ -618,7 +620,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("5s")
+			d, _ := time.ParseDuration("1s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "MME Failed to get Deployment")
@@ -636,7 +638,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 		}
-		time.Sleep(15 * time.Second)
+		// time.Sleep(15 * time.Second)
 	}
 	/***************************** Create the deployment and service of oai-mme v2 if exist *****************************/
 	// mmeV2 := &appsv1.Deployment{}
@@ -667,7 +669,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 			// Deployment created successfully. Let's wait for it to be ready
-			d, _ := time.ParseDuration("5s")
+			d, _ := time.ParseDuration("1s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		} else if err != nil {
 			reqLogger.Error(err, "MME Failed to get Deployment")
@@ -685,7 +687,45 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				return reconcile.Result{}, err
 			}
 		}
-		time.Sleep(15 * time.Second)
+		// time.Sleep(15 * time.Second)
+	}
+	/***************************** Create the deployment and service of flexran if exist *****************************/
+	// // flexran v1
+	if len(instance.Spec.Flexran) >= 1 {
+		flexran = &appsv1.Deployment{}
+		flexranDeployment = r.deploymentForFlexran(instance)
+		flexranService = r.genFlexranService(instance)
+
+		//time.Sleep(15 * time.Second)
+		// Create an flexran deployment
+		// Check if the flexran deployment already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: flexranDeployment.GetName(), Namespace: instance.Namespace}, flexran)
+		if err != nil && errors.IsNotFound(err) {
+
+			reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", flexranDeployment.Namespace, "Deployment.Name", flexranDeployment.Name)
+			err = r.client.Create(context.TODO(), flexranDeployment)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", flexranDeployment.Namespace, "Deployment.Name", flexranDeployment.Name)
+				return reconcile.Result{}, err
+			}
+			// Deployment created successfully - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		} else if err != nil {
+			reqLogger.Error(err, "FlexRAN Failed to get Deployment")
+			return reconcile.Result{}, err
+		}
+
+		// Create an flexran service
+		service := &v1.Service{}
+		// Check if the oai-cn service already exists, if not create a new one
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: flexranService.GetName(), Namespace: instance.Namespace}, service)
+		if err != nil && errors.IsNotFound(err) {
+			err = r.client.Create(context.TODO(), flexranService)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", flexranService.Namespace, "Service.Name", flexranService.Name)
+				return reconcile.Result{}, err
+			}
+		}
 	}
 	/***************************** Create the deployment and service of oai-ran if exist *****************************/
 	// ran := &appsv1.Deployment{}
@@ -702,31 +742,37 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			// wait for oai-cn V1 if the deployment is all-in-one v1
 			if len(instance.Spec.OaiCn.V1) >= 1 {
 				if cnV1.Status.ReadyReplicas == 0 {
-					d, _ := time.ParseDuration("10s")
-					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.OaiCn.V1[0].K8sDeploymentName + " POD is ready, 10 seconds backoff")
+					d, _ := time.ParseDuration("2s")
+					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.OaiCn.V1[0].K8sDeploymentName + " POD is ready, 2 seconds backoff")
 				}
 			}
 			// wait for oai-cn V2 if the deployment is all-in-one v2
 			if len(instance.Spec.OaiCn.V2) >= 1 {
 				if cnV2.Status.ReadyReplicas == 0 {
-					d, _ := time.ParseDuration("10s")
-					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.OaiCn.V2[0].K8sDeploymentName + " POD is ready, 10 seconds backoff")
+					d, _ := time.ParseDuration("2s")
+					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.OaiCn.V2[0].K8sDeploymentName + " POD is ready, 2s seconds backoff")
 				}
 			}
 
 			// wait for oai-mme V1 if the deployment is oai-mme v1
 			if len(instance.Spec.OaiMme.V1) >= 1 {
 				if mmeV1.Status.ReadyReplicas == 0 {
-					d, _ := time.ParseDuration("10s")
-					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.OaiMme.V1[0].K8sDeploymentName + " POD is ready, 10 seconds backoff")
+					d, _ := time.ParseDuration("2s")
+					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.OaiMme.V1[0].K8sDeploymentName + " POD is ready, 2s seconds backoff")
 				}
 			}
 
 			// wait for oai-mme V2 if the deployment is oai-mme v2
 			if len(instance.Spec.OaiMme.V2) >= 1 {
 				if mmeV2.Status.ReadyReplicas == 0 {
-					d, _ := time.ParseDuration("10s")
-					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.OaiMme.V2[0].K8sDeploymentName + " POD is ready, 10 seconds backoff")
+					d, _ := time.ParseDuration("2s")
+					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.OaiMme.V2[0].K8sDeploymentName + " POD is ready, 2s seconds backoff")
+				}
+			}
+			if instance.Spec.OaiEnb[0].FlexRAN == true {
+				if flexran.Status.ReadyReplicas == 0 {
+					d, _ := time.ParseDuration("2s")
+					return reconcile.Result{Requeue: true, RequeueAfter: d}, Err.New("No " + instance.Spec.Flexran[0].K8sDeploymentName + " POD is ready, 2s seconds backoff")
 				}
 			}
 
@@ -755,7 +801,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			}
 		}
 	}
-
+	//////////////////////////////////////////////////////////////////
 	/* Ensure the deployment size is the same as the spec */
 	// Ensure the deployment size of oai-cn v1 (if exist) is the same as the spec
 	if len(instance.Spec.OaiCn.V1) >= 1 {
@@ -894,6 +940,38 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 
 			if err != nil {
 				reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", spgwuV2.Namespace, "Deployment.Name", spgwuV2.Name)
+				return reconcile.Result{}, err
+			}
+			// Spec updated - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		}
+	}
+
+	// Ensure the deployment size of flexran v1 (if exist) is the same as the spec
+	if len(instance.Spec.Flexran) >= 1 {
+		size := instance.Spec.Flexran[0].FlexranSize
+		if *flexran.Spec.Replicas != size {
+			flexran.Spec.Replicas = &size
+			err = r.client.Update(context.TODO(), flexran)
+
+			if err != nil {
+				reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", flexran.Namespace, "Deployment.Name", flexran.Name)
+				return reconcile.Result{}, err
+			}
+			// Spec updated - return and requeue
+			return reconcile.Result{Requeue: true}, nil
+		}
+	}
+
+	// Ensure the deployment size of oai-ran v1 (if exist) is the same as the spec
+	if len(instance.Spec.OaiEnb) >= 1 {
+		size := instance.Spec.OaiEnb[0].OaiEnbSize
+		if *ran.Spec.Replicas != size {
+			ran.Spec.Replicas = &size
+			err = r.client.Update(context.TODO(), ran)
+
+			if err != nil {
+				reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", ran.Namespace, "Deployment.Name", ran.Name)
 				return reconcile.Result{}, err
 			}
 			// Spec updated - return and requeue
@@ -1098,61 +1176,90 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				}
 			}
 
-			// update oai-cn v1 if exist
+			// ================================ flexran v1 ================================ //
+			if (len(currentconfYaml.Flexran) >= 1) && (len(newconfYaml.Flexran) == 0) {
+				// Delet the core network v2 from the previous deployment
+				size := currentconfYaml.Flexran[0].FlexranSize
+				size = 0
+				flexran.Spec.Replicas = &size
+				err = r.client.Update(context.TODO(), flexran)
+				if err != nil {
+					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", flexran.Namespace, "Deployment.Name", flexran.Name)
+				}
+			}
+			// ================================ oai-ran v1 ================================ //
+			if (len(currentconfYaml.OaiEnb) >= 1) && (len(newconfYaml.OaiEnb) == 0) {
+				// Delet the core network v2 from the previous deployment
+				size := currentconfYaml.OaiEnb[0].OaiEnbSize
+				size = 0
+				ran.Spec.Replicas = &size
+				err = r.client.Update(context.TODO(), ran)
+				if err != nil {
+					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", ran.Namespace, "Deployment.Name", ran.Name)
+				}
+			}
+
+			// ================================ update oai-cn v1 if exist ================================ //
 			if len(instance.Spec.OaiCn.V1) >= 1 {
 				err = r.client.Delete(context.TODO(), coreNetworkDeploymentV1)
 				err = r.client.Delete(context.TODO(), coreNetworkServiceV1)
 			}
 
-			// update oai-cn v1 if exist
+			// ================================ update oai-cn v2 if exist ================================ //
 			if len(instance.Spec.OaiCn.V2) >= 1 {
 				err = r.client.Delete(context.TODO(), coreNetworkDeploymentV2)
 				err = r.client.Delete(context.TODO(), coreNetworkServiceV2)
 			}
 
-			// update oai-hss v1 if exist
+			// ================================ update oai-hss v1 if exist ================================ //
 			if len(instance.Spec.OaiHss.V1) >= 1 {
 				err = r.client.Delete(context.TODO(), hssDeploymentV1)
 				err = r.client.Delete(context.TODO(), hssServiceV1)
 			}
 
-			// update oai-hss v2 if exist
+			// ================================ update oai-hss v2 if exist ================================ //
 			if len(instance.Spec.OaiHss.V2) >= 1 {
 				err = r.client.Delete(context.TODO(), hssDeploymentV2)
 				err = r.client.Delete(context.TODO(), hssServiceV2)
 			}
 
-			// update oai-mme v1 if exist
+			// ================================ update oai-mme v1 if exist ================================ //
 			if len(instance.Spec.OaiMme.V1) >= 1 {
 				err = r.client.Delete(context.TODO(), mmeDeploymentV1)
 				err = r.client.Delete(context.TODO(), mmeServiceV1)
 			}
 
-			// update oai-mme v2 if exist
+			// ================================ update oai-mme v2 if exist ================================ //
 			if len(instance.Spec.OaiMme.V2) >= 1 {
 				err = r.client.Delete(context.TODO(), mmeDeploymentV2)
 				err = r.client.Delete(context.TODO(), mmeServiceV2)
 			}
 
-			// update oai-spgw v1 if exist
+			// ================================ update oai-spgw v1 if exist ================================ //
 			if len(instance.Spec.OaiSpgw.V1) >= 1 {
 				err = r.client.Delete(context.TODO(), spgwDeploymentV1)
 				err = r.client.Delete(context.TODO(), spgwServiceV1)
 			}
 
-			// update oai-spgwc v2 if exist
+			// ================================ update oai-spgwc v2 if exist ================================ //
 			if len(instance.Spec.OaiSpgwc.V2) >= 1 {
 				err = r.client.Delete(context.TODO(), spgwcDeploymentV2)
 				err = r.client.Delete(context.TODO(), spgwcServiceV2)
 			}
 
-			// update oai-spgwu v2 if exist
+			// ================================ update oai-spgwu v2 if exist ================================ //
 			if len(instance.Spec.OaiSpgwu.V2) >= 1 {
 				err = r.client.Delete(context.TODO(), spgwuDeploymentV2)
 				err = r.client.Delete(context.TODO(), spgwuServiceV2)
 			}
 
-			// update oai-spgwu v2 if exist
+			// ================================ update flexran v1 if exist ================================ //
+			// if len(instance.Spec.Flexran) >= 1 {
+			// 	err = r.client.Delete(context.TODO(), flexranDeployment)
+			// 	err = r.client.Delete(context.TODO(), flexranService)
+			// }
+
+			// ================================ update oai-ran v1 if exist ================================ //
 			if len(instance.Spec.OaiEnb) >= 1 {
 				err = r.client.Delete(context.TODO(), ranDeployment)
 				err = r.client.Delete(context.TODO(), ranService)
@@ -1220,7 +1327,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 			// }
 			// /////////////////////////////////////////////////////////////////////////////////////
 			// Spec updated - return and requeue
-			d, _ := time.ParseDuration("10s")
+			d, _ := time.ParseDuration("1s")
 			return reconcile.Result{Requeue: true, RequeueAfter: d}, nil
 		}
 
@@ -2707,6 +2814,150 @@ func (r *ReconcileMosaic5g) deploymentForRAN(m *mosaic5gv1alpha1.Mosaic5g) *apps
 	return dep
 }
 
+// deploymentForFlexran returns a Core Network Deployment object
+func (r *ReconcileMosaic5g) deploymentForFlexran(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
+	deploymentName := m.Spec.Flexran[0].K8sDeploymentName
+
+	// ls := util.LabelsForMosaic5g(m.Name)
+	replicas := m.Spec.Flexran[0].FlexranSize
+	labels := make(map[string]string)
+	for i := 0; i < len(m.Spec.Flexran[0].K8sLabelSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.Flexran[0].K8sLabelSelector[i].Key, m.Spec.Flexran[0].K8sLabelSelector[i].Value)
+		labels[m.Spec.Flexran[0].K8sLabelSelector[i].Key] = m.Spec.Flexran[0].K8sLabelSelector[i].Value
+	}
+	nodeSelctors := make(map[string]string)
+	for i := 0; i < len(m.Spec.Flexran[0].K8sNodeSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.Flexran[0].K8sNodeSelector[i].Key, m.Spec.Flexran[0].K8sNodeSelector[i].Value)
+		nodeSelctors[m.Spec.Flexran[0].K8sNodeSelector[i].Key] = m.Spec.Flexran[0].K8sNodeSelector[i].Value
+	}
+
+	namespace := m.Spec.K8sGlobalNamespace
+	if namespace == "" {
+		namespace = m.Spec.Flexran[0].K8sEntityNamespace
+	}
+	Annotations := make(map[string]string)
+	Annotations["container.apparmor.security.beta.kubernetes.io/"+deploymentName] = "unconfined"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: m.GetName() + "-" + deploymentName,
+			// Namespace:   m.Namespace,
+			Namespace:   namespace,
+			Annotations: Annotations,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					NodeSelector: nodeSelctors,
+					// NodeSelector: map[string]string{
+					// 	"usrp": "true"},
+					Hostname: "ubuntu",
+					Containers: []corev1.Container{{
+						Image:           m.Spec.Flexran[0].FlexranImage,
+						Name:            m.Spec.Flexran[0].K8sDeploymentName,
+						Command:         []string{"/sbin/init"},
+						SecurityContext: &corev1.SecurityContext{Privileged: util.NewTrue()},
+						// Resources: corev1.ResourceRequirements{
+						// 	Limits: corev1.ResourceList{
+						// 		corev1.ResourceCPU:    resource.MustParse(m.Spec.Flexran[0].K8sPodResources.Limits.ResourceCPU),
+						// 		corev1.ResourceMemory: resource.MustParse(m.Spec.Flexran[0].K8sPodResources.Limits.ResourceMemory),
+						// 	},
+						// 	Requests: corev1.ResourceList{
+						// 		corev1.ResourceCPU:    resource.MustParse(m.Spec.Flexran[0].K8sPodResources.Requests.ResourceCPU),
+						// 		corev1.ResourceMemory: resource.MustParse(m.Spec.Flexran[0].K8sPodResources.Requests.ResourceMemory),
+						// 	},
+						// },
+						VolumeMounts: []corev1.VolumeMount{{
+							Name:      "cgroup",
+							ReadOnly:  true,
+							MountPath: "/sys/fs/cgroup/",
+						}, {
+							Name:      "module",
+							ReadOnly:  true,
+							MountPath: "/lib/modules/",
+						}, {
+							Name:      "mosaic5g-config",
+							MountPath: "/root/config",
+						}},
+						/* TODO add the configuration of the ports to the configuration of the deployed in the yaml file to be dynamic.
+						Hints: use the folloiwng method to add the ports
+						dep.Spec.Template.Spec.Containers[0].Ports[0].Name = "mosaic5g-cn"
+						dep.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort = 80
+						...
+						*/
+						Ports: []corev1.ContainerPort{{
+							Name:          "sbi-port",
+							ContainerPort: 2210,
+							// Protocol:      corev1.ProtocolTCP,
+						}, {
+							Name:          "nbi-port",
+							ContainerPort: 9999,
+							// Protocol:      corev1.ProtocolTCP,
+						}, {
+							Name:          "open-api",
+							ContainerPort: 5530,
+							// Protocol:      corev1.ProtocolTCP,
+						}, {
+							Name:          "open-api-man",
+							ContainerPort: 6630,
+							// Protocol:      corev1.ProtocolTCP,
+						}},
+					}},
+					Affinity: util.GenAffinity("ran"),
+					Volumes: []corev1.Volume{{
+						Name: "cgroup",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/sys/fs/cgroup/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "module",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/lib/modules/",
+								Type: util.NewHostPathType("Directory"),
+							},
+						}}, {
+						Name: "mosaic5g-config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "mosaic5g-config"},
+							},
+						}},
+					},
+				},
+			},
+		},
+	}
+	////////////////////
+	if (m.Spec.Flexran[0].K8sPodResources.Limits.ResourceCPU != "") && (m.Spec.Flexran[0].K8sPodResources.Limits.ResourceMemory != "") {
+		limits := corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse(m.Spec.Flexran[0].K8sPodResources.Limits.ResourceCPU),
+			corev1.ResourceMemory: resource.MustParse(m.Spec.Flexran[0].K8sPodResources.Limits.ResourceMemory),
+		}
+		dep.Spec.Template.Spec.Containers[0].Resources.Limits = limits
+	}
+	if (m.Spec.Flexran[0].K8sPodResources.Requests.ResourceCPU != "") && (m.Spec.Flexran[0].K8sPodResources.Requests.ResourceMemory != "") {
+		requests := corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse(m.Spec.Flexran[0].K8sPodResources.Requests.ResourceCPU),
+			corev1.ResourceMemory: resource.MustParse(m.Spec.Flexran[0].K8sPodResources.Requests.ResourceMemory),
+		}
+		dep.Spec.Template.Spec.Containers[0].Resources.Requests = requests
+	}
+	////////////////////
+
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, dep, r.scheme)
+	return dep
+}
+
 // deploymentForMySQL returns a Core Network Deployment object
 func (r *ReconcileMosaic5g) deploymentForMySQL(m *mosaic5gv1alpha1.Mosaic5g) *appsv1.Deployment {
 	deploymentName := m.Spec.Database[0].K8sDeploymentName
@@ -3390,7 +3641,48 @@ func (r *ReconcileMosaic5g) genSpgwuV2Service(m *mosaic5gv1alpha1.Mosaic5g) *v1.
 	return service
 }
 
-// genRanService will generate a service for oaicn
+// genFlexranService will generate a service for flexran
+func (r *ReconcileMosaic5g) genFlexranService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
+	serviceName := m.Spec.Flexran[0].K8sServiceName
+
+	var service *v1.Service
+
+	selectMap := make(map[string]string)
+	for i := 0; i < len(m.Spec.Flexran[0].K8sLabelSelector); i++ {
+		fmt.Printf("key=:%v \t key=:%v\n", m.Spec.Flexran[0].K8sLabelSelector[i].Key, m.Spec.Flexran[0].K8sLabelSelector[i].Value)
+		selectMap[m.Spec.Flexran[0].K8sLabelSelector[i].Key] = m.Spec.Flexran[0].K8sLabelSelector[i].Value
+	}
+
+	namespace := m.Spec.K8sGlobalNamespace
+	if namespace == "" {
+		namespace = m.Spec.Flexran[0].K8sEntityNamespace
+	}
+
+	service = &v1.Service{}
+	service.Spec = v1.ServiceSpec{
+		Ports: []v1.ServicePort{
+			{Name: "flexran-nbi-tcp", Port: 9999, Protocol: v1.ProtocolTCP},  //tcp
+			{Name: "flexran-nbi-udp", Port: 9999, Protocol: v1.ProtocolUDP},  //udp
+			{Name: "flexran-sbi-tdp", Port: 2210, Protocol: v1.ProtocolTCP},  //tcp
+			{Name: "flexran-sbi-udp", Port: 2210, Protocol: v1.ProtocolUDP},  //udp
+			{Name: "open-api-tcp", Port: 5530, Protocol: v1.ProtocolTCP},     //tcp
+			{Name: "open-api-udp", Port: 5530, Protocol: v1.ProtocolUDP},     //udp
+			{Name: "open-api-man-tdp", Port: 6630, Protocol: v1.ProtocolTCP}, //tcp
+			{Name: "open-api-man-udp", Port: 6630, Protocol: v1.ProtocolUDP}, //udp
+
+		},
+		Selector: selectMap,
+		// Type:     "NodePort",
+		ClusterIP: "None",
+	}
+	service.Name = serviceName
+	service.Namespace = namespace
+	// Set Mosaic5g instance as the owner and controller
+	controllerutil.SetControllerReference(m, service, r.scheme)
+	return service
+}
+
+// genRanService will generate a service for oairan
 func (r *ReconcileMosaic5g) genRanService(m *mosaic5gv1alpha1.Mosaic5g) *v1.Service {
 	serviceName := m.Spec.OaiEnb[0].K8sServiceName
 

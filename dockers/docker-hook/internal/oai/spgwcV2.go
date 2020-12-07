@@ -33,7 +33,10 @@ package oai
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"mosaic5g/docker-hook/internal/pkg/util"
+	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -119,9 +122,44 @@ func startSpgwcV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, spgwConf)
 		}
 
-		retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", "s/oai.openair5G.eur/"+APINi+"/g", spgwConf)
+		// retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", "s/oai.openair5G.eur/"+APINi+"/g", spgwConf)
 		// retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", "s/oai.openair5G.eur/"+"oai.ipv4"+"/g", spgwConf)
+		/*========================================= Open spgwConf as text-file =========================================*/
+		spgwcConfInput, err := ioutil.ReadFile(spgwConf)
+		if err != nil {
+			OaiObj.Logger.Print(err)
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		spgwcConfInputText := string(spgwcConfInput)
 
+		// APN_LIST: APN_NI
+		reqExpStr := `{APN_NI\s*=\s*".*";\s*PDN_TYPE\s*=\s*"IPv4";\s*IPV4_POOL\s*=\s*\d*;\s*IPV6_POOL\s*=\s*-*\d*}`
+		apnListApnNi := regexp.MustCompile(reqExpStr)
+		submatchall := apnListApnNi.FindAllString(spgwcConfInputText, -1)
+
+		for _, element := range submatchall {
+			apnListApnNi = regexp.MustCompile(element)
+			break
+		}
+		fmt.Println(apnListApnNi)
+		OaiObj.Logger.Print(apnListApnNi)
+
+		newStr := `{APN_NI = "` + APINi + `"; PDN_TYPE = "IPv4"; IPV4_POOL = 0; IPV6_POOL = -1}`
+		repStr := `${1}` + newStr + `$2`
+		spgwcConfInputText = apnListApnNi.ReplaceAllString(spgwcConfInputText, repStr)
+
+		fmt.Println(spgwcConfInputText)
+		OaiObj.Logger.Print(spgwcConfInputText)
+
+		spgwcConfOutput := []byte(spgwcConfInputText)
+
+		if err = ioutil.WriteFile(spgwConf, spgwcConfOutput, 0666); err != nil {
+			OaiObj.Logger.Print(err)
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		//
 		if CnAllInOneMode == false {
 			// Get interface IP and outbound interface
 			interfaceIP := util.GetOutboundIP()
@@ -153,19 +191,20 @@ func startSpgwcV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 		}
 
 		// oai.spgwc-start
-		time.Sleep(10 * time.Second)
+		// time.Sleep(10 * time.Second)
 		OaiObj.Logger.Print("start spgwc as daemon")
 		fmt.Println("start spgwc as daemon")
 		retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "start"}, "."))
+		time.Sleep(5 * time.Second)
 		counter := 0
 		maxCounter := 2
 		for {
+			time.Sleep(1 * time.Second)
 			if len(retStatus.Stderr) == 0 {
-				time.Sleep(5 * time.Second)
 				counter = counter + 1
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "status"}, "."))
-				oairanStatus := strings.Join(retStatus.Stdout, " ")
-				checkInactive := strings.Contains(oairanStatus, "inactive")
+				oaiSpgwcStatus := strings.Join(retStatus.Stdout, " ")
+				checkInactive := strings.Contains(oaiSpgwcStatus, "inactive")
 				if checkInactive != true {
 					OaiObj.Logger.Print("Waiting to make sure that oai-spgwc is working properly")
 					fmt.Println("Waiting to make sure that oai-spgwc is working properly")
@@ -176,13 +215,23 @@ func startSpgwcV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 					OaiObj.Logger.Print("oai-spgwc is in inactive status, restarting the service")
 					fmt.Println("oai-spgwc is in inactive status, restarting the service")
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "stop"}, "."))
+					for {
+						time.Sleep(1 * time.Second)
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "status"}, "."))
+						oaiSpgwcStatus = strings.Join(retStatus.Stdout, " ")
+						if strings.Contains(oaiSpgwcStatus, "disabled") && strings.Contains(oaiSpgwcStatus, "inactive") {
+							break
+						}
+					}
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "start"}, "."))
+					time.Sleep(5 * time.Second)
 					counter = 0
 				}
 			} else {
 				OaiObj.Logger.Print("Start oai-spgwc failed, try again later")
 				fmt.Println("Start oai-spgwc failed, try again later")
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "start"}, "."))
+				time.Sleep(5 * time.Second)
 				counter = 0
 			}
 		}

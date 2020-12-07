@@ -156,20 +156,23 @@ EOF
 }
 
 Install_microk8s_kubectl(){
-    echo "sudo without password is recommended"
-    $SUDO snap install microk8s --classic --channel=1.14/stable
-    $SUDO snap install kubectl --classic
-    microk8s.start
+    #Ref: https://microk8s.io/docs  and https://github.com/ubuntu/microk8s
+    echo_info "Install microk8s 1.19/stable and kubectl 1.19.4/stable"
+    $SUDO snap install microk8s --classic --channel=1.19/stable
+    $SUDO snap install kubectl --classic --channel=1.19/stable
+    
+    # Join the group of microk8s
+    echo_info "Join the group of microk8s"
+    $SUDO usermod -a -G microk8s $USER
+    $SUDO chown -f -R $USER ~/.kube
+    
+    # Check the status of microk8s
+    echo_info "Check the status of microk8s" 
+    microk8s status --wait-ready
+
+    $SUDO microk8s kubectl config view --raw > $HOME/.kube/config
+
     microk8s.enable dns
-    # kubeconfig is used by operator
-    $SUDO chown $USER -R $HOME/.kube
-    microk8s.kubectl config view --raw > $HOME/.kube/config
-    # enable privileged
-    $SUDO bash -c 'echo "--allow-privileged=true" >> /var/snap/microk8s/current/args/kubelet'
-    $SUDO bash -c 'echo "--allow-privileged=true" >> /var/snap/microk8s/current/args/kube-apiserver'
-    # Restart kube
-    $SUDO systemctl restart snap.microk8s.daemon-kubelet.service
-    $SUDO systemctl restart snap.microk8s.daemon-apiserver.service
 
     # apply label to the node so that the entity oai-ran can be deployed, 
     # since the default configuration of oaiEnb in "common/config-manager/conf_global_default.yaml" is set to deploy oai-ran on the node with the label oai=ran
@@ -202,6 +205,10 @@ Install_microk8s_kubectl(){
     $ kubectl get pods -A
     $ kubectl get nodes
     '
+    
+    # re-enter the session
+    echo_warn "re-enter the session"
+    su - $USER
 }
 
 

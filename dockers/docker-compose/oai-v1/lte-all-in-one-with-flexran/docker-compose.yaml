@@ -2,7 +2,7 @@ version: '2'
 
 services:
   oaicn: # Domain name of container
-    image: "mosaic5gecosys/oaicn:v1.1.0" # image of the container
+    image: "mosaic5gecosys/oaicn:v1-1.0-1" # image of the container
     restart: always # Operation Policy
     container_name: oaicn # Name of the container
     hostname: ubuntu # hostname
@@ -12,12 +12,12 @@ services:
     volumes: # Mounted from host
     - /sys/fs/cgroup:/sys/fs/cgroup:ro
     - /lib/modules:/lib/modules:ro
-    - ./conf.yaml:/root/conf.yaml:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
     - oai
 
   oairan:
-    image: "mosaic5gecosys/oairan:v1.1.0"
+    image: "mosaic5gecosys/oairan:v1-1.0-1"
     restart: always
     container_name: oairan
     hostname: oairan
@@ -29,12 +29,12 @@ services:
     - /sys/fs/cgroup:/sys/fs/cgroup:ro
     - /lib/modules:/lib/modules:ro
     - /dev/bus/usb/:/dev/bus/usb/
-    - ./conf.yaml:/root/conf.yaml:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks:
     - oai
 
   flexran:
-    image: "mosaic5gecosys/flexran:v1.1.0"
+    image: "mosaic5gecosys/flexran:v1-1.0-1"
     restart: always
     container_name: flexran
     hostname: flexran
@@ -46,7 +46,7 @@ services:
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup:ro
     - /lib/modules:/lib/modules:ro
-    - ./conf.yaml:/root/conf.yaml:ro
+    - ./conf.yaml:/root/config/conf.yaml:ro
     networks:
     - oai
 

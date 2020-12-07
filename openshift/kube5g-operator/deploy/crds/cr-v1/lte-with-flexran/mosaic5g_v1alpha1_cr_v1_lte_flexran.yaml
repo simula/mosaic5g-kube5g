@@ -40,7 +40,7 @@ spec:
       name: "oaimmev1"
       snapVersion: "v1"   # allowed values: v1, v2
       ipv4: ""
-    flexRAN: false
+    flexRAN: true
     flexRANServiceName: "flexran"
     snap:
       description: |
@@ -92,6 +92,35 @@ spec:
     max_rxgain:
       description: "defines the maximum Rx gain"
       default: "110"
+  flexran:
+  - flexranSize: 1
+    flexranImage: "mosaic5gecosys/flexran:v1-1.0-1"
+    k8sDeploymentName: "flexran"
+    k8sServiceName: "flexran"
+      # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "500m"
+      #       resourceMemory: "100Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+    k8sLabelSelector:   # labels for the deployments/services. You can define as many pairs of key/value as you want/need
+    - key: "app"
+      value: "flexran"
+    k8sEntityNamespace: "default"
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
+      #   - key: "usrp"
+      #     value: "false"
+    snap:
+      description: "Define the version of the snap to be used"
+      name: "flexran"
+      channel: "edge"
+      devmode: true
+      refresh: false
+
   database:
   - databaseSize: 1
     databaseType: "mysql"   # accepted values: "mysql", "cassandra"

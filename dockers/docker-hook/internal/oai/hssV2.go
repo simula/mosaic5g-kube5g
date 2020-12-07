@@ -228,37 +228,50 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			}
 		}
 		// oai.hss-start
-		time.Sleep(10 * time.Second)
+		// time.Sleep(10 * time.Second)
 		OaiObj.Logger.Print("start hss as daemon")
 		fmt.Println("start hss as daemon")
 		retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "start"}, "."))
+		time.Sleep(5 * time.Second)
 		counter := 0
 		maxCounter := 3
 		for {
+			time.Sleep(1 * time.Second)
 			if len(retStatus.Stderr) == 0 {
-				time.Sleep(5 * time.Second)
 				counter = counter + 1
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "status"}, "."))
-				oairanStatus := strings.Join(retStatus.Stdout, " ")
-				checkInactive := strings.Contains(oairanStatus, "inactive")
+				oaiHssStatus := strings.Join(retStatus.Stdout, " ")
+				checkInactive := strings.Contains(oaiHssStatus, "inactive")
 				if checkInactive != true {
 					OaiObj.Logger.Print("Waiting to make sure that oai-hss is working properly")
 					fmt.Println("Waiting to make sure that oai-hss is working properly")
 					if counter >= maxCounter {
-						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "restart"}, "."))
+						// retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "restart"}, "."))
 						break
 					}
 				} else {
 					OaiObj.Logger.Print("oai-hss is in inactive status, restarting the service")
 					fmt.Println("oai-hss is in inactive status, restarting the service")
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "stop"}, "."))
+					OaiObj.Logger.Print("enb is in inactive status, restarting the service")
+					util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+					for {
+						time.Sleep(1 * time.Second)
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "status"}, "."))
+						oaiHssStatus := strings.Join(retStatus.Stdout, " ")
+						if strings.Contains(oaiHssStatus, "disabled") && strings.Contains(oaiHssStatus, "inactive") {
+							break
+						}
+					}
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "start"}, "."))
+					time.Sleep(5 * time.Second)
 					counter = 0
 				}
 			} else {
 				OaiObj.Logger.Print("Start oai-hss failed, try again later")
 				fmt.Println("Start oai-hss failed, try again later")
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{hssBin, "start"}, "."))
+				time.Sleep(5 * time.Second)
 				counter = 0
 			}
 		}

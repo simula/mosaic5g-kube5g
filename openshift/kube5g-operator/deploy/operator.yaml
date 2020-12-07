@@ -15,8 +15,8 @@ spec:
       serviceAccountName: kube5g-operator
       containers:
         - name: kube5g-operator
-          # Replace this with the built image name mosaic5gecosys/kube5g-operator:v1.test
-          image: mosaic5gecosys/kube5g-operator:v1.test
+          # Replace this with the built image name mosaic5gecosys/kube5g-operator:v1-1.0-1
+          image: mosaic5gecosys/kube5g-operator:v1-1.0-1
           command:
           - kube5g-operator
           imagePullPolicy: Always

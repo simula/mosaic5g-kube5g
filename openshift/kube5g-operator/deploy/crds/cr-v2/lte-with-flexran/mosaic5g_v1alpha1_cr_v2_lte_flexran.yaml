@@ -37,10 +37,10 @@ spec:
         Otherwise, it will connect to the service provided by (name)
         If both are provied, "ipv4" will be taked. If none of them is provided, the configuration will skip it and mme will not be configured
         snapVersion: the version of the snap, where the allowed versions are: "v1" and "v2"
-      name: "oaimmev1"
-      snapVersion: "v1"   # allowed values: v1, v2
+      name: "oaimmev2"
+      snapVersion: "v2"   # allowed values: v1, v2
       ipv4: ""
-    flexRAN: false
+    flexRAN: true
     flexRANServiceName: "flexran"
     snap:
       description: |
@@ -92,12 +92,11 @@ spec:
     max_rxgain:
       description: "defines the maximum Rx gain"
       default: "110"
-  database:
-  - databaseSize: 1
-    databaseType: "mysql"   # accepted values: "mysql", "cassandra"
-    databaseImage: "mysql:5.6"
-    k8sDeploymentName: "mysql"
-    k8sServiceName: "mysql"
+  flexran:
+  - flexranSize: 1
+    flexranImage: "mosaic5gecosys/flexran:v1-1.0-1"
+    k8sDeploymentName: "flexran"
+    k8sServiceName: "flexran"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
       #   limits:
       #       resourceCPU: "500m"
@@ -107,7 +106,37 @@ spec:
       #       resourceMemory: "250Mi"
     k8sLabelSelector:   # labels for the deployments/services. You can define as many pairs of key/value as you want/need
     - key: "app"
-      value: "mysql"
+      value: "flexran"
+    k8sEntityNamespace: "default"
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
+      #   - key: "usrp"
+      #     value: "false"
+    snap:
+      description: "Define the version of the snap to be used"
+      name: "flexran"
+      channel: "edge"
+      devmode: true
+      refresh: false
+
+  database:
+  - databaseSize: 1
+    databaseType: "cassandra"   # accepted values: "mysql", "cassandra"
+    databaseImage: "mosaic5gecosys/cassandra-m5g:1.1"
+    k8sDeploymentName: "cassandra"
+    k8sServiceName: "cassandra"
+      # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "500m"
+      #       resourceMemory: "100Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+    k8sLabelSelector:   # labels for the deployments/services. You can define as many pairs of key/value as you want/need
+    - key: "app"
+      value: "cassandra"
     k8sEntityNamespace: "default"
       # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
       # You can define as many pairs of key/value as you want/need
@@ -116,11 +145,11 @@ spec:
       #   - key: "usrp"
       #     value: "false"
   oaiHss:
-    v1:
+    v2:
     - oaiHssSize: 1
-      oaiHssImage: "mosaic5gecosys/oaihss:v1-1.0-1"
-      k8sDeploymentName: "oaihssv1"
-      k8sServiceName: "oaihssv1"
+      oaiHssImage: "mosaic5gecosys/oaihss:v2-1.0-1"
+      k8sDeploymentName: "oaihssv2"
+      k8sServiceName: "oaihssv2"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
       #   limits:
       #       resourceCPU: "200m"
@@ -130,7 +159,7 @@ spec:
       #       resourceMemory: "250Mi"
       k8sLabelSelector: # labels for the deployments/services. You can define as many pairs of key/value as you want/need
       - key: "app"
-        value: "oaihssv1"
+        value: "oaihssv2"
       k8sEntityNamespace: "default"
       # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
       # You can define as many pairs of key/value as you want/need
@@ -140,21 +169,28 @@ spec:
       #     value: "false"
       realm:
         description: "Realm of oai"
-        default: "openair4G.eur"
+        default: "openair5G.eur"
+      APN_NI:
+        description: |
+          APN of your network. Currently only one API is supported which will replace the default value of 
+          the first api (oai.openair5G.eur) to the defined value
+        default: "oai.ipv4"
       snap:
         description: "Define the version of the snap to be used"
-        name: "oai-cn"
+        name: "oai-hss"
         channel: "edge"
         devmode: true
         refresh: false
-      databaseServiceName: "mysql"
-      mmeServiceName: "oaimmev1"
+      databaseServiceName: "cassandra"
+      hssServiceName: "oaihssv2"
+      mmeServiceName: "oaimmev2"
+      spgwcServiceName: "oaispgwcv2"
   oaiMme:
-    v1:
+    v2:
     - oaiMmeSize: 1
-      oaiMmeImage: "mosaic5gecosys/oaimme:v1-1.0-1"
-      k8sDeploymentName: "oaimmev1"
-      k8sServiceName: "oaimmev1"
+      oaiMmeImage: "mosaic5gecosys/oaimme:v2-1.0-1"
+      k8sDeploymentName: "oaimmev2"
+      k8sServiceName: "oaimmev2"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
       #   limits:
       #       resourceCPU: "200m"
@@ -164,7 +200,7 @@ spec:
       #       resourceMemory: "250Mi"
       k8sLabelSelector: # labels for the deployments/services. You can define as many pairs of key/value as you want/need
       - key: "app"
-        value: "oaimmev1"
+        value: "oaimmev2"
       k8sEntityNamespace: "default"
       # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
       # You can define as many pairs of key/value as you want/need
@@ -174,23 +210,23 @@ spec:
       #     value: "false"
       realm:
         description: "Realm of oai"
-        default: "openair4G.eur"
+        default: "openair5G.eur"
       snap:
         description: "Define the version of the snap to be used"
-        name: "oai-cn"
+        name: "oai-mme"
         channel: "edge"
         devmode: true
         refresh: false
       mcc: "208"
       mnc: "95"
-      hssServiceName: "oaihssv1"
-      spgwServiceName: "oaispgwv1"
-  oaiSpgw:
-    v1: # Do not change, Always v1
-    - oaiSpgwSize: 1
-      oaiSpgwImage: "mosaic5gecosys/oaispgw:v1-1.0-1"
-      k8sDeploymentName: "oaispgwv1"
-      k8sServiceName: "oaispgwv1"
+      hssServiceName: "oaihssv2"
+      spgwcServiceName: "oaispgwcv2"
+  oaiSpgwc:
+    v2: # Do not change, Always v2
+    - oaiSpgwcSize: 1
+      oaiSpgwcImage: "mosaic5gecosys/oaispgwc:v2-1.0-1"
+      k8sDeploymentName: "oaispgwcv2"
+      k8sServiceName: "oaispgwcv2"
       # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
       #   limits:
       #       resourceCPU: "200m"
@@ -200,7 +236,7 @@ spec:
       #       resourceMemory: "250Mi"
       k8sLabelSelector: # labels for the deployments/services. You can define as many pairs of key/value as you want/need
       - key: "app"
-        value: "oaispgwv1"
+        value: "oaispgwcv2"
       k8sEntityNamespace: "default"
       # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
       # You can define as many pairs of key/value as you want/need
@@ -210,13 +246,49 @@ spec:
       #     value: "false"
       realm:
         description: "Realm of oai"
-        default: "openair4G.eur"
+        default: "openair5G.eur"
+      APN_NI:
+        description: |
+          APN of your network. Currently only one API is supported which will replace the default value of 
+          the first api (oai.openair5G.eur) to the defined value
+        default: "oai.ipv4"
       snap:
         description: "Define the version of the snap to be used"
-        name: "oai-cn"
+        name: "oai-spgwc"
         channel: "edge"
         devmode: true
         refresh: false
       dns: "8.8.8.8"     # DNS of your network
-      hssServiceName: "oaihssv1"
-      mmeServiceName: "oaimmev1"
+  oaiSpgwu:
+    v2: # Do not change, Always v2
+    - oaiSpgwuSize: 1
+      oaiSpgwuImage: "mosaic5gecosys/oaispgwu:v2-1.0-1"
+      k8sDeploymentName: "oaispgwuv2"
+      k8sServiceName: "oaispgwuv2"
+      # k8sPodResources: # kubernetes limits and requests of the pods. uncomment it if you want to use it.
+      #   limits:
+      #       resourceCPU: "200m"
+      #       resourceMemory: "200Mi"
+      #   requests:
+      #       resourceCPU: "10m"
+      #       resourceMemory: "250Mi"
+      k8sLabelSelector: # labels for the deployments/services. You can define as many pairs of key/value as you want/need
+      - key: "app"
+        value: "oaispgwuv2"
+      k8sEntityNamespace: "default"
+      # k8sNodeSelector nodes labels to choose the node on which the service will be deployed. 
+      # You can define as many pairs of key/value as you want/need
+      # Add the labels to the concerned nodes before starting the deployment
+      # k8sNodeSelector:
+      #   - key: "usrp"
+      #     value: "false"
+      realm:
+        description: "Realm of oai"
+        default: "openair5G.eur"
+      snap:
+        description: "Define the version of the snap to be used"
+        name: "oai-spgwu"
+        channel: "edge"
+        devmode: true
+        refresh: false
+      spgwcServiceName: "oaispgwcv2"

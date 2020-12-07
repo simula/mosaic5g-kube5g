@@ -54,6 +54,23 @@ services:
     - ./conf.yaml:/root/config/conf.yaml:ro
     networks: # the network this container attached to
     - oai
+  flexran:
+    image: "mosaic5gecosys/flexran:v1-1.0-1"
+    restart: always
+    container_name: flexran
+    hostname: flexran
+    privileged: true
+    # depends_on:
+    #   - "oaicn"
+    ports:
+    - 2210:2210
+    - 9999:9999
+    volumes:
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    - /lib/modules:/lib/modules:ro
+      # - ./conf.yaml:/root/conf.yaml:ro
+    networks:
+    - oai
   oairan:
     image: "mosaic5gecosys/oairan:v1-1.0-1"
     restart: always

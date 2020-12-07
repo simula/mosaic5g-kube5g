@@ -775,7 +775,7 @@ spec:
                       type: object
                     flexRAN:
                       type: boolean
-                    flexranServiceName:
+                    flexRANServiceName:
                       type: string
                     k8sDeploymentName:
                       description: Configurations of ENB
@@ -1017,7 +1017,7 @@ spec:
                   - downlink_frequency
                   - eutra_band
                   - flexRAN
-                  - flexranServiceName
+                  - flexRANServiceName
                   - k8sDeploymentName
                   - k8sEntityNamespace
                   - k8sLabelSelector

@@ -3,7 +3,7 @@ common:
   - mcc: "208" # mobile country code, required for RAN and core netwrok entities
     mnc: "95" # mobile network code, required for RAN and core netwrok entities
 oaiCn:
-  - dns: "192.168.1.1" # DNS of your network
+  - dns: "8.8.8.8" # DNS of your network
     v2:
       APN_NI: # ONLY SNAP VERSION V2
         description: "APN of your network. Currently only one API is supported which will replace the default value of the first api (oai.openair5G.eur) to the defined value"

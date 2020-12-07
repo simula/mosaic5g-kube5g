@@ -125,14 +125,30 @@ apply_cr(){
     fi
     case ${2} in
         aio|all-in-one)
-            echo_info "kubectl apply -f deploy/crds/cr-${1}/lte-all-in-one/mosaic5g_v1alpha1_cr_${1}_lte_all_in_one.yaml"
-            kubectl apply -f deploy/crds/cr-${1}/lte-all-in-one/mosaic5g_v1alpha1_cr_${1}_lte_all_in_one.yaml
-            echo "lte network Custom Resources (CR) of monolitic Core Network, of snap version ${1}, is applied"
+            case ${3} in
+                flexran)
+                    echo_info "kubectl apply -f deploy/crds/cr-${1}/lte-all-in-one-with-flexran/mosaic5g_v1alpha1_cr_${1}_lte_all_in_one_flexran.yaml"
+                    kubectl apply -f deploy/crds/cr-${1}/lte-all-in-one-with-flexran/mosaic5g_v1alpha1_cr_${1}_lte_all_in_one_flexran.yaml
+                    echo "lte network Custom Resources (CR) of monolitic Core Network with FlexRAN, of snap version ${1}, is applied"
+                ;;
+                *)
+                    echo_info "kubectl apply -f deploy/crds/cr-${1}/lte-all-in-one/mosaic5g_v1alpha1_cr_${1}_lte_all_in_one.yaml"
+                    kubectl apply -f deploy/crds/cr-${1}/lte-all-in-one/mosaic5g_v1alpha1_cr_${1}_lte_all_in_one.yaml
+                    echo "lte network Custom Resources (CR) of monolitic Core Network, of snap version ${1}, is applied"
+            esac
         ;;
         dis-cn|disaggregated-cn)
-            echo_info "kubectl apply -f deploy/crds/cr-${1}/lte/mosaic5g_v1alpha1_cr_${1}_lte.yaml"
-            kubectl apply -f deploy/crds/cr-${1}/lte/mosaic5g_v1alpha1_cr_${1}_lte.yaml
-            echo "lte network Custom Resources (CR) of disaggregated Core Network entities, of snap version ${1}, is applied"
+            case ${3} in
+                flexran)
+                    echo_info "kubectl apply -f deploy/crds/cr-${1}/lte-with-flexran/mosaic5g_v1alpha1_cr_${1}_lte_flexran.yaml"
+                    kubectl apply -f deploy/crds/cr-${1}/lte-with-flexran/mosaic5g_v1alpha1_cr_${1}_lte_flexran.yaml
+                    echo "lte network Custom Resources (CR) of disaggregated Core Network entities with FlexRAN, of snap version ${1}, is applied"
+                ;;
+                *)  
+                    echo_info "kubectl apply -f deploy/crds/cr-${1}/lte/mosaic5g_v1alpha1_cr_${1}_lte.yaml"
+                    kubectl apply -f deploy/crds/cr-${1}/lte/mosaic5g_v1alpha1_cr_${1}_lte.yaml
+                    echo "lte network Custom Resources (CR) of disaggregated Core Network entities, of snap version ${1}, is applied"
+            esac
         ;;
         *)
             echo_error "Unkown option '${2}' for deploy"
@@ -226,7 +242,7 @@ main() {
             run_container ${2}
         ;;
         deploy)
-            apply_cr ${2} ${3}
+            apply_cr ${2} ${3} ${4}
         ;;
         upgrade)
             upgrade_image
@@ -263,12 +279,13 @@ Options:
     Run Operator as a Golang app at local
 container [start|stop]
     Run Operator as a POD inside Kubernetes
-deploy [v1|v2][[aio|all-in-one]|[dis-cn|disaggregated-cn]]
+deploy [v1|v2][[aio|all-in-one]|[dis-cn|disaggregated-cn][flexran]]
     Deploy the network with:
         v1: snap version v1
         v2: snap version v2
         - aio|all-in-one: all the core network entities (oai-hss, oai-mme, oai-spgw) in one pod
         - dis-cn|disaggregated-cn: the core network entities (oai-hss, oai-mme, oai-spgw) are deployed on disaggregated pods
+        flexran: if specified, flexran will be deployed
 -d | --delete 
     Stop the network by deleting the Custom Resources (CR) of the network
 -c | --clean 
@@ -289,7 +306,8 @@ Usage:
     ./k5goperator.sh -o -b -d v1.test # build the docker image of the operator with the default values of docker image name and certain tage: mosaic5gecosys/kube5g-operator:v1.test
 
     ./k5goperator.sh container start
-    ./k5goperator.sh deploy v1 all-in-one
+    ./k5goperator.sh deploy v1 all-in-one # deploy lte with all-in-one mode for CN and RAN
+    ./k5goperator.sh deploy v1 all-in-one flexran # deploy flexran and lte with all-in-one mode for CN and RAN    
     ./k5goperator.sh deploy v1 disaggregated-cn
     ./k5goperator.sh deploy v2 all-in-one
     ./k5goperator.sh deploy v2 disaggregated-cn

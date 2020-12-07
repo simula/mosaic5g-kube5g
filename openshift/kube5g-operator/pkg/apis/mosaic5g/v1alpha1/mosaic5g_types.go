@@ -21,7 +21,7 @@ type CfgOaiEnb struct {
 	MNC                       string                        `json:"mnc" yaml:"mnc"`
 	MmeService                MmeServiceDescription         `json:"mmeService" yaml:"mmeService"`
 	FlexRAN                   bool                          `json:"flexRAN" yaml:"flexRAN"`
-	FlexranServiceName        string                        `json:"flexranServiceName" yaml:"flexranServiceName"`
+	FlexRANServiceName        string                        `json:"flexRANServiceName" yaml:"flexRANServiceName"`
 	Snap                      SnapDescriptionFinal          `json:"snap" yaml:"snap"`
 	EutraBand                 GeneralDescription            `json:"eutra_band" yaml:"eutra_band"`
 	DownlinkFrequency         GeneralDescription            `json:"downlink_frequency" yaml:"downlink_frequency"`

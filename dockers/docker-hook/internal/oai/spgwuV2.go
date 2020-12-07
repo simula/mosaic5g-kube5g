@@ -147,20 +147,21 @@ func startSpgwuV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 
 		}
 		// oai.spgwu-start
-		time.Sleep(10 * time.Second)
+		// time.Sleep(10 * time.Second)
 		OaiObj.Logger.Print("start spgwu as daemon")
 		fmt.Println("start spgwu as daemon")
 
 		retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "start"}, "."))
+		time.Sleep(5 * time.Second)
 		counter := 0
 		maxCounter := 2
 		for {
+			time.Sleep(1 * time.Second)
 			if len(retStatus.Stderr) == 0 {
-				time.Sleep(5 * time.Second)
 				counter = counter + 1
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "status"}, "."))
-				oairanStatus := strings.Join(retStatus.Stdout, " ")
-				checkInactive := strings.Contains(oairanStatus, "inactive")
+				oaiSpgwuStatus := strings.Join(retStatus.Stdout, " ")
+				checkInactive := strings.Contains(oaiSpgwuStatus, "inactive")
 				if checkInactive != true {
 					OaiObj.Logger.Print("Waiting to make sure that oai-spgwu is working properly")
 					fmt.Println("Waiting to make sure that oai-spgwu is working properly")
@@ -171,13 +172,23 @@ func startSpgwuV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 					OaiObj.Logger.Print("oai-spgwu is in inactive status, restarting the service")
 					fmt.Println("oai-spgwu is in inactive status, restarting the service")
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "stop"}, "."))
+					for {
+						time.Sleep(1 * time.Second)
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "status"}, "."))
+						oaiSpgwuStatus = strings.Join(retStatus.Stdout, " ")
+						if strings.Contains(oaiSpgwuStatus, "disabled") && strings.Contains(oaiSpgwuStatus, "inactive") {
+							break
+						}
+					}
 					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "start"}, "."))
+					time.Sleep(5 * time.Second)
 					counter = 0
 				}
 			} else {
 				OaiObj.Logger.Print("Start oai-spgwu failed, try again later")
 				fmt.Println("Start oai-spgwu failed, try again later")
 				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{spgwBin, "start"}, "."))
+				time.Sleep(5 * time.Second)
 				counter = 0
 			}
 		}

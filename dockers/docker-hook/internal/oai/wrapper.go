@@ -34,7 +34,6 @@ package oai
 import (
 	"fmt"
 	"os"
-	"time"
 )
 
 //InstallSnap is a wrapper function for installSnapCore
@@ -111,22 +110,22 @@ func StartCN(OaiObj Oai, buildSnap bool, snapVersion string) {
 		OaiObj.Logger.Print("Starting configuring HSS v2")
 		fmt.Println("Starting configuring HSS v2")
 		startHssV2(OaiObj, CnAllInOneMode, buildSnap)
-		time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 		// Start MME
 		OaiObj.Logger.Print("Starting configuring MME v2")
 		fmt.Println("Starting configuring MME v2")
 		startMmeV2(OaiObj, CnAllInOneMode, buildSnap)
-		time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 		// Start SPGWC
 		OaiObj.Logger.Print("Starting configuring SPGWC v2")
 		fmt.Println("Starting configuring SPGWC v2")
 		startSpgwcV2(OaiObj, CnAllInOneMode, buildSnap)
-		time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 		// Start SPGWU
 		OaiObj.Logger.Print("Starting configuring SPGWU v2")
 		fmt.Println("Starting configuring SPGWU v2")
 		startSpgwuV2(OaiObj, CnAllInOneMode, buildSnap)
-		time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 
 	} else {
 		OaiObj.Logger.Print("Error while trying to install oai core entity: snap version", snapVersion, " is not recognized")

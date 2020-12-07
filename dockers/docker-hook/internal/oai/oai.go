@@ -35,6 +35,7 @@ import (
 	"fmt"
 	"log"
 	"mosaic5g/docker-hook/internal/pkg/common"
+	"mosaic5g/docker-hook/internal/pkg/util"
 	"os"
 )
 
@@ -62,8 +63,15 @@ func (me *Oai) Init(logPath string, confPath string) error {
 	}
 	me.Logger.Print("Configs: ", me.Conf)
 	fmt.Println("Configs: ", *me.Conf)
-	// os.Exit(0)
 
+	// bash -c 'echo "nameserver 8.8.8.8" >> /etc/resolv.conf'
+	retStatus := util.RunCmd(me.Logger, "/bin/bash", "-c", `echo "nameserver 8.8.8.8" >> /etc/resolv.conf`)
+	me.Logger.Print(retStatus.Stdout)
+	me.Logger.Print(retStatus.Exit)
+	// bash -c 'echo "nameserver 8.8.4.4" >> /etc/resolv.conf'
+	retStatus = util.RunCmd(me.Logger, "/bin/bash", "-c", `echo "nameserver 8.8.4.4" >> /etc/resolv.conf`)
+	me.Logger.Print(retStatus.Stdout)
+	me.Logger.Print(retStatus.Exit)
 	return nil
 }
 
