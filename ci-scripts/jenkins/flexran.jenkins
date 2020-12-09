@@ -79,9 +79,9 @@ pipeline {
                     dir("${dirSnapBuildPublish}")
                     {
                         // clone the project from git inside the current directory
-                        git credentialsId: '${gitlabCredentials}',
-                            url: '${storeBranchUrl}',
-                            branch: '${storeBranchName}'
+                        git credentialsId: "${gitlabCredentials}",
+                            url: "${storeBranchUrl}",
+                            branch: "${storeBranchName}"
 
                         
                     }
@@ -132,7 +132,7 @@ pipeline {
         // STAGE 4: PUSH THE SNAP TO THE CI CHANNEL ON SNAPCRAFT
         stage('snap-push') {
             steps {
-                dir('${dirSnapBuildPublish}/snaps'){
+                dir("${dirSnapBuildPublish}/snaps"){
                     script{
                         echo "STAGE #4: Publishing the snap to the channel ${snapChannel}"
                         // Push the build to the snap store
@@ -268,8 +268,8 @@ pipeline {
                 script { 
                     echo "STEP #9.1 push the docker image tagged as ${dockerImageTag} to docker-hub"
                     sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
-                    docker.withRegistry('https://index.docker.io/v1/', '${dockerHubCredentials}') {
-                            docker.image('mosaic5gecosys/${snapName}:${dockerImageTag}').push '${dockerImageTag}'
+                    docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
+                            docker.image("mosaic5gecosys/${snapName}:${dockerImageTag}").push "${dockerImageTag}"
                             // docker.image('mosaic5gecosys/flexran:v1.test').push()
                         }
                     }
