@@ -65,14 +65,6 @@ pipeline {
         stage('kube5g-clone') {
             steps {
                 checkout scm
-                steps {
-                    script {
-                        // If not present picking a default branch name
-                        if (params.storeRepoBranch == null) {
-                            storeBranchName = 'develop'
-                        }
-                    }
-                }
             }
         }
         // STAGE 2: PREPARE THE ENVIRONMENT FOR BUILDING THE SNAP
