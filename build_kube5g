@@ -22,7 +22,7 @@
 #
 ################################################################################
 # file build_kube5g
-# brief  build and install kube5G
+# brief  build and configure kube5G
 # author  Osama Arouk
 
 export DEBIAN_FRONTEND=noninteractive
@@ -76,7 +76,7 @@ install_required_packages(){
     pip3 install --upgrade pip
     pip3 install ruamel.yaml==0.16.12 colorlog==4.6.2
     install_docker_dockercompose
-    Install_microk8s_kubectl
+    build_k8s ${1}
 }
 
 install_docker_dockercompose(){
@@ -91,9 +91,11 @@ install_docker_dockercompose(){
     $SUDO $os_pm autoremove -y
     $SUDO $os_pm autoclean -y
     if [ $os_dist == "ubuntu16.04" ]; then
+        echo_info "Install docker-ce=5:19.03.12~3-0~ubuntu-xenial"
         $SUDO $os_pm install -y \
             docker-ce=5:19.03.12~3-0~ubuntu-xenial
     elif [ $os_dist == "ubuntu18.04" ]; then
+        echo_info "Install docker-ce=5:19.03.12~3-0~ubuntu-bionic"
         $SUDO $os_pm install -y \
         docker-ce=5:19.03.12~3-0~ubuntu-bionic
     else
@@ -155,7 +157,899 @@ EOF
     echo_info "If you see 'hello, world', your golang is successfully installed"
 }
 
-Install_microk8s_kubectl(){
+build_k8s()(
+  if [ "$1" == "kubeadm" ]; then
+      #  Install kubernetes using kubeadm
+      echo_info "Installing kubernetes using $1"
+      install_k8s_kubeadm
+      master_worker_init master 
+  else
+      #  Install kubernetes using microk8s
+      echo_info "Installing kubernetes using microk8s"
+      build_k8s_microk8s
+  fi
+  k8s_enable_scheduling_on_master_node enable $1
+  sleep 10
+  k8s_enable_ran_scheduling
+)
+
+install_k8s_kubeadm(){
+    echo_info "Getting the Kubernetes gpg key"
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | $SUDO apt-key add -
+    echo_info "Add the Kubernetes repository"
+    cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+    echo_info "System update, autoremove, and autoclean"
+    $SUDO $os_pm update -y
+    $SUDO $os_pm autoremove -y
+    $SUDO $os_pm autoclean -y
+    if [ $os_dist == "ubuntu16.04" ] || [ $os_dist == "ubuntu18.04" ];then
+        echo_info "Install kubelet=1.18.6-00, kubeadm=1.18.6-00, and kubectl=1.18.6-00"
+        $SUDO $os_pm install -y \
+            kubelet=1.18.6-00 \
+            kubeadm=1.18.6-00 \
+            kubectl=1.18.6-00
+    else
+        echo_error "kube5g is not testd for $os_dist"
+        exit 0
+    fi 
+    echo_info "Hold kubelet kubeadm kubectl at the current version, to save the same version not to be updated"
+    $SUDO apt-mark hold kubelet kubeadm kubectl
+
+    echo_info "Add the iptables rule to  /etc/sysctl.conf"
+    if ! grep -q "net.bridge.bridge-nf-call-iptables=1" /etc/sysctl.conf; then
+        echo "net.bridge.bridge-nf-call-iptables=1" | $SUDO tee -a /etc/sysctl.conf
+    fi
+    echo_info "Enable iptables"
+    $SUDO sysctl -p
+    
+}
+
+k8s_add_label_to_node(){
+  # apply label to the node
+  echo_info "kubectl label nodes $1 $2"
+  kubectl label nodes $1 $2
+}
+k8s_enable_ran_scheduling(){
+  # apply label to the node so that the entity oai-ran can be deployed, 
+  # since the default configuration of oaiEnb in "common/config-manager/conf_global_default.yaml" is set to deploy oai-ran on the node with the label oai=ran
+  echo_info "$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')"
+  node_name=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
+  echo_info "kubectl label nodes $node_name oai=ran"
+  kubectl label nodes $node_name oai=ran
+  # verify that the label was added 
+  echo_info "verify that the label oai=ran was added"
+  node_labels=$(kubectl get nodes -o jsonpath='{.items[*].metadata.labels}')
+  case "$node_labels" in
+      *'"oai":"ran"'*)
+          echo "the label oai=ran is successfully added"
+          ;;
+      *)
+          sleep 10
+          node_name=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
+          kubectl label nodes $node_name oai=ran
+  esac
+}
+
+k8s_enable_scheduling_on_master_node(){
+  if [ "$1" == "enable" ]; then
+    ebable_sched="-"
+  else
+    ebable_sched=""
+  fi
+  echo_info "Enable scheduling on master node"
+  if [ "$2" == "kubeadm" ]; then
+    # kubeadm
+    # kubectl taint nodes $(hostname) node-role.kubernetes.io/master:NoSchedule- # to enable scheduling
+    kubectl taint nodes $(hostname) node-role.kubernetes.io/master:NoSchedule$ebable_sched
+  else
+    # microk8s
+    # kubectl taint nodes $(hostname) node.kubernetes.io/unreachable:NoSchedule-  # to enable scheduling
+    kubectl taint nodes $(hostname) node.kubernetes.io/unreachable:NoSchedule$ebable_sched
+  fi
+
+}
+master_worker_init(){
+  if [ "$1" == "master" ]; then
+    echo_info "init kubernetes master"
+    init_kubernets_master
+    # if [ "$2" == "" ]; then
+    #   echo_warn "Privde the dns of your network to init the current node as kubernets master"
+    # else
+    #   echo_info "init kubernetes master"
+    #   init_kubernets_master $2
+    # fi
+    
+  elif [ "$1" == "worker" ]; then
+    echo_info "init kubernetes worker"
+    init_kubernets_worker
+  else
+    if [ "$1" == "" ]; then
+      echo_warn "Specify whether you want to init the node as master or as worker"
+      echo_warn "To init as master: ./build_kube5g k8s-init master"
+      echo_warn "To init as worker: ./build_kube5g k8s-init worker"
+    else
+      echo_warn "No such option $1: allowed options are: master or worker"
+    fi
+  fi
+}
+
+init_kubernets_master() {
+  
+  while true; do
+    read -p "This will initialize your master node, agree (yes/no)?" yn
+    case $yn in
+    [Yy][Ee][Ss])
+      echo_info "Starting initiating the current node to be kubernetes master"
+      break
+      ;;
+    [Nn][Oo])
+      echo "Exit with no actions"
+      exit
+      ;;
+    *) echo "Please answer yes or no." ;;
+    esac
+  done
+  
+  #
+  echo_info "Resetting kubeadm"
+  $SUDO kubeadm reset
+  echo_info "Removing $HOME/.kube/config"
+  $SUDO rm -rf $HOME/.kube/config
+  echo_info "Removing /etc/cni/net.d"
+  $SUDO rm -rf /etc/cni/net.d
+  echo_info "kubeadm reset"
+  #
+  echo_info "disabling memory swap"
+  $SUDO swapoff -a
+  echo_info "Initializing kubernetes node to use flannel network"
+  echo_info "for more info: https://kubernetes.io/docs/concepts/cluster-administration/addons/"
+  $SUDO kubeadm init --pod-network-cidr=10.244.0.0/16
+  
+  
+  
+  echo_info "The following steps will be done to start using kubernets cluster"
+  echo_info "mkdir -p $HOME/.kube"
+  mkdir -p $HOME/.kube
+  echo_info "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config"
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  echo_info "sudo chown $(id -u):$(id -g) $HOME/.kube/config"
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  
+  echo_info "Apply Flannel CNI network overlay"
+  $SUDO chown $(id -u):$(id -g) /etc/kubernetes/admin.conf
+  # kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  # The following yaml file is copied from https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  cat <<<'
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: psp.flannel.unprivileged
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: docker/default
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: docker/default
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: runtime/default
+    apparmor.security.beta.kubernetes.io/defaultProfileName: runtime/default
+spec:
+  privileged: false
+  volumes:
+    - configMap
+    - secret
+    - emptyDir
+    - hostPath
+  allowedHostPaths:
+    - pathPrefix: "/etc/cni/net.d"
+    - pathPrefix: "/etc/kube-flannel"
+    - pathPrefix: "/run/flannel"
+  readOnlyRootFilesystem: false
+  # Users and groups
+  runAsUser:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  # Privilege Escalation
+  allowPrivilegeEscalation: false
+  defaultAllowPrivilegeEscalation: false
+  # Capabilities
+  allowedCapabilities: ['NET_ADMIN', 'NET_RAW']
+  defaultAddCapabilities: []
+  requiredDropCapabilities: []
+  # Host namespaces
+  hostPID: false
+  hostIPC: false
+  hostNetwork: true
+  hostPorts:
+  - min: 0
+    max: 65535
+  # SELinux
+  seLinux:
+    # SELinux is unused in CaaSP
+    rule: 'RunAsAny'
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: flannel
+rules:
+  - apiGroups: ['extensions']
+    resources: ['podsecuritypolicies']
+    verbs: ['use']
+    resourceNames: ['psp.flannel.unprivileged']
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - nodes/status
+    verbs:
+      - patch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: flannel
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: flannel
+subjects:
+- kind: ServiceAccount
+  name: flannel
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flannel
+  namespace: kube-system
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kube-flannel-cfg
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+data:
+  cni-conf.json: |
+    {
+      "name": "cbr0",
+      "cniVersion": "0.3.1",
+      "plugins": [
+        {
+          "type": "flannel",
+          "delegate": {
+            "hairpinMode": true,
+            "isDefaultGateway": true
+          }
+        },
+        {
+          "type": "portmap",
+          "capabilities": {
+            "portMappings": true
+          }
+        }
+      ]
+    }
+  net-conf.json: |
+    {
+      "Network": "10.244.0.0/16",
+      "Backend": {
+        "Type": "vxlan"
+      }
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-amd64
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+      hostNetwork: true
+      priorityClassName: system-node-critical
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.12.0-amd64
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.12.0-amd64
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "50Mi"
+          limits:
+            cpu: "100m"
+            memory: "50Mi"
+        securityContext:
+          privileged: false
+          capabilities:
+            add: ["NET_ADMIN", "NET_RAW"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-arm64
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - arm64
+      hostNetwork: true
+      priorityClassName: system-node-critical
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.12.0-arm64
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.12.0-arm64
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "50Mi"
+          limits:
+            cpu: "100m"
+            memory: "50Mi"
+        securityContext:
+          privileged: false
+          capabilities:
+             add: ["NET_ADMIN", "NET_RAW"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-arm
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - arm
+      hostNetwork: true
+      priorityClassName: system-node-critical
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.12.0-arm
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.12.0-arm
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "50Mi"
+          limits:
+            cpu: "100m"
+            memory: "50Mi"
+        securityContext:
+          privileged: false
+          capabilities:
+             add: ["NET_ADMIN", "NET_RAW"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-ppc64le
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - ppc64le
+      hostNetwork: true
+      priorityClassName: system-node-critical
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.12.0-ppc64le
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.12.0-ppc64le
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "50Mi"
+          limits:
+            cpu: "100m"
+            memory: "50Mi"
+        securityContext:
+          privileged: false
+          capabilities:
+             add: ["NET_ADMIN", "NET_RAW"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-s390x
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - s390x
+      hostNetwork: true
+      priorityClassName: system-node-critical
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.12.0-s390x
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.12.0-s390x
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "50Mi"
+          limits:
+            cpu: "100m"
+            memory: "50Mi"
+        securityContext:
+          privileged: false
+          capabilities:
+             add: ["NET_ADMIN", "NET_RAW"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+  ' >/tmp/kube-flannel.yml
+  kubectl apply -f /tmp/kube-flannel.yml
+  
+#   dns=$1
+#   echo_info "configuring the configmaps of of coredns with the dns $dns"
+#   sleep 20
+#   kubectl get configmaps/coredns -n kube-system -o yaml  > coredns_tmp.yaml
+#   sed -i "s/forward *. *\/etc\/resolv.conf *{/forward . $dns \/etc\/resolv.conf {/g" coredns_tmp.yaml
+#   kubectl apply -f coredns_tmp.yaml
+#   rm coredns_tmp.yaml
+}
+
+init_kubernets_worker() {
+  echo_info "Init the current node to be as kubernetes worker"
+  #
+  echo_info "disabling memory swap"
+  $SUDO swapoff -a
+  #
+  echo_info "Resetting kubeadm"
+  $SUDO kubeadm reset
+  echo_info "Removing $HOME/.kube/config"
+  $SUDO rm -rf $HOME/.kube/config
+  echo_info "Removing /etc/cni/net.d"
+  $SUDO rm -rf /etc/cni/net.d
+  echo_info "kubeadm reset"
+
+  echo_info '
+  The current node is successfully initiated. 
+  If you need to join a worker node to the kubernetes cluser, get the command by typing the following in the master node
+  ./build_kube5g k8s-token
+  example: sudo kubeadm join 10.42.0.95:6443 --token 64bf5x.suntky96tpjlvfg2 --discovery-token-ca-cert-hash sha256:45c87bc1fbb3cc2bd8b80c713af3dfd442de618288f6ecca2a14fd429c289f1e
+  '
+}
+
+
+k8s_token() {
+  echo_info "Creating the token to be used to join the kubernetes cluster"
+  kubeadm token create --print-join-command
+  echo_warn "You may need to execute the above command with sudo"
+}
+
+kubernetes_remove() {
+  while true; do
+    read -p "Are you sure to remove kubernetes (yes/no)?" yn
+    case $yn in
+    [Yy][Ee][Ss])
+      if [ "$1" == "kubeadm" ]; then
+        echo_warn "Removing kubelet, kubeadm, and kubectl"
+
+        echo_info "Unhold kubelet kubeadm kubectl"
+        $SUDO apt-mark unhold kubelet kubeadm kubectl
+
+        echo_info "Uninstalling kubelet kubeadm kubectl"
+        $SUDO $os_pm remove -y \
+          kubelet \
+          kubeadm \
+          kubectl
+
+        echo_info "disabling memory swap"
+        $SUDO swapoff -a
+        #
+        echo_info "Removing $HOME/.kube/config"
+        $SUDO rm -rf $HOME/.kube/config
+        echo_info "Removing /etc/cni/net.d"
+        $SUDO rm -rf /etc/cni/net.d
+
+        echo_info  "autoremove"
+        $SUDO $os_pm autoremove -y
+        echo_info  "autoclean"
+        $SUDO $os_pm autoclean -y
+        echo_success "Successfully removing kubernetes dependencies from the current machine"
+      else
+          #  Install kubernetes using microk8s
+          echo_info "Removing the snaps microk8s and kubectl"
+          $SUDO snap remove microk8s kubectl
+          echo_info "Removing $HOME/.kube/config"
+          $SUDO rm -rf $HOME/.kube/config
+          $SUDO groupdel microk8s
+          echo_success "Successfully removing kubernetes dependencies from the current machine"
+      fi
+      exit
+      ;;
+    [Nn][Oo])
+      echo "Exit with no actions"
+      exit
+      ;;
+    *) echo "Please answer yes or no." ;;
+    esac
+  done
+}
+
+kubernetes_reset(){
+  while true; do
+    read -p "Are you sure to reset the current node (yes/no)?" yn
+    case $yn in
+    [Yy][Ee][Ss])
+      echo_info "Starting resetting the current node"
+
+      echo_info "disabling memory swap"
+      $SUDO swapoff -a
+      #
+      echo_info "Resetting kubeadm"
+      $SUDO kubeadm reset
+      echo_info "Removing $HOME/.kube/config"
+      $SUDO rm -rf $HOME/.kube/config
+      echo_info "Removing /etc/cni/net.d"
+      $SUDO rm -rf /etc/cni/net.d
+      echo_info "kubeadm reset"
+      exit
+      ;;
+    [Nn][Oo])
+      echo "Exit with no actions"
+      exit
+      ;;
+    *) echo "Please answer yes or no." ;;
+    esac
+  done
+}
+
+
+build_k8s_microk8s(){
     #Ref: https://microk8s.io/docs  and https://github.com/ubuntu/microk8s
     echo_info "Install microk8s 1.19/stable and kubectl 1.19.4/stable"
     $SUDO snap install microk8s --classic --channel=1.19/stable
@@ -165,50 +1059,20 @@ Install_microk8s_kubectl(){
     echo_info "Join the group of microk8s"
     $SUDO usermod -a -G microk8s $USER
     $SUDO chown -f -R $USER ~/.kube
-    
-    # Check the status of microk8s
-    echo_info "Check the status of microk8s" 
-    microk8s status --wait-ready
-
-    $SUDO microk8s kubectl config view --raw > $HOME/.kube/config
-
-    microk8s.enable dns
-
-    # apply label to the node so that the entity oai-ran can be deployed, 
-    # since the default configuration of oaiEnb in "common/config-manager/conf_global_default.yaml" is set to deploy oai-ran on the node with the label oai=ran
-    sleep 10
-    node_name=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
-    kubectl label nodes $node_name oai=ran
-    # verify that the label was added    
-    node_labels=$(kubectl get nodes -o jsonpath='{.items[*].metadata.labels}')
-    case "$node_labels" in
-        *'"oai":"ran"'*)
-            echo_success "the label oai=ran is successfully added"
-            ;;
-        *)
-            sleep 10
-            node_name=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
-            kubectl label nodes $node_name oai=ran
-    esac
-
-    # Configure DNS if it's not working 
-    echo_warn "Now you need to configure DNS of kubernetes"
-    echo_info '
-1. get the dns of your network, e.g. by (replace enp0s31f6 by the name of the interface connected to the internet)
-    $ nmcli device show enp0s31f6 |grep -i dns
-    IP4.DNS[1]:                             192.168.1.1
-2. Add the dns of your network to the config of kubectl
-    $ microk8s.kubectl -n kube-system edit configmap/kube-dns
-    You need to update "upstreamNameservers"
-3. check if kubernets is working 
-    $ microk8s.status 
-    $ kubectl get pods -A
-    $ kubectl get nodes
-    '
-    
     # re-enter the session
     echo_warn "re-enter the session"
-    su - $USER
+    $SUDO su - $USER << EOF
+    
+    # Check the status of microk8s
+    echo "Check the status of microk8s" 
+    microk8s status --wait-ready
+    
+    echo "sudo microk8s kubectl config view --raw > $HOME/.kube/config" 
+    sudo microk8s kubectl config view --raw > $HOME/.kube/config
+
+    echo "microk8s.enable dns"
+    microk8s.enable dns
+EOF
 }
 
 
@@ -284,7 +1148,7 @@ main() {
     case ${1} in
         -i | --install-required)
             echo_info "Installing the required packages for kube5g"
-            install_required_packages
+            install_required_packages ${2}
         shift
         ;;
         
@@ -293,6 +1157,40 @@ main() {
             install_optional_packages
         shift
         ;;
+
+        # Build Kubernetes using either microk8s (default option) or using microk8s
+        k8s-build)
+            build_k8s ${2}
+        ;;
+        
+        # Init kubeadm
+        k8s-init)
+            master_worker_init ${2}
+        ;;
+        
+        # Reset kubeadm
+        k8s-reset)
+            kubernetes_reset
+        ;;
+        
+        # get the token from master node
+        k8s-token)
+          k8s_token
+        ;;  
+
+        # enable/disable scheduling ob kubernetes master
+        k8s-sch)
+          k8s_enable_scheduling_on_master_node ${2} ${3}
+        ;;  
+
+        k8s-rm)
+          kubernetes_remove ${2} 
+        ;;
+
+        k8s-l)
+          k8s_add_label_to_node ${2} ${3}
+        ;;
+
 
         -dev | --develop)
             echo_info "Start preparing ENV for Kube5G developement"
@@ -311,10 +1209,31 @@ main() {
         echo_info 'This program builds kube5g, where it can install the required and optional (intended for development) requirements.
 It also helps in configuring kube5g according to your setup with minimal changes
 Options:
--i | --install-required
-    Install the required dependencies for kube5g
+-i | --install-required  [kubeadm]
+    Install the required dependencies for kube5g, and build kubernetes using microk8s (default) or using kubeadm (if defined)
 -I | --install-optional
     Install the required dependencies for kube5g
+k8s-build [kubeadm]
+    Install and configure kubernetes using microk8s (default option) or using kubeadm with the option (kubeadm)
+    ./build_kube5g k8s-build kubeadm
+k8s-init [master|worker]
+    USE IT WHEN YOU BUILD K8S USING kubeadm
+    Init the current kubernetes node as master node ("kubeadm reset" and "kubeadm init")
+k8s-reset
+    USE IT WHEN YOU BUILD K8S USING kubeadm
+    Reset the current kubernetes nodes (kubeadm reset)
+k8s-token
+    USE IT WHEN YOU BUILD K8S USING kubeadm
+    Get the token from the kubernetes master node to be used to joind other nodes to the cluster as worker nodes
+k8s-sch [enable|disable] [|kubeadm]
+    enable/disable scheduling on master node
+k8s-l node_name label
+    Add/rmove label to/from the node node_name
+        k8s_add_label_to_node ${2} ${3}
+k8s-rm [|kubeadm]
+    Remove kubernetes from the current machine
+    k8s-rm        : remove the snaps of microk8s and kubectl 
+    k8s-rm kubeadm: remove the snaps of kubelet, kubeadm, and kubectl
 -dev | --develop
     Prepare the environment to develop kube5g
 -c | --config [-s file-short|-g file-global]
@@ -325,7 +1244,15 @@ Options:
     NOTE: if (file-global), alternatively (file-short), exists in the directory (common/config-manager/), 
             you can specify only the file name, otherwise, the FULL PATH where the file exists is REQUIRED
 example usage:
-    ./build_kube5g -i
+    ./build_kube5g -i                     # Install kube5g dependencies, and build kubernetes using microk8s
+    ./build_kube5g -i kubeadm             # Install kube5g dependencies, and build kubernetes using kubeadm
+    ./build_kube5g k8s-build              # Build kubernetes using microk8s
+    ./build_kube5g k8s-build  kubeadm     # Build kubernetes using kubeadm
+    ./build_kube5g k8s-token              # get the token from master node
+    ./build_kube5g k8s-l neko oai=ran     # add the label oai=ran to the node neko
+    ./build_kube5g k8s-l neko oai-        # remove the label oai from the node neko
+    ./build_kube5g k8s-sch enable         # enable scheduling on master node of kubernetes build using microk8s
+    ./build_kube5g k8s-sch enable kubeadm # enable scheduling on master node of kubernetes build using kubeadm
     ./build_kube5g -I
     ./build_kube5g -dev
     ./build_kube5g -c -s conf_short_default.yaml

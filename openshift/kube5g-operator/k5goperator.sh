@@ -3,7 +3,7 @@
 # prepare the environment
 export OPERATOR_NAME=kube5g-operator
 DOCKER_OPERATOR_REP_NAME="mosaic5gecosys/kube5g-operator"
-DOCKER_OPERATOR_TAG="v1.test"
+DOCKER_OPERATOR_TAG="v1-cicd"
 
 ###################################
 # colorful echos
@@ -155,7 +155,35 @@ apply_cr(){
     esac
 }
 
-downgrade_image(){
+# downgrade_image(){
+#     APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
+#     TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
+    
+#     curl \
+#     -H "content-Type: application/json-patch+json" \
+#     -H "Authorization: Bearer ${TOKEN}"\
+#     --insecure \
+#     -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
+#     -d '[{"op":"replace","path":"/spec/cnImage","value":"arouk/oaicn:1.0"},{"op":"replace","path":"/spec/ranImage","value":"arouk/oairan:1.0"}]'
+#     echo " "
+#     echo "Core Network is downgraded to version 1.0, and RAN network is downgraded to 1.0"
+# }
+
+# upgrade_image(){
+#     APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
+#     TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
+
+#     curl \
+#     -H "content-Type: application/json-patch+json" \
+#     -H "Authorization: Bearer ${TOKEN}"\
+#     --insecure \
+#     -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
+#     -d '[{"op":"replace","path":"/spec/cnImage","value":"arouk/oaicn:1.1"},{"op":"replace","path":"/spec/ranImage","value":"arouk/oairan:1.1"}]'
+#     echo " "
+#     echo "Core Network is upgraded to version 1.1, and RAN network is upgraded to 1.1"
+# }
+
+update_cr_parameters(){
     APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
     TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
     
@@ -163,24 +191,10 @@ downgrade_image(){
     -H "content-Type: application/json-patch+json" \
     -H "Authorization: Bearer ${TOKEN}"\
     --insecure \
-    -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
-    -d '[{"op":"replace","path":"/spec/cnImage","value":"arouk/oaicn:1.0"},{"op":"replace","path":"/spec/ranImage","value":"arouk/oairan:1.0"}]'
-    echo " "
-    echo "Core Network is downgraded to version 1.0, and RAN network is downgraded to 1.0"
-}
-
-upgrade_image(){
-    APISERVER=`kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'`
-    TOKEN=`kubectl get secret $(kubectl get serviceaccount default -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 --decode `
-
-    curl \
-    -H "content-Type: application/json-patch+json" \
-    -H "Authorization: Bearer ${TOKEN}"\
-    --insecure \
-    -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g \
-    -d '[{"op":"replace","path":"/spec/cnImage","value":"arouk/oaicn:1.1"},{"op":"replace","path":"/spec/ranImage","value":"arouk/oairan:1.1"}]'
-    echo " "
-    echo "Core Network is upgraded to version 1.1, and RAN network is upgraded to 1.1"
+    -X PATCH ${APISERVER}/apis/mosaic5g.com/v1alpha1/namespaces/default/mosaic5gs/mosaic5g/ \
+    -d @${1} |jq '.'
+    echo_info "The following values have been updated:"
+    cat ${1} |jq '.'
 }
 
 delete_cr(){
@@ -232,30 +246,42 @@ main() {
         -n | --init)
             init
         ;;
+        
         -c | --clean)
             clean
         ;;
+        
         -l | --local)
             run_local
         ;;
+        
         container)
             run_container ${2}
         ;;
+        
         deploy)
             apply_cr ${2} ${3} ${4}
         ;;
-        upgrade)
-            upgrade_image
+        
+        # upgrade)
+        #     upgrade_image
+        # ;;
+        # downgrade)
+        #     downgrade_image
+        # ;;
+
+        update)
+            update_cr_parameters ${2}
         ;;
-        downgrade)
-            downgrade_image
-        ;;
+        
         -d | --delete)
             delete_cr 
         ;;
+        
         -i | --install)
             deploy_operator_from_clean_machine 
         ;;
+        
         -r | --remove)
             break_down
         ;;

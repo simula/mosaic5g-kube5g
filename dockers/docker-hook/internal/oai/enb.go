@@ -372,7 +372,7 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 								submatchall := reConnectedEnb.FindAllString(mmeJournal, -1)
 								if len(submatchall) > 1 {
 									// enb is connected
-									counter = counterOairabActiveTime
+									// counter = counterOairabActiveTime
 									OaiObj.Logger.Print("Found eNB connected to mme, exit...")
 									break
 								} else {

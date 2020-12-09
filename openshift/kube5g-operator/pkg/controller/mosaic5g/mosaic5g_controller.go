@@ -1056,6 +1056,19 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 					fmt.Printf("cassandraDatabaseDeployment.Name=:%v \t cassandraDatabaseService.Name=:%v\n", cassandraDatabaseDeployment.Name, cassandraDatabaseService.Name)
 				}
 
+			} else {
+				if len(instance.Spec.Database) >= 1 {
+					// if !reflect.DeepEqual(currentconfYaml.Database[0], newconfYaml.Database[0]) {
+					if !reflect.DeepEqual(currentconfYaml.Database, newconfYaml.Database) {
+						if newDatabaseType == "mysql" {
+							err = r.client.Delete(context.TODO(), mysqlDatabaseDeployment)
+							err = r.client.Delete(context.TODO(), mysqlDatabaseService)
+						} else {
+							err = r.client.Delete(context.TODO(), cassandraDatabaseDeployment)
+							err = r.client.Delete(context.TODO(), cassandraDatabaseService)
+						}
+					}
+				}
 			}
 
 			// // update database if exist
@@ -1081,6 +1094,17 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", cnV1.Namespace, "Deployment.Name", cnV1.Name)
 				}
 
+			} else {
+				if len(instance.Spec.OaiCn.V1) >= 1 {
+					if !reflect.DeepEqual(currentconfYaml.OaiCn.V1, newconfYaml.OaiCn.V1) {
+						// Re-deploy the CN service and deployment
+						err = r.client.Delete(context.TODO(), coreNetworkDeploymentV1)
+						err = r.client.Delete(context.TODO(), coreNetworkDeploymentV1)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
+				}
 			}
 			// ================================ oai-cn v2 ================================ //
 			if (len(currentconfYaml.OaiCn.V2) >= 1) && (len(newconfYaml.OaiCn.V2) == 0) {
@@ -1093,6 +1117,17 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", cnV2.Namespace, "Deployment.Name", cnV2.Name)
 				}
 
+			} else {
+				if len(instance.Spec.OaiCn.V2) >= 1 {
+					if !reflect.DeepEqual(currentconfYaml.OaiCn.V2, newconfYaml.OaiCn.V2) {
+						// Re-deploy the CN service and deployment
+						err = r.client.Delete(context.TODO(), coreNetworkDeploymentV2)
+						err = r.client.Delete(context.TODO(), coreNetworkServiceV2)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
+				}
 			}
 
 			// ================================ oai-hss v1 ================================ //
@@ -1105,6 +1140,24 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", hssV1.Namespace, "Deployment.Name", hssV1.Name)
 				}
+			} else {
+				if len(instance.Spec.OaiHss.V1) >= 1 {
+					if !reflect.DeepEqual(currentconfYaml.OaiHss.V1, newconfYaml.OaiHss.V1) {
+						// Re-deploy the whole CN entities service and deployment
+						// hss
+						err = r.client.Delete(context.TODO(), hssDeploymentV1)
+						err = r.client.Delete(context.TODO(), hssServiceV1)
+						// mme
+						err = r.client.Delete(context.TODO(), mmeDeploymentV1)
+						err = r.client.Delete(context.TODO(), mmeServiceV1)
+						// spgw
+						err = r.client.Delete(context.TODO(), spgwDeploymentV1)
+						err = r.client.Delete(context.TODO(), spgwServiceV1)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
+				}
 			}
 			// ================================ oai-hss v2 ================================ //
 			if (len(currentconfYaml.OaiHss.V2) >= 1) && (len(newconfYaml.OaiHss.V2) == 0) {
@@ -1115,6 +1168,27 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				err = r.client.Update(context.TODO(), hssV2)
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", hssV2.Namespace, "Deployment.Name", hssV2.Name)
+				}
+			} else {
+				if len(instance.Spec.OaiHss.V2) >= 1 {
+					if !reflect.DeepEqual(currentconfYaml.OaiHss.V2, newconfYaml.OaiHss.V2) {
+						// Re-deploy the whole CN entities service and deployment
+						// hss
+						err = r.client.Delete(context.TODO(), hssDeploymentV2)
+						err = r.client.Delete(context.TODO(), hssServiceV2)
+						// mme
+						err = r.client.Delete(context.TODO(), mmeDeploymentV2)
+						err = r.client.Delete(context.TODO(), mmeServiceV2)
+						// spgwc
+						err = r.client.Delete(context.TODO(), spgwcDeploymentV2)
+						err = r.client.Delete(context.TODO(), spgwcServiceV2)
+						// spgwu
+						err = r.client.Delete(context.TODO(), spgwuDeploymentV2)
+						err = r.client.Delete(context.TODO(), spgwuServiceV2)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
 				}
 			}
 			// ================================ oai-mme v1 ================================ //
@@ -1127,6 +1201,25 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", mmeV1.Namespace, "Deployment.Name", mmeV1.Name)
 				}
+			} else {
+				if (len(instance.Spec.OaiHss.V1) >= 1) && (len(instance.Spec.OaiMme.V1) >= 1) {
+					if reflect.DeepEqual(currentconfYaml.OaiHss.V1, newconfYaml.OaiHss.V1) &&
+						!reflect.DeepEqual(currentconfYaml.OaiMme.V1, newconfYaml.OaiMme.V1) {
+						// Re-deploy the whole CN entities service and deployment
+						// hss
+						err = r.client.Delete(context.TODO(), hssDeploymentV1)
+						err = r.client.Delete(context.TODO(), hssServiceV1)
+						// mme
+						err = r.client.Delete(context.TODO(), mmeDeploymentV1)
+						err = r.client.Delete(context.TODO(), mmeServiceV1)
+						// spgw
+						err = r.client.Delete(context.TODO(), spgwDeploymentV1)
+						err = r.client.Delete(context.TODO(), spgwServiceV1)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
+				}
 			}
 			// ================================ oai-mme v2 ================================ //
 			if (len(currentconfYaml.OaiMme.V2) >= 1) && (len(newconfYaml.OaiMme.V2) == 0) {
@@ -1138,6 +1231,29 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", mmeV2.Namespace, "Deployment.Name", mmeV2.Name)
 				}
+			} else {
+				if (len(instance.Spec.OaiHss.V2) >= 1) && (len(instance.Spec.OaiMme.V2) >= 1) {
+					if reflect.DeepEqual(currentconfYaml.OaiHss.V2, newconfYaml.OaiHss.V2) &&
+						!reflect.DeepEqual(currentconfYaml.OaiMme.V2, newconfYaml.OaiMme.V2) {
+						// Re-deploy the whole CN entities service and deployment
+						// hss
+						err = r.client.Delete(context.TODO(), hssDeploymentV2)
+						err = r.client.Delete(context.TODO(), hssServiceV2)
+						// mme
+						err = r.client.Delete(context.TODO(), mmeDeploymentV2)
+						err = r.client.Delete(context.TODO(), mmeServiceV2)
+						// spgwc
+						err = r.client.Delete(context.TODO(), spgwcDeploymentV2)
+						err = r.client.Delete(context.TODO(), spgwcServiceV2)
+						// spgwu
+						err = r.client.Delete(context.TODO(), spgwuDeploymentV2)
+						err = r.client.Delete(context.TODO(), spgwuServiceV2)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
+				}
+
 			}
 
 			// ================================ oai-spgw v1 ================================ //
@@ -1149,6 +1265,26 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				err = r.client.Update(context.TODO(), spgwV1)
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", spgwV1.Namespace, "Deployment.Name", spgwV1.Name)
+				}
+			} else {
+				if (len(instance.Spec.OaiHss.V1) >= 1) && (len(instance.Spec.OaiMme.V1) >= 1) && (len(instance.Spec.OaiSpgw.V1) >= 1) {
+					if reflect.DeepEqual(currentconfYaml.OaiHss.V1, newconfYaml.OaiHss.V1) &&
+						reflect.DeepEqual(currentconfYaml.OaiMme.V1, newconfYaml.OaiMme.V1) &&
+						!reflect.DeepEqual(currentconfYaml.OaiSpgw.V1, newconfYaml.OaiSpgw.V1) {
+						// Re-deploy the whole CN entities service and deployment
+						// hss
+						err = r.client.Delete(context.TODO(), hssDeploymentV1)
+						err = r.client.Delete(context.TODO(), hssServiceV1)
+						// mme
+						err = r.client.Delete(context.TODO(), mmeDeploymentV1)
+						err = r.client.Delete(context.TODO(), mmeServiceV1)
+						// spgw
+						err = r.client.Delete(context.TODO(), spgwDeploymentV1)
+						err = r.client.Delete(context.TODO(), spgwServiceV1)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
 				}
 			}
 
@@ -1162,6 +1298,29 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", spgwcV2.Namespace, "Deployment.Name", spgwcV2.Name)
 				}
+			} else {
+				if (len(instance.Spec.OaiHss.V2) >= 1) && (len(instance.Spec.OaiMme.V2) >= 1) && (len(instance.Spec.OaiSpgwc.V2) >= 1) {
+					if reflect.DeepEqual(currentconfYaml.OaiHss.V2, newconfYaml.OaiHss.V2) &&
+						reflect.DeepEqual(currentconfYaml.OaiMme.V2, newconfYaml.OaiMme.V2) &&
+						!reflect.DeepEqual(currentconfYaml.OaiSpgwc.V2, newconfYaml.OaiSpgwc.V2) {
+						// Re-deploy the whole CN entities service and deployment
+						// hss
+						err = r.client.Delete(context.TODO(), hssDeploymentV2)
+						err = r.client.Delete(context.TODO(), hssServiceV2)
+						// mme
+						err = r.client.Delete(context.TODO(), mmeDeploymentV2)
+						err = r.client.Delete(context.TODO(), mmeServiceV2)
+						// spgwc
+						err = r.client.Delete(context.TODO(), spgwcDeploymentV2)
+						err = r.client.Delete(context.TODO(), spgwcServiceV2)
+						// spgwu
+						err = r.client.Delete(context.TODO(), spgwuDeploymentV2)
+						err = r.client.Delete(context.TODO(), spgwuServiceV2)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
+				}
 			}
 
 			// ================================ oai-spgwu v2 ================================ //
@@ -1173,6 +1332,33 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				err = r.client.Update(context.TODO(), spgwuV2)
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", spgwuV2.Namespace, "Deployment.Name", spgwuV2.Name)
+				}
+			} else {
+				if (len(instance.Spec.OaiHss.V2) >= 1) &&
+					(len(instance.Spec.OaiMme.V2) >= 1) &&
+					(len(instance.Spec.OaiSpgwc.V2) >= 1) &&
+					(len(instance.Spec.OaiSpgwu.V2) >= 1) {
+					if reflect.DeepEqual(currentconfYaml.OaiHss.V2, newconfYaml.OaiHss.V2) &&
+						reflect.DeepEqual(currentconfYaml.OaiMme.V2, newconfYaml.OaiMme.V2) &&
+						reflect.DeepEqual(currentconfYaml.OaiSpgwc.V2, newconfYaml.OaiSpgwc.V2) &&
+						!reflect.DeepEqual(currentconfYaml.OaiSpgwu.V2, newconfYaml.OaiSpgwu.V2) {
+						// Re-deploy the whole CN entities service and deployment
+						// hss
+						err = r.client.Delete(context.TODO(), hssDeploymentV2)
+						err = r.client.Delete(context.TODO(), hssServiceV2)
+						// mme
+						err = r.client.Delete(context.TODO(), mmeDeploymentV2)
+						err = r.client.Delete(context.TODO(), mmeServiceV2)
+						// spgwc
+						err = r.client.Delete(context.TODO(), spgwcDeploymentV2)
+						err = r.client.Delete(context.TODO(), spgwcServiceV2)
+						// spgwu
+						err = r.client.Delete(context.TODO(), spgwuDeploymentV2)
+						err = r.client.Delete(context.TODO(), spgwuServiceV2)
+						// oai-ran
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
 				}
 			}
 
@@ -1186,6 +1372,13 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", flexran.Namespace, "Deployment.Name", flexran.Name)
 				}
+			} else {
+				if len(instance.Spec.Flexran) >= 1 {
+					if !reflect.DeepEqual(currentconfYaml.Flexran, newconfYaml.Flexran) {
+						err = r.client.Delete(context.TODO(), flexranDeployment)
+						err = r.client.Delete(context.TODO(), flexranService)
+					}
+				}
 			}
 			// ================================ oai-ran v1 ================================ //
 			if (len(currentconfYaml.OaiEnb) >= 1) && (len(newconfYaml.OaiEnb) == 0) {
@@ -1197,73 +1390,92 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 				if err != nil {
 					reqLogger.Error(err, "Failed to update Deployment", "Deployment.Namespace", ran.Namespace, "Deployment.Name", ran.Name)
 				}
+			} else {
+				if len(instance.Spec.OaiEnb) >= 1 {
+					if !reflect.DeepEqual(currentconfYaml.OaiEnb, newconfYaml.OaiEnb) ||
+						currentDatabaseType != newDatabaseType {
+						err = r.client.Delete(context.TODO(), ranDeployment)
+						err = r.client.Delete(context.TODO(), ranService)
+					}
+				}
 			}
+			/*
+				// ================================ update oai-cn v1 if exist ================================ //
+				if len(instance.Spec.OaiCn.V1) >= 1 {
+					err = r.client.Delete(context.TODO(), coreNetworkDeploymentV1)
+					err = r.client.Delete(context.TODO(), coreNetworkServiceV1)
+				}
 
-			// ================================ update oai-cn v1 if exist ================================ //
-			if len(instance.Spec.OaiCn.V1) >= 1 {
-				err = r.client.Delete(context.TODO(), coreNetworkDeploymentV1)
-				err = r.client.Delete(context.TODO(), coreNetworkServiceV1)
-			}
+				// ================================ update oai-cn v2 if exist ================================ //
+				// if len(instance.Spec.OaiCn.V2) >= 1 {
+				// 	err = r.client.Delete(context.TODO(), coreNetworkDeploymentV2)
+				// 	err = r.client.Delete(context.TODO(), coreNetworkServiceV2)
+				// }
 
-			// ================================ update oai-cn v2 if exist ================================ //
-			if len(instance.Spec.OaiCn.V2) >= 1 {
-				err = r.client.Delete(context.TODO(), coreNetworkDeploymentV2)
-				err = r.client.Delete(context.TODO(), coreNetworkServiceV2)
-			}
+				// ================================ update oai-hss v1 if exist ================================ //
+				if len(instance.Spec.OaiHss.V1) >= 1 {
+					err = r.client.Delete(context.TODO(), hssDeploymentV1)
+					err = r.client.Delete(context.TODO(), hssServiceV1)
+				}
 
-			// ================================ update oai-hss v1 if exist ================================ //
-			if len(instance.Spec.OaiHss.V1) >= 1 {
-				err = r.client.Delete(context.TODO(), hssDeploymentV1)
-				err = r.client.Delete(context.TODO(), hssServiceV1)
-			}
+				// ================================ update oai-hss v2 if exist ================================ //
+				if len(instance.Spec.OaiHss.V2) >= 1 {
+					err = r.client.Delete(context.TODO(), hssDeploymentV2)
+					err = r.client.Delete(context.TODO(), hssServiceV2)
+				}
 
-			// ================================ update oai-hss v2 if exist ================================ //
-			if len(instance.Spec.OaiHss.V2) >= 1 {
-				err = r.client.Delete(context.TODO(), hssDeploymentV2)
-				err = r.client.Delete(context.TODO(), hssServiceV2)
-			}
+				// ================================ update oai-mme v1 if exist ================================ //
+				if len(instance.Spec.OaiMme.V1) >= 1 {
+					err = r.client.Delete(context.TODO(), mmeDeploymentV1)
+					err = r.client.Delete(context.TODO(), mmeServiceV1)
+				}
 
-			// ================================ update oai-mme v1 if exist ================================ //
-			if len(instance.Spec.OaiMme.V1) >= 1 {
-				err = r.client.Delete(context.TODO(), mmeDeploymentV1)
-				err = r.client.Delete(context.TODO(), mmeServiceV1)
-			}
+				// ================================ update oai-mme v2 if exist ================================ //
+				if len(instance.Spec.OaiMme.V2) >= 1 {
+					err = r.client.Delete(context.TODO(), mmeDeploymentV2)
+					err = r.client.Delete(context.TODO(), mmeServiceV2)
+				}
 
-			// ================================ update oai-mme v2 if exist ================================ //
-			if len(instance.Spec.OaiMme.V2) >= 1 {
-				err = r.client.Delete(context.TODO(), mmeDeploymentV2)
-				err = r.client.Delete(context.TODO(), mmeServiceV2)
-			}
+				// ================================ update oai-spgw v1 if exist ================================ //
+				if len(instance.Spec.OaiSpgw.V1) >= 1 {
+					err = r.client.Delete(context.TODO(), spgwDeploymentV1)
+					err = r.client.Delete(context.TODO(), spgwServiceV1)
+				}
 
-			// ================================ update oai-spgw v1 if exist ================================ //
-			if len(instance.Spec.OaiSpgw.V1) >= 1 {
-				err = r.client.Delete(context.TODO(), spgwDeploymentV1)
-				err = r.client.Delete(context.TODO(), spgwServiceV1)
-			}
+				// ================================ update oai-spgwc v2 if exist ================================ //
+				if len(instance.Spec.OaiSpgwc.V2) >= 1 {
+					err = r.client.Delete(context.TODO(), spgwcDeploymentV2)
+					err = r.client.Delete(context.TODO(), spgwcServiceV2)
+				}
 
-			// ================================ update oai-spgwc v2 if exist ================================ //
-			if len(instance.Spec.OaiSpgwc.V2) >= 1 {
-				err = r.client.Delete(context.TODO(), spgwcDeploymentV2)
-				err = r.client.Delete(context.TODO(), spgwcServiceV2)
-			}
+				// ================================ update oai-spgwu v2 if exist ================================ //
+				if len(instance.Spec.OaiSpgwu.V2) >= 1 {
+					err = r.client.Delete(context.TODO(), spgwuDeploymentV2)
+					err = r.client.Delete(context.TODO(), spgwuServiceV2)
+				}
 
-			// ================================ update oai-spgwu v2 if exist ================================ //
-			if len(instance.Spec.OaiSpgwu.V2) >= 1 {
-				err = r.client.Delete(context.TODO(), spgwuDeploymentV2)
-				err = r.client.Delete(context.TODO(), spgwuServiceV2)
-			}
+				// ================================ update flexran v1 if exist ================================ //
+				// if len(instance.Spec.Flexran) >= 1 {
+				// 	err = r.client.Delete(context.TODO(), flexranDeployment)
+				// 	err = r.client.Delete(context.TODO(), flexranService)
+				// }
 
-			// ================================ update flexran v1 if exist ================================ //
-			// if len(instance.Spec.Flexran) >= 1 {
-			// 	err = r.client.Delete(context.TODO(), flexranDeployment)
-			// 	err = r.client.Delete(context.TODO(), flexranService)
+				// ================================ update oai-ran v1 if exist ================================ //
+
+				if len(instance.Spec.OaiEnb) >= 1 {
+					err = r.client.Delete(context.TODO(), ranDeployment)
+					err = r.client.Delete(context.TODO(), ranService)
+				}
+			*/
+			// if r.CheckUpdateOaiEnb(&currentconfYaml, &newconfYaml) {
+			// 	// if currentconfYaml.OaiEnb[0].MaxRxGain.Default != newconfYaml.OaiEnb[0].MaxRxGain.Default {
+			// 	err = r.client.Delete(context.TODO(), ranDeployment)
+			// 	err = r.client.Delete(context.TODO(), ranService)
 			// }
-
-			// ================================ update oai-ran v1 if exist ================================ //
-			if len(instance.Spec.OaiEnb) >= 1 {
-				err = r.client.Delete(context.TODO(), ranDeployment)
-				err = r.client.Delete(context.TODO(), ranService)
-			}
+			// if !reflect.DeepEqual(currentconfYaml.OaiEnb[0], newconfYaml.OaiEnb[0]) {
+			// 	err = r.client.Delete(context.TODO(), ranDeployment)
+			// 	err = r.client.Delete(context.TODO(), ranService)
+			// }
 			/////////////////////////////////////////////////////////////////////////////////////
 			// /////////////////////////////////////////////////////////////////////////////////////
 			// // update oai-cn v1 if exist
@@ -3783,4 +3995,48 @@ func (r *ReconcileMosaic5g) genCassandraService(m *mosaic5gv1alpha1.Mosaic5g) *v
 	// Set Mosaic5g instance as the owner and controller
 	controllerutil.SetControllerReference(m, service, r.scheme)
 	return service
+}
+
+// CheckUpdateOaiEnb to check whether the configuraiton of OaiEnb is updated
+func (r *ReconcileMosaic5g) CheckUpdateOaiEnb(currentConf *mosaic5gv1alpha1.Mosaic5gSpec, newConf *mosaic5gv1alpha1.Mosaic5gSpec) bool {
+
+	if !reflect.DeepEqual(currentConf.OaiEnb[0], newConf.OaiEnb[0]) {
+		return true
+	}
+	// if (currentConf.OaiEnb[0].K8sDeploymentName != newConf.OaiEnb[0].K8sDeploymentName) ||
+	// 	(currentConf.OaiEnb[0].K8sServiceName != newConf.OaiEnb[0].K8sServiceName) ||
+	// 	(currentConf.OaiEnb[0].K8sEntityNamespace != newConf.OaiEnb[0].K8sEntityNamespace) ||
+	// 	(currentConf.OaiEnb[0].K8sPodResources.Limits != newConf.OaiEnb[0].K8sPodResources.Limits) ||
+	// 	(currentConf.OaiEnb[0].K8sPodResources.Requests != newConf.OaiEnb[0].K8sPodResources.Requests) ||
+	// 	(currentConf.OaiEnb[0].OaiEnbSize != newConf.OaiEnb[0].OaiEnbSize) ||
+	// 	(currentConf.OaiEnb[0].OaiEnbImage != newConf.OaiEnb[0].OaiEnbImage) ||
+	// 	(currentConf.OaiEnb[0].MCC != newConf.OaiEnb[0].MCC) ||
+	// 	(currentConf.OaiEnb[0].MNC != newConf.OaiEnb[0].MNC) ||
+	// 	(currentConf.OaiEnb[0].MmeService.Name != newConf.OaiEnb[0].MmeService.Name) ||
+	// 	(currentConf.OaiEnb[0].MmeService.SnapVersion != newConf.OaiEnb[0].MmeService.SnapVersion) ||
+	// 	(currentConf.OaiEnb[0].MmeService.IPV4 != newConf.OaiEnb[0].MmeService.IPV4) ||
+	// 	(currentConf.OaiEnb[0].FlexRAN != newConf.OaiEnb[0].FlexRAN) ||
+	// 	(currentConf.OaiEnb[0].FlexRANServiceName != newConf.OaiEnb[0].FlexRANServiceName) ||
+	// 	(currentConf.OaiEnb[0].Snap.Name != newConf.OaiEnb[0].Snap.Name) ||
+	// 	(currentConf.OaiEnb[0].Snap.Channel != newConf.OaiEnb[0].Snap.Channel) ||
+	// 	(currentConf.OaiEnb[0].Snap.Devmode != newConf.OaiEnb[0].Snap.Devmode) ||
+	// 	(currentConf.OaiEnb[0].Snap.Refresh != newConf.OaiEnb[0].Snap.Refresh) ||
+	// 	(currentConf.OaiEnb[0].EutraBand.Default != newConf.OaiEnb[0].EutraBand.Default) ||
+	// 	(currentConf.OaiEnb[0].DownlinkFrequency.Default != newConf.OaiEnb[0].DownlinkFrequency.Default) ||
+	// 	(currentConf.OaiEnb[0].UplinkFrequencyOffset.Default != newConf.OaiEnb[0].UplinkFrequencyOffset.Default) ||
+	// 	(currentConf.OaiEnb[0].NumberRbDl.Default != newConf.OaiEnb[0].NumberRbDl.Default) ||
+	// 	(currentConf.OaiEnb[0].TxGain.Default != newConf.OaiEnb[0].TxGain.Default) ||
+	// 	(currentConf.OaiEnb[0].RxGain.Default != newConf.OaiEnb[0].RxGain.Default) ||
+	// 	(currentConf.OaiEnb[0].PuschP0Nominal.Default != newConf.OaiEnb[0].PuschP0Nominal.Default) ||
+	// 	(currentConf.OaiEnb[0].PucchP0Nominal.Default != newConf.OaiEnb[0].PucchP0Nominal.Default) ||
+	// 	(currentConf.OaiEnb[0].PdschReferenceSignalPower.Default != newConf.OaiEnb[0].PdschReferenceSignalPower.Default) ||
+	// 	(currentConf.OaiEnb[0].PuSch10xSnr.Default != newConf.OaiEnb[0].PuSch10xSnr.Default) ||
+	// 	(currentConf.OaiEnb[0].PuCch10xSnr.Default != newConf.OaiEnb[0].PuCch10xSnr.Default) ||
+	// 	(currentConf.OaiEnb[0].ParallelConfig.Default != newConf.OaiEnb[0].ParallelConfig.Default) ||
+	// 	(currentConf.OaiEnb[0].MaxRxGain.Default != newConf.OaiEnb[0].MaxRxGain.Default) {
+	// 	return true
+	// 	// K8sLabelSelector          []K8sLabelSelectorDescription `json:"k8sLabelSelector" yaml:"k8sLabelSelector"`
+	// 	// K8sNodeSelector           []K8sNodeSelectorDescription  `json:"k8sNodeSelector" yaml:"k8sNodeSelector"`
+	// }
+	return false
 }
