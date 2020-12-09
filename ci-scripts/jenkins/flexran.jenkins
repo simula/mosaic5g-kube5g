@@ -72,7 +72,9 @@ pipeline {
             steps {
                 script{
                     // create the directory dirSnapBuildPublish inside which the project store will be cloned
-                    echo "STAGE #2: Prepare the snap environment"
+                    echo "STAGE #2: Prepare the snap environment ${dirSnapBuildPublish}"
+                    sh 'echo ${dirSnapBuildPublish}'
+                    sh 'echo $dirSnapBuildPublish'
                     sh 'mkdir -p ${dirSnapBuildPublish}'
                     dir("${dirSnapBuildPublish}")
                     {
