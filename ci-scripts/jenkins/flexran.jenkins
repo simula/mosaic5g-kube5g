@@ -99,21 +99,21 @@ pipeline {
                             echo "Start building the snap"
                             sh(
                                 label: "building the snap within docker container",
-                                script: """pwd
+                                script: '''pwd
                                     snap list
                                     export STORE=$WORKSPACE
                                     ########./build-final.sh -n ${snapName} -c all
-                                """
+                                '''
                             )
 
                             echo "Change the ownership"
                             sh(
                                 label: "change the ownership",
-                                script: """
+                                script: '''
                                     version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
                                     ########snap_name=${snapName}"_"$version"_multi.snap"
                                     ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name
-                                """
+                                '''
                             )
                             
                             echo "STAGE #3 OUTPUT SUCCESS"
@@ -137,9 +137,9 @@ pipeline {
                         try{                            
                             sh(
                                 label: "push the snap to channel ${snapChannel}",
-                                script: """
+                                script: '''
                                     ########./publish-final.sh -s ${snapName} -c ${snapChannel}
-                                """
+                                '''
                             )
                         } catch (err) {
                             error("Failed to finish the stage #4, snap push. Check the script output and access rights.")
@@ -161,21 +161,22 @@ pipeline {
                         echo "Remove the older version if present"
                         sh(
                             label: "remove the snap",
-                            script: """
-                                if snap list --all | grep -q ${snapName}; then
-                                    sudo snap remove ${snapName}
+                            script: '''
+                                if snap list --all | grep -q $snapName; then
+                                    sudo snap remove $snapName
                                 fi
-                            """
+                            '''
                         )
 
                         // Get and install the snap from the store on the CI channel
                         echo "Install the snap ${snapName} from ${snapChannel} channel"
-                        sh(
-                            label: "install the snap from the channel ${snapChannel}",
-                            script: """
-                                sudo snap install ${snapName} --devmode --channel=${snapChannel}
-                            """
-                        )
+                        sh "sudo snap install ${snapName} --devmode --channel=${snapChannel}"
+                        // sh(
+                        //     label: "install the snap from the channel ${snapChannel}",
+                        //     script: '''
+                        //         sudo snap install ${snapName} --devmode --channel=${snapChannel}
+                        //     '''
+                        // )
                         echo "STAGE #5 OUTPUT SUCCESS"
                     } catch (err) {
                         error("Failed to finish the stage #5. Check if the snap is available.")
@@ -195,9 +196,9 @@ pipeline {
                         echo "Checking the snap"
                         sh(
                             label: "check the snap",
-                            script: """
-                                sudo ${snapName}.check
-                            """
+                            script: '''
+                                sudo $snapName.check
+                            '''
                         )
 
                         echo "STAGE #6 OUTPUT SUCCESS"
@@ -216,12 +217,13 @@ pipeline {
                 script{
                     echo "Roll back everything"
                     try{                            
-                        sh(
-                            label: "remove the snap",
-                            script: """
-                                sudo snap remove ${snapName}
-                            """
-                        )
+                        sh "sudo snap remove ${snapName}"
+                        // sh(
+                        //     label: "remove the snap",
+                        //     script: '''
+                        //         sudo snap remove ${snapName}
+                        //     '''
+                        // )
                     
                         echo "STAGE #7 OUTPUT SUCCESS"
                     } catch (err) {
