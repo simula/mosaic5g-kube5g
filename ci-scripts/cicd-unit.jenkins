@@ -33,6 +33,7 @@ def pipelineContext = [:] // Parameters will go here
 
 //
 def snapName = params.snapName
+def snapNameRemote = params.snapNameRemote
 // snapName = params.snapName //'oai-cn' 
 def snapChannel = params.snapChannel // 'edge/ci'
 def oaiSnapVersion = params.oaiSnapVersion // 'v1' // v1 or v2
@@ -65,7 +66,27 @@ def dockerComposeLteDisaggregatedFlexranV1 = "dockers/docker-compose/oai-v1/lte-
 def dockerComposeLteDisaggregatedFlexranV2 = "dockers/docker-compose/oai-v2/lte-with-flexran"
 
 
-
+if (params.snapName == "oai-ran") {
+    params.snapNameRemote="oairan"
+}
+if (params.snapName == "oai-hss") {
+    params.snapNameRemote="oaihss"
+}
+if (params.snapName == "oai-mme") {
+    params.snapNameRemote="oaimme"
+}
+if (params.snapName == "oai-spgw") {
+    params.snapNameRemote="oaispgw"
+}
+if (params.snapName == "oai-spgwc") {
+    params.snapNameRemote="oaispgwc"
+}
+if (params.snapName == "oai-spgwu") {
+    params.snapNameRemote="oaispgwu"
+}
+if (params.snapName == "oai-cn") {
+    params.snapNameRemote="oaicn"
+}
 pipeline {
     // Here we define the node that will run this script using the labels assigned to them previously
     agent { 
@@ -75,29 +96,7 @@ pipeline {
     }
     environment {
         SNAP_NAME = "${snapName}"
-        SNAP_NAME_REMOTE=""
-        if (params.snapName == "oai-ran") {
-            SNAP_NAME_REMOTE="oairan"
-        }
-        if (params.snapName == "oai-hss") {
-            SNAP_NAME_REMOTE="oaihss"
-        }
-        if (params.snapName == "oai-mme") {
-            SNAP_NAME_REMOTE="oaimme"
-        }
-        if (params.snapName == "oai-spgw") {
-            SNAP_NAME_REMOTE="oaispgw"
-        }
-        if (params.snapName == "oai-spgwc") {
-            SNAP_NAME_REMOTE="oaispgwc"
-        }
-        if (params.snapName == "oai-spgwu") {
-            SNAP_NAME_REMOTE="oaispgwu"
-        }
-        if (params.snapName == "oai-cn") {
-            SNAP_NAME_REMOTE="oaicn"
-        }
-        
+        SNAP_NAME_REMOTE = "${snapNameRemote}"
         SNAP_CHANNEL = "${snapChannel}"
         OAI_SNAP_VERSION = "${oaiSnapVersion}"
         DOCKER_IMAGE_TAG = "${dockerImageTag}"
