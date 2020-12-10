@@ -67,25 +67,25 @@ def dockerComposeLteDisaggregatedFlexranV2 = "dockers/docker-compose/oai-v2/lte-
 
 
 if (params.snapName == "oai-ran") {
-    params.snapNameRemote="oairan"
+    snapNameRemote="oairan"
 }
 if (params.snapName == "oai-hss") {
-    params.snapNameRemote="oaihss"
+    snapNameRemote="oaihss"
 }
 if (params.snapName == "oai-mme") {
-    params.snapNameRemote="oaimme"
+    snapNameRemote="oaimme"
 }
 if (params.snapName == "oai-spgw") {
-    params.snapNameRemote="oaispgw"
+    snapNameRemote="oaispgw"
 }
 if (params.snapName == "oai-spgwc") {
-    params.snapNameRemote="oaispgwc"
+    snapNameRemote="oaispgwc"
 }
 if (params.snapName == "oai-spgwu") {
-    params.snapNameRemote="oaispgwu"
+    snapNameRemote="oaispgwu"
 }
 if (params.snapName == "oai-cn") {
-    params.snapNameRemote="oaicn"
+    snapNameRemote="oaicn"
 }
 pipeline {
     // Here we define the node that will run this script using the labels assigned to them previously
