@@ -250,8 +250,8 @@ pipeline {
                             )
 
                             echo "STAGE #6 OUTPUT SUCCESS"
-                        } catch (err) {
-                            echo err.getMessage()
+                        } catch (errSecond) {
+                            echo errSecond.getMessage()
                             error("Failed to finish the stage #6. Check the snap logs.")
                         }
                     }
@@ -493,8 +493,8 @@ pipeline {
                                     docker exec ${SNAP_NAME} ${SNAP_NAME}.test
                                 '''
                             )
-                        } catch (err) {
-                            echo err.getMessage()
+                        } catch (errSecond) {
+                            echo errSecond.getMessage()
                             error("Failed to finish stage #10. Snap unit test failed.")
                         }
                     }
@@ -674,7 +674,19 @@ pipeline {
                         )
                     } catch (err) {
                         echo err.getMessage()
-                        error("Failed to finish stage #10. Snap unit test failed.")
+                        try{
+                            // Snap unit check
+                            echo "Snap unit check"
+                            sh(
+                                label: "${SNAP_NAME} snap unit check",
+                                script: '''
+                                    docker exec ${SNAP_NAME} ${SNAP_NAME}.check
+                                '''
+                            )
+                        } catch (errSecond) {
+                            echo errSecond.getMessage()
+                            error("Failed to finish stage #10. Snap unit test failed.")
+                        }
                     }
                 }
 
