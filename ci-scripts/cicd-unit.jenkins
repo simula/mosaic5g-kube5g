@@ -424,7 +424,7 @@ pipeline {
         }
         
         // STAGE #13: DOCKER COMPOSE
-        stage('deployment-unit-test-flexran') {
+        stage('deployment-unit-test-flexran-v1') {
             when{
                 expression{env.SNAP_NAME == 'flexran'}
             }
@@ -597,7 +597,7 @@ pipeline {
         }
         
         // STAGE #17: DOCKER COMPOSE
-        stage('deployment-unit-test-flexran') {
+        stage('deployment-unit-test-flexran-v2') {
             when{
                 expression{env.SNAP_NAME == 'flexran'}
             }
