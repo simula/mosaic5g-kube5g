@@ -76,25 +76,25 @@ pipeline {
     environment {
         SNAP_NAME = "${snapName}"
         SNAP_NAME_REMOTE=""
-        if "${SNAP_NAME}" == "oai-ran"{
+        if (params.snapName == "oai-ran") {
             SNAP_NAME_REMOTE="oairan"
         }
-        if "${SNAP_NAME}" == "oai-hss"{
+        if (params.snapName == "oai-hss") {
             SNAP_NAME_REMOTE="oaihss"
         }
-        if "${SNAP_NAME}" == "oai-mme"{
+        if (params.snapName == "oai-mme") {
             SNAP_NAME_REMOTE="oaimme"
         }
-        if "${SNAP_NAME}" == "oai-spgw"{
+        if (params.snapName == "oai-spgw") {
             SNAP_NAME_REMOTE="oaispgw"
         }
-        if "${SNAP_NAME}" == "oai-spgwc"{
+        if (params.snapName == "oai-spgwc") {
             SNAP_NAME_REMOTE="oaispgwc"
         }
-        if "${SNAP_NAME}" == "oai-spgwu"{
+        if (params.snapName == "oai-spgwu") {
             SNAP_NAME_REMOTE="oaispgwu"
         }
-        if "${SNAP_NAME}" == "oai-cn"{
+        if (params.snapName == "oai-cn") {
             SNAP_NAME_REMOTE="oaicn"
         }
         
