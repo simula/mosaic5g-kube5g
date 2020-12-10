@@ -32,7 +32,8 @@
 def pipelineContext = [:] // Parameters will go here
 
 //
-def snapName = 'flexran'
+def snapName = params.snapNameRemote
+snapName = 'flexran' 
 def snapChannel = 'edge/ci'
 def oaiSnapVersion = 'v1' // v1 or v2
 def dockerImageTag = 'v1-cicd'
@@ -111,8 +112,8 @@ pipeline {
                             sh(
                                 label: "change the ownership",
                                 script: '''
-                                    echo "${snapName}"
-                                    echo "$snapName"
+                                    echo "${params.snapNameRemote}"
+                                    echo "$params.snapNameRemote"
                                     version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
                                     ########snap_name=${snapName}"_"$version"_multi.snap"
                                     ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name
@@ -196,6 +197,8 @@ pipeline {
                 echo "STAGE #6: Testing the snap"
                 
                 script{
+                    echo "Checking the snap"
+                    sh "sudo $snapName.check"
                     try{
                         // Run the check command to test
                         echo "Checking the snap"
