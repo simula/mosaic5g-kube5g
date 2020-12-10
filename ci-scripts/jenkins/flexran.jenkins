@@ -108,10 +108,7 @@ pipeline {
                             // )
 
                             echo "Change the ownership"
-                            sh "version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d ' | tr -d ' ') \n
-                                    ########snap_name=${snapName}'_'$version'_multi.snap' \n
-                                    ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name \n
-                                "
+                            sh "version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d ' | tr -d ' ') \n ########snap_name=${snapName}'_'$version'_multi.snap' \n ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name \n"
                             // sh(
                             //     label: "change the ownership",
                             //     script: '''
