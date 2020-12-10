@@ -58,6 +58,11 @@ pipeline {
             label nodeExecutor
         } 
     }
+    environment {
+        SNAP_NAME = "${snapName}"
+        SNAP_CHANNEL = "${snapChannel}"
+    }
+
 
     // The pipeline will contain a set of stages grouped here, that will run sequentially
     // Each stage itself contains a sequence of steps that may contain some scripts to run
@@ -112,8 +117,8 @@ pipeline {
                             sh(
                                 label: "change the ownership",
                                 script: '''
-                                    echo ${snapName}
-                                    echo $snapName
+                                    echo ${SNAP_NAME}
+                                    echo $SNAP_NAME
                                     version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
                                     ########snap_name=${snapName}"_"$version"_multi.snap"
                                     ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name
@@ -197,8 +202,8 @@ pipeline {
                 echo "STAGE #6: Testing the snap"
                 
                 script{
-                    echo "Checking the snap"
-                    sh "sudo $snapName.check"
+                    echo "Checking the snap ${snapName}.check"
+                    sh "sudo ${snapName}.check"
                     try{
                         // Run the check command to test
                         echo "Checking the snap"
