@@ -112,8 +112,8 @@ pipeline {
                             sh(
                                 label: "change the ownership",
                                 script: '''
-                                    echo "${params.snapNameRemote}"
-                                    echo "$params.snapNameRemote"
+                                    echo ${snapName}
+                                    echo $snapName
                                     version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
                                     ########snap_name=${snapName}"_"$version"_multi.snap"
                                     ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name
