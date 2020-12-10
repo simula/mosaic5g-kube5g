@@ -75,7 +75,29 @@ pipeline {
     }
     environment {
         SNAP_NAME = "${snapName}"
-        SNAP_NAME_REMOTE="SNAP_NAME"//'$(echo $SNAP_NAME | tr -d '-')'
+        SNAP_NAME_REMOTE=""
+        if "${SNAP_NAME}" == "oai-ran"{
+            SNAP_NAME_REMOTE="oairan"
+        }
+        if "${SNAP_NAME}" == "oai-hss"{
+            SNAP_NAME_REMOTE="oaihss"
+        }
+        if "${SNAP_NAME}" == "oai-mme"{
+            SNAP_NAME_REMOTE="oaimme"
+        }
+        if "${SNAP_NAME}" == "oai-spgw"{
+            SNAP_NAME_REMOTE="oaispgw"
+        }
+        if "${SNAP_NAME}" == "oai-spgwc"{
+            SNAP_NAME_REMOTE="oaispgwc"
+        }
+        if "${SNAP_NAME}" == "oai-spgwu"{
+            SNAP_NAME_REMOTE="oaispgwu"
+        }
+        if "${SNAP_NAME}" == "oai-cn"{
+            SNAP_NAME_REMOTE="oaicn"
+        }
+        
         SNAP_CHANNEL = "${snapChannel}"
         OAI_SNAP_VERSION = "${oaiSnapVersion}"
         DOCKER_IMAGE_TAG = "${dockerImageTag}"
