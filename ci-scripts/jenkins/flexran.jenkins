@@ -61,7 +61,7 @@ pipeline {
     environment {
         SNAP_NAME = "${snapName}"
         SNAP_CHANNEL = "${snapChannel}"
-        OAI_SNAP_VERSION = "{oaiSnapVersion}"
+        OAI_SNAP_VERSION = "${oaiSnapVersion}"
         DOCKER_IMAGE_TAG = "${dockerImageTag}"
         DIR_SNAP_BUILD_PUBLISH = "${dirSnapBuildPublish}"
 
@@ -207,7 +207,6 @@ pipeline {
                 
                 script{
                     echo "Checking the snap ${SNAP_NAME}.check"
-                    sh "sudo ${SNAP_NAME}.check"
                     try{
                         // Run the check command to test
                         echo "Checking the snap"
