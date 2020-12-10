@@ -115,6 +115,23 @@ pipeline {
                 checkout scm
             }
         }
+        // STAGE #10: Prepare docker-compose 
+        stage('prepare-deployment') {
+            steps {
+                echo "STEP #10.1 Configure Kube5G for testing phase"
+                dir('common/config-manager'){
+                    script{
+                        sh(
+                            label: 'Configure docker compose for testing phase',
+                            script: '''
+                                ./conf-manager.py -s conf_short_default.yaml -C ${SNAP_NAME}
+                            '''
+                        )
+                    }
+                }
+                echo "STAGE #10 OUTPUT SUCCESS"
+            }
+        }
         // STAGE 2: PREPARE THE ENVIRONMENT FOR BUILDING THE SNAP
         stage('snap-prepare') {
             steps {
@@ -357,24 +374,6 @@ pipeline {
                             // docker.image("mosaic5gecosys/${SNAP_NAME_REMOTE}:${DOCKER_IMAGE_TAG}").push()
                         }
                     }
-            }
-        }
-        
-        // STAGE #10: Prepare docker-compose 
-        stage('prepare-deployment') {
-            steps {
-                echo "STEP #10.1 Configure Kube5G for testing phase"
-                dir('common/config-manager'){
-                    script{
-                        sh(
-                            label: 'Configure docker compose for testing phase',
-                            script: '''
-                                ./conf-manager.py -s conf_short_default.yaml -C ${SNAP_NAME}
-                            '''
-                        )
-                    }
-                }
-                echo "STAGE #10 OUTPUT SUCCESS"
             }
         }
         
