@@ -87,6 +87,9 @@ if (params.snapName == "oai-spgwu") {
 if (params.snapName == "oai-cn") {
     snapNameRemote="oaicn"
 }
+if (params.snapName == "flexran") {
+    snapNameRemote="flexran"
+}
 pipeline {
     // Here we define the node that will run this script using the labels assigned to them previously
     agent { 
