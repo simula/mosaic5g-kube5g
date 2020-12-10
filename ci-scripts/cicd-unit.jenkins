@@ -145,6 +145,7 @@ pipeline {
                             
                             echo "STAGE #3 OUTPUT SUCCESS"
                         } catch (err) {
+                            echo err.getMessage()
                             error("Failed to finish the stage #3, snap build. Check the script output and access rights.")
                         }
                     }
@@ -170,6 +171,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                            echo err.getMessage()
                             error("Failed to finish the stage #4, snap push. Check the script output and access rights.")
                         }
                     }
@@ -208,6 +210,7 @@ pipeline {
                         )
                         echo "STAGE #5 OUTPUT SUCCESS"
                     } catch (err) {
+                        echo err.getMessage()
                         error("Failed to finish the stage #5. Check if the snap is available.")
                     }
                 }
@@ -234,7 +237,23 @@ pipeline {
 
                         echo "STAGE #6 OUTPUT SUCCESS"
                     } catch (err) {
-                        error("Failed to finish the stage #6. Check the snap logs.")
+                        echo err.getMessage()
+                        try{
+                            // Run the check command to test
+                            echo "Testing the snap"
+                            // sh "sudo $SNAP_NAME.test"
+                            sh(
+                                label: "check the snap",
+                                script: '''
+                                    sudo $SNAP_NAME.test
+                                '''
+                            )
+
+                            echo "STAGE #6 OUTPUT SUCCESS"
+                        } catch (err) {
+                            echo err.getMessage()
+                            error("Failed to finish the stage #6. Check the snap logs.")
+                        }
                     }
                 }
             }
@@ -258,6 +277,7 @@ pipeline {
                     
                         echo "STAGE #7 OUTPUT SUCCESS"
                     } catch (err) {
+                        echo err.getMessage()
                         error("Failed to finish the stage #7. Check if the snap is correctly installed.")
                     }
                 }
@@ -351,6 +371,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                            echo err.getMessage()
                             error("Failed to finish the stage #11. Check the docker compse.")
                         }
                     }
@@ -365,6 +386,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                            echo err.getMessage()
                             error("Failed to finish the stage #11. Check docker-compose.yaml and conf.yaml")
                         }   
                     }
@@ -443,6 +465,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                            echo err.getMessage()
                             error("Failed to finish the stage #10. Check the script output.")
                         }
                     }
@@ -460,7 +483,20 @@ pipeline {
                             '''
                         )
                     } catch (err) {
-                        error("Failed to finish stage #10. Snap unit test failed.")
+                        echo err.getMessage()
+                        try{
+                            // Snap unit test
+                            echo "Snap unit test"
+                            sh(
+                                label: "${SNAP_NAME} snap unit test",
+                                script: '''
+                                    docker exec ${SNAP_NAME} ${SNAP_NAME}.test
+                                '''
+                            )
+                        } catch (err) {
+                            echo err.getMessage()
+                            error("Failed to finish stage #10. Snap unit test failed.")
+                        }
                     }
                 }
 
@@ -524,6 +560,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                            echo err.getMessage()
                             error("Failed to finish the stage #15. Check the docker compse.")
                         }
                     }
@@ -538,6 +575,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                            echo err.getMessage()
                             error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
                         }   
                     }
@@ -617,6 +655,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                            echo err.getMessage()
                             error("Failed to finish the stage #10. Check the script output.")
                         }
                     }
@@ -634,6 +673,7 @@ pipeline {
                             '''
                         )
                     } catch (err) {
+                        echo err.getMessage()
                         error("Failed to finish stage #10. Snap unit test failed.")
                     }
                 }
@@ -699,6 +739,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                        echo err.getMessage()
                             error("Failed to finish the stage #15. Check the docker compse.")
                         }
                     }
@@ -713,6 +754,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                        echo err.getMessage()
                             error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
                         }   
                     }
@@ -824,6 +866,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                        echo err.getMessage()
                             error("Failed to finish the stage #15. Check the docker compse.")
                         }
                     }
@@ -838,6 +881,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                        echo err.getMessage()
                             error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
                         }   
                     }
@@ -954,6 +998,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                        echo err.getMessage()
                             error("Failed to finish the stage #15. Check the docker compse.")
                         }
                     }
@@ -968,6 +1013,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                        echo err.getMessage()
                             error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
                         }   
                     }
@@ -1104,6 +1150,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                        echo err.getMessage()
                             error("Failed to finish the stage #15. Check the docker compse.")
                         }
                     }
@@ -1118,6 +1165,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
+                        echo err.getMessage()
                             error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
                         }   
                     }
