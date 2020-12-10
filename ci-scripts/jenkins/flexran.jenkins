@@ -97,24 +97,29 @@ pipeline {
                         try{
                             // Set the name, build the snap, get te version, and change the owner user
                             echo "Start building the snap"
-                            sh(
-                                label: "building the snap within docker container",
-                                script: '''pwd
-                                    snap list
-                                    export STORE=$WORKSPACE
-                                    ########./build-final.sh -n ${snapName} -c all
-                                '''
-                            )
+                            sh "snap list \n export STORE=$WORKSPACE \n ########./build-final.sh -n ${snapName} -c all"
+                            // sh(
+                            //     label: "building the snap within docker container",
+                            //     script: '''pwd
+                            //         snap list
+                            //         export STORE=$WORKSPACE
+                            //         ########./build-final.sh -n ${snapName} -c all
+                            //     '''
+                            // )
 
                             echo "Change the ownership"
-                            sh(
-                                label: "change the ownership",
-                                script: '''
-                                    version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
-                                    ########snap_name=${snapName}"_"$version"_multi.snap"
-                                    ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name
-                                '''
-                            )
+                            sh "version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d ' | tr -d ' ') \n
+                                    ########snap_name=${snapName}'_'$version'_multi.snap' \n
+                                    ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name \n
+                                "
+                            // sh(
+                            //     label: "change the ownership",
+                            //     script: '''
+                            //         version=$(grep -m1 version: ${snapName}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
+                            //         ########snap_name=${snapName}"_"$version"_multi.snap"
+                            //         ########sudo chown -R jenkins:jenkins ${snapName}/$snap_name
+                            //     '''
+                            // )
                             
                             echo "STAGE #3 OUTPUT SUCCESS"
                         } catch (err) {
@@ -135,12 +140,13 @@ pipeline {
                         echo "STAGE #4: Publishing the snap to the channel ${snapChannel}"
                         // Push the build to the snap store
                         try{                            
-                            sh(
-                                label: "push the snap to channel ${snapChannel}",
-                                script: '''
-                                    ########./publish-final.sh -s ${snapName} -c ${snapChannel}
-                                '''
-                            )
+                            sh "########./publish-final.sh -s ${snapName} -c ${snapChannel}"
+                            // sh(
+                            //     label: "push the snap to channel ${snapChannel}",
+                            //     script: '''
+                            //         ########./publish-final.sh -s ${snapName} -c ${snapChannel}
+                            //     '''
+                            // )
                         } catch (err) {
                             error("Failed to finish the stage #4, snap push. Check the script output and access rights.")
                         }
@@ -159,14 +165,15 @@ pipeline {
                     try{
                         // Remove the older versions that maybe present from older usages
                         echo "Remove the older version if present"
-                        sh(
-                            label: "remove the snap",
-                            script: '''
-                                if snap list --all | grep -q $snapName; then
-                                    sudo snap remove $snapName
-                                fi
-                            '''
-                        )
+                        sh "if snap list --all | grep -q $snapName; then \n sudo snap remove $snapName \n fi"
+                        // sh(
+                        //     label: "remove the snap",
+                        //     script: '''
+                        //         if snap list --all | grep -q $snapName; then
+                        //             sudo snap remove $snapName
+                        //         fi
+                        //     '''
+                        // )
 
                         // Get and install the snap from the store on the CI channel
                         echo "Install the snap ${snapName} from ${snapChannel} channel"
@@ -194,12 +201,13 @@ pipeline {
                     try{
                         // Run the check command to test
                         echo "Checking the snap"
-                        sh(
-                            label: "check the snap",
-                            script: '''
-                                sudo $snapName.check
-                            '''
-                        )
+                        sh "sudo $snapName.check"
+                        // sh(
+                        //     label: "check the snap",
+                        //     script: '''
+                        //         sudo $snapName.check
+                        //     '''
+                        // )
 
                         echo "STAGE #6 OUTPUT SUCCESS"
                     } catch (err) {
@@ -256,9 +264,10 @@ pipeline {
                 }
                 echo "STEP #8.3 start building the docker image for the concerned snaps"
                 dir('dockers/docker-build/build'){
-                    sh label: 'Build docker image', script: '''
-                        ./build.sh ${snapName} ${dockerImageTag} ${oaiSnapVersion}
-                    '''
+                    sh "./build.sh ${snapName} ${dockerImageTag} ${oaiSnapVersion}"
+                    // sh label: 'Build docker image', script: '''
+                    //     ./build.sh ${snapName} ${dockerImageTag} ${oaiSnapVersion}
+                    // '''
                 }
             }
         }
