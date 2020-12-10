@@ -51,6 +51,7 @@ def nodeExecutor = 'cigarier'//params.nodeExecutor
 
 // create the directory dirSnapBuildPublish inside which the project store will be cloned, for the purpose of building and puplishing the snaps
 def dirSnapBuildPublish = 'snap-build-publish'
+def dockerComposeLteMonolithicFlexranV1 = "dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran"
 pipeline {
     // Here we define the node that will run this script using the labels assigned to them previously
     agent { 
@@ -63,8 +64,6 @@ pipeline {
         SNAP_CHANNEL = "${snapChannel}"
         OAI_SNAP_VERSION = "${oaiSnapVersion}"
         DOCKER_IMAGE_TAG = "${dockerImageTag}"
-        DIR_SNAP_BUILD_PUBLISH = "${dirSnapBuildPublish}"
-
     }
 
 
@@ -288,11 +287,184 @@ pipeline {
                     sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
                     docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
                             docker.image("mosaic5gecosys/${SNAP_NAME}:${DOCKER_IMAGE_TAG}").push "${DOCKER_IMAGE_TAG}"
-                            // docker.image('mosaic5gecosys/flexran:v1.test').push()
+                            // docker.image("mosaic5gecosys/${SNAP_NAME}:${DOCKER_IMAGE_TAG}").push()
                         }
                     }
             }
         }
+        // STAGE #10: Prepare docker-compose 
+        stage('prepare-deployment-monolithic-flexran') {
+            steps {
+                echo "STEP #10.1 Configure Kube5G for testing phase"
+                dir('common/config-manager'){
+                    script{
+                        sh(
+                            label: 'Configure docker compose for testing phase',
+                            script: '''
+                                ./conf-manager.py -s conf_short_default.yaml -t ${SNAP_NAME}
+                            '''
+                        )
+                    }
+                }
+                echo "STEP #10.2 bring the network down if it is already up"
+                dir("${dockerComposeLteMonolithicFlexranV1}"){
+                    script{
+                        try{
+                            // Remove the docker-compose if available
+                            echo "Remove the docker-compose"
+                            sh(
+                                label: 'remove the docker compose if it is previously deployed',
+                                script: '''
+                                    docker-compose down
+                                '''
+                            )
+                        } catch (err) {
+                            error("Failed to finish the stage #10. Check the docker compse.")
+                        }
+                    }
+                }
+                echo "STAGE #10 OUTPUT SUCCESS"
+            }
+        }
+        
+        // STAGE #11: DOCKER COMPOSE
+        stage('monolithic-flexran-deploy') {
+            steps {
+                echo "STEP #11.1 Build the docker hook"
+                // Change the directory to an specific one for the compose
+                dir("${dockerComposeLteMonolithicFlexranV1}"){
+                    script{
+                        try{
+                            // Setup the docker-compse
+                            echo "Running the docker-compose"
+                            sh(
+                                label: 'setup the docker-compose',
+                                script: '''
+                                    docker-compose up -d
+                                '''
+                            )
+                        } catch (err) {
+                            error("Failed to finish the stage #11. Check docker-compose.yaml and conf.yaml")
+                        }   
+                    }
+                }
+
+                echo "STAGE #11 OUTPUT SUCCESS"
+            }
+        }
+        
+        // STAGE #12: DOCKER COMPOSE TEST
+        stage('monolithic-flexran-network-test') {
+            steps {
+                echo "STEP #12.1 Test lte with flexran network"
+                // Change the directory to an specific one for the compose
+                dir("${dockerComposeLteMonolithicFlexranV1}"){
+                    script{
+                        try{
+                            // List and check the containers and snaps
+                            echo "Listing the containers and snaps"
+                            sh(
+                                label: 'list the docker containers to see the deployed networks',
+                                script: '''
+                                    # Sleep  for 10 seconds to make sure that the network is up
+                                    sleep 10
+                                    docker ps
+                                    docker network ls
+                                    
+                                    cmd="snap list"
+                                    cmd_info_cn="snap info oai-cn"
+                                    cmd_info_ran="snap info oai-ran"
+                                    cmd_info_flexran="snap info flexran"
+                    
+                                    docker exec oaicn $cmd
+                                    docker exec oaicn $cmd_info_cn
+
+                                    docker exec oairan $cmd
+                                    docker exec oairan $cmd_info_ran
+
+                                    docker exec flexran $cmd
+                                    docker exec flexran $cmd_info_flexran
+                                '''
+                            )
+                        } catch (err){
+                            error("Failed to finish the stage #1. Check the modules.")
+                        }
+                    }
+                }
+
+                echo "STAGE #12 OUTPUT SUCCESS"
+            }
+        }
+        
+        // STAGE #13: DOCKER COMPOSE
+        stage('deployment-unit-test-flexran') {
+            steps {
+                
+                // Change the directory to an specific one for the scripts
+                echo "STEP #13.2: Perform a unit test of flexran"
+                dir('ci-scripts/unit-test/flexran'){
+                    script{
+                        try{
+                            // Unit test script
+                            echo "Unit test script"
+                            sh(
+                                label: '${SNAP_NAME} unit test script',
+                                script: '''
+                                    ./unit-flexran.sh
+                                '''
+                            )
+                        } catch (err) {
+                            error("Failed to finish the stage #10. Check the script output.")
+                        }
+                    }
+                }
+                
+                echo "STEP ##13.2: Perform ${SNAP_NAME} check"
+                script{
+                    try{
+                        // Snap unit check
+                        echo "Snap unit check"
+                        sh(
+                            label: "${SNAP_NAME} snap unit check",
+                            script: '''
+                                docker exec ${SNAP_NAME} ${SNAP_NAME}.check
+                            '''
+                        )
+                    } catch (err) {
+                        error("Failed to finish stage #10. Snap unit test failed.")
+                    }
+                }
+
+                echo "STAGE #13 OUTPUT SUCCESS"
+            }
+        }
+        
+        // STAGE 14: DOCKER COMPOSE CLEAN
+        stage('compose-clean') {
+            steps {
+                echo "STEP #14.1: Rollback the docker-compse"
+                // Change the directory to an specific one for the compose
+                dir("${dockerComposeLteMonolithicFlexranV1}"){
+                    script{
+                        try{
+                            // Rollback
+                            echo "Shutting down the docker-compose"
+                            sh(
+                                label: 'list the docker containers to see the deployed networks',
+                                script: '''
+                                    docker-compose down
+                                '''
+                            )
+                        } catch (err){
+                            error("Failed to finish the stage #14. Check the docker-compose")
+                        }
+                    }
+                }
+
+                echo "STAGE #14 OUTPUT SUCCESS"
+            }
+        }
+        /////////////////////
     }
 }
 
