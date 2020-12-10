@@ -97,8 +97,13 @@ pipeline {
                 script{
                     // create the directory dirSnapBuildPublish inside which the project store will be cloned
                     sh "git checkout develop"
-                    sh "SNAP_NAME_REMOTE=${echo $SNAP_NAME | tr -d '-'}"
-                    echo "$SNAP_NAME_REMOTE"
+                    sh(
+                        label: "Getting snap name for docker",
+                        script: '''
+                            SNAP_NAME_REMOTE=$(echo ${SNAP_NAME} | tr -d '-')
+                            echo $SNAP_NAME_REMOTE
+                        '''
+                    )
                     echo "STAGE #2: Prepare the snap environment ${dirSnapBuildPublish}"
                     sh "mkdir -p ${dirSnapBuildPublish}"
                     dir("${dirSnapBuildPublish}")
