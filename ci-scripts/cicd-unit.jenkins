@@ -75,9 +75,12 @@ pipeline {
     }
     environment {
         SNAP_NAME = "${snapName}"
+        SNAP_NAME_REMOTE='$(echo $SNAP_NAME | tr -d '-')'
         SNAP_CHANNEL = "${snapChannel}"
         OAI_SNAP_VERSION = "${oaiSnapVersion}"
         DOCKER_IMAGE_TAG = "${dockerImageTag}"
+        
+        test=
     }
 
 
@@ -321,8 +324,8 @@ pipeline {
                     echo "STEP #9.1 push the docker image tagged as ${DOCKER_IMAGE_TAG} to docker-hub"
                     sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
                     docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
-                            docker.image("mosaic5gecosys/${SNAP_NAME}:${DOCKER_IMAGE_TAG}").push "${DOCKER_IMAGE_TAG}"
-                            // docker.image("mosaic5gecosys/${SNAP_NAME}:${DOCKER_IMAGE_TAG}").push()
+                            docker.image("mosaic5gecosys/${SNAP_NAME_REMOTE}:${DOCKER_IMAGE_TAG}").push "${DOCKER_IMAGE_TAG}"
+                            // docker.image("mosaic5gecosys/${SNAP_NAME_REMOTE}:${DOCKER_IMAGE_TAG}").push()
                         }
                     }
             }
@@ -479,7 +482,7 @@ pipeline {
                         sh(
                             label: "${SNAP_NAME} snap unit check",
                             script: '''
-                                docker exec ${SNAP_NAME} ${SNAP_NAME}.check
+                                docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.check
                             '''
                         )
                     } catch (err) {
@@ -490,7 +493,7 @@ pipeline {
                             sh(
                                 label: "${SNAP_NAME} snap unit test",
                                 script: '''
-                                    docker exec ${SNAP_NAME} ${SNAP_NAME}.test
+                                    docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.test
                                 '''
                             )
                         } catch (errSecond) {
@@ -669,7 +672,7 @@ pipeline {
                         sh(
                             label: "${SNAP_NAME} snap unit check",
                             script: '''
-                                docker exec ${SNAP_NAME} ${SNAP_NAME}.check
+                                docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.check
                             '''
                         )
                     } catch (err) {
@@ -680,7 +683,7 @@ pipeline {
                             sh(
                                 label: "${SNAP_NAME} snap unit check",
                                 script: '''
-                                    docker exec ${SNAP_NAME} ${SNAP_NAME}.check
+                                    docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.check
                                 '''
                             )
                         } catch (errSecond) {
