@@ -1063,6 +1063,9 @@ build_k8s_microk8s(){
     echo_warn "re-enter the session"
     $SUDO su - $USER << EOF
     
+    # Start microk8s
+    microk8s start
+    
     # Check the status of microk8s
     echo "Check the status of microk8s" 
     microk8s status --wait-ready
