@@ -484,7 +484,7 @@ pipeline {
             steps {
                 // Change the directory to an specific one for the scripts
                 echo "STEP #13.2: Perform a unit test of flexran"
-                dir('ci-scripts/unit-test/flexran'){
+                dir('ci-scripts/unit-tests/flexran/4G'){
                     script{
                         try{
                             // Unit test script
@@ -492,6 +492,7 @@ pipeline {
                             sh(
                                 label: '${SNAP_NAME} unit test script',
                                 script: '''
+                                    chmod 777 unit-flexran.sh
                                     ./unit-flexran.sh
                                 '''
                             )
@@ -674,7 +675,7 @@ pipeline {
                 
                 // Change the directory to an specific one for the scripts
                 echo "STEP #17.1: Perform a unit test of flexran"
-                dir('ci-scripts/unit-test/flexran'){
+                dir('ci-scripts/unit-tests/flexran/4G'){
                     script{
                         try{
                             // Unit test script
@@ -682,6 +683,7 @@ pipeline {
                             sh(
                                 label: '${SNAP_NAME} unit test script',
                                 script: '''
+                                    chmod 777 unit-flexran.sh
                                     ./unit-flexran.sh
                                 '''
                             )
