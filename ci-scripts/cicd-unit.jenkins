@@ -468,6 +468,11 @@ pipeline {
 
                                     docker exec flexran $cmd
                                     docker exec flexran $cmd_info_flexran
+
+                                    cmd_log_observe="snap connect flexran:log-observe" 
+                                    cmd_process_control="snap connect flexran:process-control" 
+                                    docker exec ${SNAP_NAME_REMOTE} $cmd_log_observe
+                                    docker exec ${SNAP_NAME_REMOTE} $cmd_process_control
                                 '''
                             )
                         } catch (err){
@@ -658,6 +663,10 @@ pipeline {
 
                                     docker exec flexran $cmd
                                     docker exec flexran $cmd_info_flexran
+                                    cmd_log_observe="snap connect flexran:log-observe" 
+                                    cmd_process_control="snap connect flexran:process-control" 
+                                    docker exec ${SNAP_NAME_REMOTE} $cmd_log_observe
+                                    docker exec ${SNAP_NAME_REMOTE} $cmd_process_control
                                 '''
                             )
                         } catch (err){
@@ -717,10 +726,6 @@ pipeline {
                             sh(
                                 label: "${SNAP_NAME} snap unit check",
                                 script: '''
-                                    cmd_log_observe="snap connect $SNAP_NAME:log-observe" 
-                                    cmd_process_control="snap connect $SNAP_NAME:process-control" 
-                                    docker exec ${SNAP_NAME_REMOTE} $cmd_log_observe
-                                    docker exec ${SNAP_NAME_REMOTE} $cmd_process_control
                                     docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.check
                                 '''
                             )
