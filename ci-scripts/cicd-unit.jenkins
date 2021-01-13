@@ -281,6 +281,8 @@ pipeline {
                         sh(
                             label: "check the snap",
                             script: '''
+                                sudo snap connect $SNAP_NAME:log-observe
+                                sudo snap connect $SNAP_NAME:process-control
                                 sudo $SNAP_NAME.check
                             '''
                         )
@@ -703,7 +705,7 @@ pipeline {
                         sh(
                             label: "${SNAP_NAME} snap unit check",
                             script: '''
-                                docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.check
+                                docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.test
                             '''
                         )
                     } catch (err) {
@@ -714,6 +716,10 @@ pipeline {
                             sh(
                                 label: "${SNAP_NAME} snap unit check",
                                 script: '''
+                                    cmd_log_observe="snap connect $SNAP_NAME:log-observe" 
+                                    cmd_process_control="snap connect $SNAP_NAME:process-control" 
+                                    docker exec ${SNAP_NAME_REMOTE} $cmd_log_observe
+                                    docker exec ${SNAP_NAME_REMOTE} $cmd_process_control
                                     docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.check
                                 '''
                             )
