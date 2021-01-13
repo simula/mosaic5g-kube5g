@@ -125,6 +125,7 @@ pipeline {
                             label: 'Configure docker compose for testing phase',
                             script: '''
                                 git checkout develop
+                                git pull
                                 ./conf-manager.py -s conf_short_default.yaml -C ${SNAP_NAME}
                             '''
                         )
