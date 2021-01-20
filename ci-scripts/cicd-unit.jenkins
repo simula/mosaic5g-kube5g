@@ -1,3 +1,10 @@
+// TODO
+/*
+New added parameters:
+- def snapChannel = params.snapChannelCicd
+TO be changed: 
+- retreive the list of plugs for the snap
+*/
 /*
 #!/bin/groovy
 ################################################################################
@@ -31,12 +38,15 @@
 // TODO: Add the parameters for ease of edit and access
 def pipelineContext = [:] // Parameters will go here
 
-//
+// Name of the snap to build; oai-ran, oai-hss, oai-mme, flexran, etc.
 def snapName = params.snapName
-def snapNameRemote = params.snapNameRemote
-// snapName = params.snapName //'oai-cn' 
-def snapChannel = params.snapChannel // 'edge/ci'
-def oaiSnapVersion = params.oaiSnapVersion // 'v1' // v1 or v2
+// snapcraft channel to which the snap will be pushed for testing it later. This channel is ONLY for testing (i.e., private channel)
+def snapChannelCicd = params.snapChannel // params.snapChannelCicd
+// snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
+def snapChannel = params.snapChannel
+// This is related to oai-cn versions: v1 and v2
+def oaiSnapVersion = params.oaiSnapVersion
+
 // def dockerImageTag =  // 'v1-cicd'
 def dockerImageTag = oaiSnapVersion + '-cicd'
 
@@ -66,30 +76,14 @@ def dockerComposeLteDisaggregatedFlexranV1 = "dockers/docker-compose/oai-v1/lte-
 def dockerComposeLteDisaggregatedFlexranV2 = "dockers/docker-compose/oai-v2/lte-with-flexran"
 
 
-if (params.snapName == "oai-ran") {
-    snapNameRemote="oairan"
+// Name of docker image for the concerned snap. it is the same as the snap name but without hyphen (-) 
+def dockerEntityName = ""
+String[] str;
+str = (params.snapName).split('-')
+for( String values : str ){
+    dockerEntityName = dockerEntityName + values
 }
-if (params.snapName == "oai-hss") {
-    snapNameRemote="oaihss"
-}
-if (params.snapName == "oai-mme") {
-    snapNameRemote="oaimme"
-}
-if (params.snapName == "oai-spgw") {
-    snapNameRemote="oaispgw"
-}
-if (params.snapName == "oai-spgwc") {
-    snapNameRemote="oaispgwc"
-}
-if (params.snapName == "oai-spgwu") {
-    snapNameRemote="oaispgwu"
-}
-if (params.snapName == "oai-cn") {
-    snapNameRemote="oaicn"
-}
-if (params.snapName == "flexran") {
-    snapNameRemote="flexran"
-}
+
 pipeline {
     // Here we define the node that will run this script using the labels assigned to them previously
     agent { 
@@ -98,11 +92,13 @@ pipeline {
         } 
     }
     environment {
-        SNAP_NAME = "${snapName}"
-        SNAP_NAME_REMOTE = "${snapNameRemote}"
-        SNAP_CHANNEL = "${snapChannel}"
-        OAI_SNAP_VERSION = "${oaiSnapVersion}"
-        DOCKER_IMAGE_TAG = "${dockerImageTag}"
+        SNAP_NAME           = "${snapName}"
+        DOCKER_ENTITY_NAME  = "${dockerEntityName}"
+        SNAP_CHANNEL_CICD   = "${snapChannelCicd}"
+        SNAP_CHANNEL        = "${snapChannel}"
+        OAI_SNAP_VERSION    = "${oaiSnapVersion}"
+        DOCKER_IMAGE_TAG    = "${dockerImageTag}"
+        ENUM_STAGE          = 1
     }
 
 
@@ -110,69 +106,73 @@ pipeline {
     // Each stage itself contains a sequence of steps that may contain some scripts to run
     stages {
         // STAGE #1: Clone the project from git using source control management (scm)
-        stage('kube5g-clone') {
+        stage('clone') {
             steps {
                 checkout scm
             }
         }
-        // STAGE #10: Prepare docker-compose 
-        stage('prepare-deployment') {
+        // STAGE #2: Configure Kube5G for CICD phase
+        stage('kube5g-configure') {
             steps {
-                echo "STEP #10.1 Configure Kube5G for testing phase"
+                echo "STAGE #1: Configure Kube5G for CICD phase"
                 dir('common/config-manager'){
                     script{
-                        sh(
-                            label: 'Configure docker compose for testing phase',
-                            script: '''
-                                git checkout develop
-                                git pull
-                                ./conf-manager.py -s conf_short_default.yaml -C ${SNAP_NAME}
-                            '''
-                        )
+                        try{
+                            sh(
+                                label: 'Update Kube5G to proceed with ${SNAP_NAME} in CICD',
+                                script: '''
+                                    
+                                    git checkout develop # TO be deleted when getting the code from develop branch
+                                    git pull  # TO be deleted when getting the code from develop branch
+                                    ./conf-manager.py -s conf_short_default.yaml -C ${SNAP_NAME}
+                                '''
+                            )
+                            currentStage.result = 'SUCCESS'
+                        } catch (err) {
+                            echo err.getMessage()
+                            error("Failed to configure Kube5G using config manager. Check the script output and access rights.")
+                            currentStage.result = 'FAILURE'
+                        }
                     }
                 }
-                echo "STAGE #10 OUTPUT SUCCESS"
+                echo "STAGE #2 OUTPUT ${currentStage.result}"
             }
         }
-        // STAGE 2: PREPARE THE ENVIRONMENT FOR BUILDING THE SNAP
+        // STAGE #3: Pull the store from gitlab to temporary directory dirSnapBuildPublish to start building the concerned snap in the following stages/steps
         stage('snap-prepare') {
             steps {
+                echo "STAGE #3: Pull store to temporary directory ${dirSnapBuildPublish}"
                 script{
                     // create the directory dirSnapBuildPublish inside which the project store will be cloned
-                    sh "git checkout develop"
-                    sh(
-                        label: "Getting snap name for docker",
-                        script: '''
-                            SNAP_NAME_REMOTE=$(echo ${SNAP_NAME} | tr -d '-')
-                            echo $SNAP_NAME_REMOTE
-                        '''
-                    )
-                    echo "STAGE #2: Prepare the snap environment ${dirSnapBuildPublish}"
-                    sh "mkdir -p ${dirSnapBuildPublish}"
-                    dir("${dirSnapBuildPublish}")
-                    {
-                        // clone the project from git inside the current directory
-                        git credentialsId: "${gitlabCredentials}",
-                            url: "${storeBranchUrl}",
-                            branch: "${storeBranchName}"
-
-                        
+                    echo "STEP #3.1: Prepare the snap environment ${dirSnapBuildPublish}"
+                    try{
+                        sh "mkdir -p ${dirSnapBuildPublish}"
+                        dir("${dirSnapBuildPublish}")
+                        {
+                            // clone the project from git inside the current directory
+                            git credentialsId: "${gitlabCredentials}",
+                                url: "${storeBranchUrl}",
+                                branch: "${storeBranchName}"
+                        }
+                        currentStage.result = 'SUCCESS'
+                    } catch (err) {
+                        echo err.getMessage()
+                        error("Failed to clone store from gitlab. Check the script output and access rights.")
+                        currentStage.result = 'FAILURE'
                     }
-                    echo "STAGE #1 OUTPUT SUCCESS"
+                    echo "STAGE #3 OUTPUT ${currentStage.result}"
                 }
             }
         }
         
-        // STAGE 3: BUILD THE SNAP
+        // STAGE 4: Build the snap
         stage('snap-build') {
             steps {
                 dir("${dirSnapBuildPublish}/snaps"){
                     script{
-                        echo "STAGE #3: Building the snap"
+                        echo "STAGE #4: Building the snap"
                         try{
-                            // Set the name, build the snap, get te version, and change the owner user
-                            echo "Start building the snap"
-                            // sh "snap list \n export STORE=$WORKSPACE \n ########./build-final.sh -n ${SNAP_NAME} -c all"
+                            echo "STEP #4.1: Start building the snap"
                             sh(
                                 label: "building the snap within docker container",
                                 script: '''pwd
@@ -182,61 +182,65 @@ pipeline {
                                 '''
                             )
 
-                            echo "Change the ownership"
-                            sh(
-                                label: "change the ownership",
-                                script: '''
-                                    echo ${SNAP_NAME}
-                                    echo $SNAP_NAME
-                                    version=$(grep -m1 version: ${SNAP_NAME}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
-                                    ########snap_name=${SNAP_NAME}"_"$version"_multi.snap"
-                                    ########sudo chown -R jenkins:jenkins ${SNAP_NAME}/$snap_name
-                                '''
-                            )
-                            
-                            echo "STAGE #3 OUTPUT SUCCESS"
+                            try{
+                                echo "STEP #4.2: Change the ownership of the build snap"
+                                sh(
+                                    label: "change the ownership",
+                                    script: '''
+                                        echo ${SNAP_NAME}
+                                        echo $SNAP_NAME
+                                        version=$(grep -m1 version: ${SNAP_NAME}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
+                                        ########snap_name=${SNAP_NAME}"_"$version"_multi.snap"
+                                        ########sudo chown -R jenkins:jenkins ${SNAP_NAME}/$snap_name
+                                    '''
+                                )
+                                currentStage.result = 'SUCCESS'
+                            } catch (err) {
+                                echo err.getMessage()
+                                error("Failed to change the owner of the built snap ${SNAP_NAME}. Check the script output and access rights.")
+                                currentStage.result = 'FAILURE'
+                            }
                         } catch (err) {
                             echo err.getMessage()
-                            error("Failed to finish the stage #3, snap build. Check the script output and access rights.")
+                            error("Failed to build the snap ${SNAP_NAME}. Check the script output and access rights.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
-                
-                echo "STAGE #3 OUTPUT SUCCESS"
+                echo "STAGE #4 OUTPUT ${currentStage.result}"
             }
         }
 
-        // STAGE 4: PUSH THE SNAP TO THE CI CHANNEL ON SNAPCRAFT
-        stage('snap-push') {
+        // STAGE: Push the snap to the CICD channel on snapcraft
+        stage('snap-push-cicd') {
             steps {
                 dir("${dirSnapBuildPublish}/snaps"){
                     script{
-                        echo "STAGE #4: Publishing the snap to the channel ${SNAP_CHANNEL}"
-                        // Push the build to the snap store
+                        echo "STAGE #5: Publishing the snap to the channel ${SNAP_CHANNEL_CICD}"
                         try{                            
-                            // sh "########./publish-final.sh -s ${SNAP_NAME} -c ${SNAP_CHANNEL}"
                             sh(
-                                label: "push the snap to channel ${SNAP_CHANNEL}",
+                                label: "push the snap to channel ${SNAP_CHANNEL_CICD}",
                                 script: '''
-                                    ########./publish-final.sh -s ${SNAP_NAME} -c ${SNAP_CHANNEL}
+                                    ########./publish-final.sh -s ${SNAP_NAME} -c ${SNAP_CHANNEL_CICD}
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
-                            error("Failed to finish the stage #4, snap push. Check the script output and access rights.")
+                            error("Failed to push the snap ${SNAP_NAME} to the channel ${SNAP_CHANNEL_CICD}. Check the script output and access rights.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
-                
-                echo "STAGE #4 OUTPUT SUCCESS"
+                echo "STAGE #5 OUTPUT ${currentStage.result}"
             }
         }
         
-        // STAGE 5: INSTALL THE SNAP FORM THE TEMPORARY CHANNEL
+        // STAGE 6: INSTALL THE SNAP FORM THE TEMPORARY CHANNEL
         stage('snap-install') {
             steps {
                 script{
-                    echo "STAGE #5: Install the snap on the machine, baremetal test"
+                    echo "STAGE #6: Install the snap on the machine, baremetal test, from the cicd channel on snapcraft"
                     try{
                         // Remove the older versions that maybe present from older usages
                         echo "Remove the older version if present"
@@ -251,33 +255,38 @@ pipeline {
                         )
 
                         // Get and install the snap from the store on the CI channel
-                        echo "Install the snap ${SNAP_NAME} from ${SNAP_CHANNEL} channel"
-                        // sh "sudo snap install ${SNAP_NAME} --devmode --channel=${SNAP_CHANNEL}"
-                        sh(
-                            label: "install the snap from the channel ${SNAP_CHANNEL}",
-                            script: '''
-                                sudo snap install ${SNAP_NAME} --devmode --channel=${SNAP_CHANNEL}
-                            '''
-                        )
-                        echo "STAGE #5 OUTPUT SUCCESS"
+                        echo "Install the snap ${SNAP_NAME} from ${SNAP_CHANNEL_CICD} channel"
+                        try{
+                            sh(
+                                label: "install the snap from the channel ${SNAP_CHANNEL_CICD}",
+                                script: '''
+                                    sudo snap install ${SNAP_NAME} --devmode --channel=${SNAP_CHANNEL_CICD}
+                                '''
+                            )
+                            currentStage.result = 'SUCCESS'
+                        } catch (err) {
+                            echo err.getMessage()
+                            error("Failed to install the snap ${SNAP_NAME} from the channel ${SNAP_CHANNEL_CICD}")
+                            currentStage.result = 'FAILURE'
+                        }
                     } catch (err) {
                         echo err.getMessage()
-                        error("Failed to finish the stage #5. Check if the snap is available.")
+                        error("Failed to remove the previously installed snap.")
                     }
+                    echo "STAGE #6 OUTPUT ${currentStage.result}"
                 }
             }
         }
 
-        // STAGE 6: UNIT TEST
-        stage('snap-pretest') {
+        // STAGE 7: UNIT TEST
+        stage('snap-unitary-test') {
             steps {
-                echo "STAGE #6: Testing the snap"
-                
+                echo "STAGE #6: Testing the snap on baremetal"
                 script{
                     echo "Checking the snap ${SNAP_NAME}.check"
                     try{
                         // Run the check command to test
-                        echo "Checking the snap"
+                        echo "Checking the snap $SNAP_NAME"
                         // sh "sudo $SNAP_NAME.check"
                         sh(
                             label: "check the snap",
@@ -287,67 +296,71 @@ pipeline {
                                 sudo $SNAP_NAME.check
                             '''
                         )
-
-                        echo "STAGE #6 OUTPUT SUCCESS"
+                        currentStage.result = 'SUCCESS'
                     } catch (err) {
                         echo err.getMessage()
                         try{
                             // Run the check command to test
-                            echo "Testing the snap"
-                            // sh "sudo $SNAP_NAME.test"
+                            echo "Testing the snap $SNAP_NAME"
                             sh(
                                 label: "check the snap",
                                 script: '''
                                     sudo $SNAP_NAME.test
                                 '''
                             )
-
-                            echo "STAGE #6 OUTPUT SUCCESS"
+                            currentStage.result = 'SUCCESS'
                         } catch (errSecond) {
                             echo errSecond.getMessage()
-                            error("Failed to finish the stage #6. Check the snap logs.")
+                            error("Failed in the unitary test for the snap ${SNAP_NAME}")
+                            currentStage.result = 'FAILURE'
                         }
                     }
+                    echo "STAGE #7 OUTPUT ${currentStage.result}"
                 }
             }
         }
 
-        // STAGE 7: CLEAN UP
+        // STAGE 8: CLEAN UP
         stage('snap-clean') {
             steps {
-                echo "STAGE #7: Remove the snap"
-                
+                echo "STAGE #78: Remove the snap"
                 script{
                     echo "Roll back everything"
                     try{                            
-                        // sh "sudo snap remove ${SNAP_NAME}"
                         sh(
                             label: "remove the snap",
                             script: '''
                                 sudo snap remove ${SNAP_NAME}
                             '''
                         )
-                    
-                        echo "STAGE #7 OUTPUT SUCCESS"
+                        currentStage.result = 'SUCCESS'
                     } catch (err) {
                         echo err.getMessage()
-                        error("Failed to finish the stage #7. Check if the snap is correctly installed.")
+                        error("Failed to remove the snap ${SNAP_NAME}. Check if the snap was previously (correctly) installed.")
+                        currentStage.result = 'FAILURE'
                     }
+                    echo "STAGE #8 OUTPUT ${currentStage.result}"
                 }
             }
         }
 
-        // STAGE 8: BUILDING DOCKER IMAGE FOR THE SNAP FROM THE CHANNEL
+        // STAGE #9: BUILDING DOCKER IMAGE FOR THE SNAP FROM THE CHANNEL
         stage('docker-build') {
             steps {
-                echo "STEP #8.1 Copy the hook to docker-build before starting building doker image"
-                script { 
-                    sh label: 'copy dokcer-hook', script: '''pwd
-                    cp dockers/docker-hook/cmd/hook/hook dockers/docker-build/build/
-                    '''
-
+                echo "STEP #9.1 Copy the hook to docker-build before starting building doker image"
+                try {
+                    script { 
+                        sh label: 'copy dokcer-hook', script: '''pwd
+                        cp dockers/docker-hook/cmd/hook/hook dockers/docker-build/build/
+                        '''
+                    }
+                } catch (err) {
+                    echo err.getMessage()
+                    echo "Error of getting the hook, exit..."
+                    currentBuild.result = 'FAILURE'
+                    throw(err)
                 }
-                echo "STEP #8.2 remove the docker build_base if it is already running"
+                echo "STEP #9.2 remove the docker build_base if it is already running"
                 script {
                     try {
                         sh label: 'remove the docker container base used to build the docker images', script: '''
@@ -358,26 +371,43 @@ pipeline {
                         echo "Ignoring; the docker container base does not exist"
                     }
                 }
-                echo "STEP #8.3 start building the docker image for the concerned snaps"
-                dir('dockers/docker-build/build'){
-                    // sh "./build.sh ${SNAP_NAME} ${DOCKER_IMAGE_TAG} ${OAI_SNAP_VERSION}"
-                    sh label: 'Build docker image', script: '''
-                        ./build.sh ${SNAP_NAME} ${DOCKER_IMAGE_TAG} ${OAI_SNAP_VERSION}
-                    '''
+                echo "STEP #9.3 start building the docker image for the concerned snap"
+                try {
+                    dir('dockers/docker-build/build'){
+                        sh label: 'Build docker image', script: '''
+                            ./build.sh ${SNAP_NAME} ${DOCKER_IMAGE_TAG} ${OAI_SNAP_VERSION}
+                        '''
+                    }
+                    currentStage.result = 'SUCCESS'
+                } catch (err) {
+                    echo err.getMessage()
+                    echo "Erro building docker image for the snap ${SNAP_NAME}, exit..."
+                    currentBuild.result = 'FAILURE'
+                    throw(err)
                 }
+                echo "STAGE #9 OUTPUT ${currentStage.result}"
             }
         }
-        // STAGE 9: Push the docker image to docker-hub
+        // STAGE 10: Push the docker image to docker-hub
         stage('docker-Push') {
             steps {
-                script { 
-                    echo "STEP #9.1 push the docker image tagged as ${DOCKER_IMAGE_TAG} to docker-hub"
+                try {
+                    script { 
+                    echo "STEP #10.1 push the docker image tagged as ${DOCKER_IMAGE_TAG} to docker-hub"
                     sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
                     docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
-                            docker.image("mosaic5gecosys/${SNAP_NAME_REMOTE}:${DOCKER_IMAGE_TAG}").push "${DOCKER_IMAGE_TAG}"
-                            // docker.image("mosaic5gecosys/${SNAP_NAME_REMOTE}:${DOCKER_IMAGE_TAG}").push()
+                            docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push "${DOCKER_IMAGE_TAG}"
+                            // docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push()
                         }
                     }
+                    currentStage.result = 'SUCCESS'
+                } catch (err) {
+                    echo err.getMessage()
+                    echo "Erro pushing the docker image mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG} to dockerhub, exit..."
+                    currentBuild.result = 'FAILURE'
+                    throw(err)
+                }
+                echo "STAGE #10 OUTPUT ${currentStage.result}"
             }
         }
         
@@ -405,9 +435,11 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
-                            error("Failed to finish the stage #11. Check the docker compse.")
+                            error("Failed to make the network down. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                     script{
@@ -420,14 +452,16 @@ pipeline {
                                     docker-compose up -d
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
-                            error("Failed to finish the stage #11. Check docker-compose.yaml and conf.yaml")
+                            error("Failed to make the network up. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }   
                     }
                 }
 
-                echo "STAGE #11 OUTPUT SUCCESS"
+                echo "STAGE #11 OUTPUT ${currentStage.result}"
             }
         }
         
@@ -471,17 +505,18 @@ pipeline {
 
                                     cmd_log_observe="snap connect flexran:log-observe" 
                                     cmd_process_control="snap connect flexran:process-control" 
-                                    docker exec ${SNAP_NAME_REMOTE} $cmd_log_observe
-                                    docker exec ${SNAP_NAME_REMOTE} $cmd_process_control
+                                    docker exec ${DOCKER_ENTITY_NAME} $cmd_log_observe
+                                    docker exec ${DOCKER_ENTITY_NAME} $cmd_process_control
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #1. Check the modules.")
+                            error("Failed to test the network components in monolithic mode; v1")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
-
-                echo "STAGE #12 OUTPUT SUCCESS"
+                echo "STAGE #12 OUTPUT ${currentStage.result}"
             }
         }
         
@@ -492,7 +527,7 @@ pipeline {
             }
             steps {
                 // Change the directory to an specific one for the scripts
-                echo "STEP #13.2: Perform a unit test of flexran"
+                echo "STEP #13.1: Perform a unit test of flexran"
                 dir('ci-scripts/unit-tests/flexran/4G'){
                     script{
                         try{
@@ -505,14 +540,16 @@ pipeline {
                                     ./unit-flexran.sh
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
-                            error("Failed to finish the stage #10. Check the script output.")
+                            error("Failed to test flexran in the deployment stage. Check the script output.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
                 
-                echo "STEP ##13.2: Perform ${SNAP_NAME} check"
+                echo "STEP #13.2: Perform ${SNAP_NAME} check"
                 script{
                     try{
                         // Snap unit check
@@ -520,9 +557,10 @@ pipeline {
                         sh(
                             label: "${SNAP_NAME} snap unit check",
                             script: '''
-                                docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.check
+                                docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.check
                             '''
                         )
+                        currentStage.result = 'SUCCESS'
                     } catch (err) {
                         echo err.getMessage()
                         try{
@@ -531,17 +569,18 @@ pipeline {
                             sh(
                                 label: "${SNAP_NAME} snap unit test",
                                 script: '''
-                                    docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.test
+                                    docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.test
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (errSecond) {
                             echo errSecond.getMessage()
-                            error("Failed to finish stage #10. Snap unit test failed.")
+                            error("Failed of the unitary test of FlexRAN insider the docker container")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
-
-                echo "STAGE #13 OUTPUT SUCCESS"
+                echo "STAGE #13 OUTPUT ${currentStage.result}"
             }
         }
         
@@ -567,13 +606,15 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #14. Check the docker-compose")
+                            error("Failed to make the network down. Check the docker-compose output")
+                            currentStage.result = 'FAILURE'
+
                         }
                     }
                 }
-
-                echo "STAGE #14 OUTPUT SUCCESS"
+                echo "STAGE #14 OUTPUT ${currentStage.result}"
             }
         }
         /*=========== Continuous deployment: lte network with monolithic RAN and CN, and flexran as controller:v2 ===========*/
@@ -600,9 +641,11 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
-                            error("Failed to finish the stage #15. Check the docker compse.")
+                            error("Failed make the network down. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                     script{
@@ -615,14 +658,15 @@ pipeline {
                                     docker-compose up -d
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
-                            error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
+                            error("Failed make the netwrok up. Check docker-compose.yaml and conf.yaml")
+                            currentStage.result = 'FAILURE'
                         }   
                     }
                 }
-
-                echo "STAGE #15 OUTPUT SUCCESS"
+                echo "STAGE #15 OUTPUT ${currentStage.result}"
             }
         }
         
@@ -665,17 +709,19 @@ pipeline {
                                     docker exec flexran $cmd_info_flexran
                                     cmd_log_observe="snap connect flexran:log-observe" 
                                     cmd_process_control="snap connect flexran:process-control" 
-                                    docker exec ${SNAP_NAME_REMOTE} $cmd_log_observe
-                                    docker exec ${SNAP_NAME_REMOTE} $cmd_process_control
+                                    docker exec ${DOCKER_ENTITY_NAME} $cmd_log_observe
+                                    docker exec ${DOCKER_ENTITY_NAME} $cmd_process_control
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #1. Check the modules.")
+                            error("Failed to test the network in monolithic mode with FlexRAN: v2")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
 
-                echo "STAGE #16 OUTPUT SUCCESS"
+                echo "STAGE #16 OUTPUT ${currentStage.result}"
             }
         }
         
@@ -700,14 +746,16 @@ pipeline {
                                     ./unit-flexran.sh
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
                             error("Failed to finish the stage #10. Check the script output.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
                 
-                echo "STEP ##17.2: Perform ${SNAP_NAME} check"
+                echo "STEP #17.2: Perform ${SNAP_NAME} check"
                 script{
                     try{
                         // Snap unit check
@@ -715,9 +763,10 @@ pipeline {
                         sh(
                             label: "${SNAP_NAME} snap unit check",
                             script: '''
-                                docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.test
+                                docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.test
                             '''
                         )
+                        currentStage.result = 'SUCCESS'
                     } catch (err) {
                         echo err.getMessage()
                         try{
@@ -726,17 +775,19 @@ pipeline {
                             sh(
                                 label: "${SNAP_NAME} snap unit check",
                                 script: '''
-                                    docker exec ${SNAP_NAME_REMOTE} ${SNAP_NAME}.check
+                                    docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.check
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (errSecond) {
                             echo errSecond.getMessage()
-                            error("Failed to finish stage #10. Snap unit test failed.")
+                            error("Failed to perform check for the snap ${SNAP_NAME}")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
 
-                echo "STAGE #17 OUTPUT SUCCESS"
+                echo "STAGE #17 OUTPUT ${currentStage.result}"
             }
         }
         
@@ -762,18 +813,19 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #18. Check the docker-compose")
+                            error("Failed make the network down. Check the docker-compose")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
-
-                echo "STAGE #18 OUTPUT SUCCESS"
+                echo "STAGE #18 OUTPUT ${currentStage.result}"
             }
         }
         
         /*=========== Continuous deployment: lte network with monolithic RAN and CN:v1 ===========*/
-        // STAGE #15: DOCKER COMPOSE
+        // STAGE #18: DOCKER COMPOSE
         stage('monolithic-deploy-v1') {
             when{
                 anyOf{
@@ -782,10 +834,10 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #15.1 Build the docker hook"
+                echo "STEP #18.1 Build the docker hook"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteMonolithicV1}"){
-                    echo "STEP #15.2 bring the network down if it is already up"
+                    echo "STEP #18.2 bring the network down if it is already up"
                     script{
                         try{
                             // Remove the docker-compose if available
@@ -796,9 +848,11 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
-                            error("Failed to finish the stage #15. Check the docker compse.")
+                            error("Failed to make the network down. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                     script{
@@ -811,18 +865,19 @@ pipeline {
                                     docker-compose up -d
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
-                            error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
+                            error("Failed to make the network up. Check docker-compose.yaml and conf.yaml")
+                            currentStage.result = 'FAILURE'
                         }   
                     }
                 }
-
-                echo "STAGE #15 OUTPUT SUCCESS"
+                echo "STAGE #18 OUTPUT ${currentStage.result}"
             }
         }
         
-        // STAGE #16: DOCKER COMPOSE TEST
+        // STAGE #19: DOCKER COMPOSE TEST
         stage('monolithic-network-test-v1') {
             when{
                 anyOf{
@@ -831,7 +886,7 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #16.1 Test lte network: monolithic mode"
+                echo "STEP #19.1 Test lte network: monolithic mode"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteMonolithicV1}"){
                     script{
@@ -857,13 +912,14 @@ pipeline {
                                     docker exec oairan $cmd_info_ran
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #1. Check the modules.")
+                            error("Failed to test the network in monolithic mode. Check the modules.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
-
-                echo "STAGE #16 OUTPUT SUCCESS"
+                echo "STAGE #19 OUTPUT ${currentStage.result}"
             }
         }
         
@@ -889,18 +945,19 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #18. Check the docker-compose")
+                            error("Failed to make the network, monolithic mode, down. Check the docker-compose")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
-
-                echo "STAGE #18 OUTPUT SUCCESS"
+                echo "STAGE #18 OUTPUT ${currentStage.result}"
             }
         }
 
         /*=========== Continuous deployment: lte network with monolithic RAN and CN:v2 ===========*/
-        // STAGE #15: DOCKER COMPOSE
+        // STAGE #19: DOCKER COMPOSE
         stage('monolithic-deploy-v2') {
             when{
                 anyOf{
@@ -909,10 +966,10 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #15.1 Build the docker hook"
+                echo "STEP #19.1 Build the docker hook"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteMonolithicV2}"){
-                    echo "STEP #15.2 bring the network down if it is already up"
+                    echo "STEP #19.2 bring the network down if it is already up"
                     script{
                         try{
                             // Remove the docker-compose if available
@@ -923,9 +980,11 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
-                            error("Failed to finish the stage #15. Check the docker compse.")
+                            error("Failed to make the network down. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                     script{
@@ -938,18 +997,19 @@ pipeline {
                                     docker-compose up -d
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
-                            error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
+                            error("Failed to make the network up. Check docker-compose.yaml and conf.yaml")
+                            currentStage.result = 'FAILURE'
                         }   
                     }
                 }
-
-                echo "STAGE #15 OUTPUT SUCCESS"
+                echo "STAGE #19 OUTPUT ${currentStage.result}"
             }
         }
         
-        // STAGE #16: DOCKER COMPOSE TEST
+        // STAGE #20: DOCKER COMPOSE TEST
         stage('monolithic-network-test-v2') {
             when{
                 anyOf{
@@ -958,7 +1018,7 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #16.1 Test lte network: monolithic mode"
+                echo "STEP #20.1 Test lte network: monolithic mode"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteMonolithicV2}"){
                     script{
@@ -984,17 +1044,19 @@ pipeline {
                                     docker exec oairan $cmd_info_ran
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #1. Check the modules.")
+                            error("Failed to test the network in monolithic mode v2")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
 
-                echo "STAGE #16 OUTPUT SUCCESS"
+                echo "STAGE #20 OUTPUT ${currentStage.result}"
             }
         }
         
-        // STAGE 18: DOCKER COMPOSE CLEAN
+        // STAGE 21: DOCKER COMPOSE CLEAN
         stage('monolithic-down-v2') {
             when{
                 anyOf{
@@ -1003,7 +1065,7 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #18.1: Rollback the docker-compse"
+                echo "STEP #21.1: Rollback the docker-compse"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteMonolithicV2}"){
                     script{
@@ -1016,18 +1078,20 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #18. Check the docker-compose")
+                            error("Failed to make the network down. Check the docker-compose")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
 
-                echo "STAGE #18 OUTPUT SUCCESS"
+                echo "STAGE #21 OUTPUT ${currentStage.result}"
             }
         }
 
         /*=========== Continuous deployment: lte network with monolithic RAN and disaggregated CN:v1 ===========*/
-        // STAGE #15: DOCKER COMPOSE
+        // STAGE #22: DOCKER COMPOSE
         stage('disaggregated-deploy-v1') {
             when{
                 allOf{
@@ -1041,10 +1105,10 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #15.1 Build the docker hook"
+                echo "STEP #22.1 Build the docker hook"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteDisaggregatedV1}"){
-                    echo "STEP #15.2 bring the network down if it is already up"
+                    echo "STEP #22.2 bring the network down if it is already up"
                     script{
                         try{
                             // Remove the docker-compose if available
@@ -1055,9 +1119,11 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
-                            error("Failed to finish the stage #15. Check the docker compse.")
+                            error("Failed to make the network, disaggregated mode v1, down. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                     script{
@@ -1070,18 +1136,19 @@ pipeline {
                                     docker-compose up -d
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
-                            error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
+                            error("Failed to make the network, disaggregated mode v1, up. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }   
                     }
                 }
-
-                echo "STAGE #15 OUTPUT SUCCESS"
+                echo "STAGE #22 OUTPUT ${currentStage.result}"
             }
         }
         
-        // STAGE #16: DOCKER COMPOSE TEST
+        // STAGE #23: DOCKER COMPOSE TEST
         stage('disaggregated-network-test-v1') {
             when{
                 allOf{
@@ -1095,7 +1162,7 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #16.1 Test lte network: disaggregated mode"
+                echo "STEP #23.1 Test lte network: disaggregated mode"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteDisaggregatedV1}"){
                     script{
@@ -1129,17 +1196,19 @@ pipeline {
                                     docker exec oairan $cmd_info_ran
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #1. Check the modules.")
+                            error("Failed to test the network in dissagregated mode v1. Check the modules.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
 
-                echo "STAGE #16 OUTPUT SUCCESS"
+                echo "STAGE #23 OUTPUT ${currentStage.result}"
             }
         }
         
-        // STAGE 18: DOCKER COMPOSE CLEAN
+        // STAGE 24: DOCKER COMPOSE CLEAN
         stage('disaggregated-down-v1') {
             when{
                 allOf{
@@ -1153,7 +1222,7 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #18.1: Rollback the docker-compse"
+                echo "STEP #24.1: Rollback the docker-compse"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteDisaggregatedV1}"){
                     script{
@@ -1166,17 +1235,20 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #18. Check the docker-compose")
+                            error("Failed to make the network, disaggregated mode v1, down. Check the docker-compose")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
 
-                echo "STAGE #18 OUTPUT SUCCESS"
+                echo "STAGE #24 OUTPUT ${currentStage.result}"
+
             }
         }
         /*=========== Continuous deployment: lte network with monolithic RAN and disaggregated CN:v2 ===========*/
-        // STAGE #15: DOCKER COMPOSE
+        // STAGE #25: DOCKER COMPOSE
         stage('disaggregated-deploy-v2') {
             when{
                 anyOf{                
@@ -1193,10 +1265,10 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #15.1 Build the docker hook"
+                echo "STEP #25.1 Build the docker hook"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteDisaggregatedV2}"){
-                    echo "STEP #15.2 bring the network down if it is already up"
+                    echo "STEP #25.2 bring the network down if it is already up"
                     script{
                         try{
                             // Remove the docker-compose if available
@@ -1207,9 +1279,11 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
-                            error("Failed to finish the stage #15. Check the docker compse.")
+                            error("Failed to make the network, disaggregated v2, down. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                     script{
@@ -1222,18 +1296,20 @@ pipeline {
                                     docker-compose up -d
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
-                            error("Failed to finish the stage #15. Check docker-compose.yaml and conf.yaml")
+                            error("Failed to make the network, disaggregated v2, up. Check the docker compse.")
+                            currentStage.result = 'FAILURE'
                         }   
                     }
                 }
 
-                echo "STAGE #15 OUTPUT SUCCESS"
+                echo "STAGE #25 OUTPUT ${currentStage.result}"
             }
         }
         
-        // STAGE #16: DOCKER COMPOSE TEST
+        // STAGE #26: DOCKER COMPOSE TEST
         stage('disaggregated-network-test-v2') {
             when{
                 anyOf{                
@@ -1250,7 +1326,7 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #16.1 Test lte network: disaggregated mode"
+                echo "STEP #26.1 Test lte network: disaggregated mode"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteDisaggregatedV2}"){
                     script{
@@ -1288,17 +1364,19 @@ pipeline {
                                     docker exec oairan $cmd_info_ran
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #1. Check the modules.")
+                            error("Failed to test the network, disaggregated v2")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
 
-                echo "STAGE #16 OUTPUT SUCCESS"
+                echo "STAGE #26 OUTPUT ${currentStage.result}"
             }
         }
         
-        // STAGE 18: DOCKER COMPOSE CLEAN
+        // STAGE 27: DOCKER COMPOSE CLEAN
         stage('disaggregated-down-v2') {
             when{
                 anyOf{                
@@ -1315,7 +1393,7 @@ pipeline {
                 }
             }
             steps {
-                echo "STEP #18.1: Rollback the docker-compse"
+                echo "STEP #27.1: Rollback the docker-compse"
                 // Change the directory to an specific one for the compose
                 dir("${dockerComposeLteDisaggregatedV2}"){
                     script{
@@ -1328,13 +1406,15 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
+                            currentStage.result = 'SUCCESS'
                         } catch (err){
-                            error("Failed to finish the stage #18. Check the docker-compose")
+                            error("Failed to make the network, disaggregated v2, down. Check the docker-compose")
+                            currentStage.result = 'FAILURE'
                         }
                     }
                 }
 
-                echo "STAGE #18 OUTPUT SUCCESS"
+                echo "STAGE #27 OUTPUT ${currentStage.result}"
             }
         }
     }
