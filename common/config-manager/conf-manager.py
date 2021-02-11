@@ -47,6 +47,13 @@ formatter = ColoredFormatter(LOGFORMAT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+# Define the default values for CI/CD stage
+cicd_default_snap_channel = "stable/ci"
+# cicd_default_docker_registry = "localhost:5000"
+cicd_default_docker_registry = "mosaic5gecosys"
+cicd_default_docker_tag_v1 = "v1-1.0-cicd"
+cicd_default_docker_tag_v2 = "v1-2.0-cicd"
+
 # Define required directory
 CURRENT_DIR = os.environ['PWD']
 PWD = (CURRENT_DIR.split("/common/config-manager"))[0]
@@ -55,7 +62,7 @@ COMMON_DIR_DOCKER = "{}/dockers/docker-compose".format(PWD)
 COMMON_DIR_DOCKER_BUILD = "{}/dockers/docker-build".format(PWD)
 
 class ConfigManager(object):
-    def __init__(self, conf_short, conf_global_default, config_short, entities_cicd):
+    def __init__(self, conf_short, conf_global_default, config_short, entities_cicd, snap_channel_cicd, snap_devmode_cicd, docker_reg_cicd, docker_tag_v1_cicd, docker_tag_v2_cicd):
         self.config_file_short = conf_short
         self.config_file = conf_global_default
         self.common_dir_crs = COMMON_DIR_CRD
@@ -75,7 +82,9 @@ class ConfigManager(object):
         for entity_cicd in entities_cicd:
             if entity_cicd != "none":
                 # configure the config file of docker build for testing purposes in ci/cd jenkins
-                self.config_cicd(entity_cicd)
+                self.config_cicd(entity_cicd, snap_channel_cicd, snap_devmode_cicd, docker_reg_cicd, docker_tag_v1_cicd, docker_tag_v2_cicd)
+                                              
+                
     def yaml_config(self):
         ruamel.yaml.YAML().indent(mapping=4, sequence=6, offset=3)
     def open_config_global(self):
@@ -179,82 +188,91 @@ class ConfigManager(object):
             exit(0)
     
     # change the concerned parameters for testing purpose in ci/cd jenkins
-    def config_cicd(self, entity_cicd):
+    def config_cicd(self, entity_cicd, snap_channel_cicd, snap_devmode_cicd, docker_reg_cicd, docker_tag_v1_cicd, docker_tag_v2_cicd):
         def config_cicd_oairan(self):
             # oaiEnb
-            self.config_global_data['spec']["oaiEnb"][0]["oaiEnbImage"]             = "mosaic5gecosys/oairan:v1-cicd"
-            self.config_global_data['spec']["oaiEnb"][0]["snap"]["channel"]         = "edge/ci"
-            self.config_global_data['spec']["oaiEnb"][0]["snap"]["devmode"]         = True
+            entity = "oairan"
+            self.config_global_data['spec']["oaiEnb"][0]["oaiEnbImage"]             = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v1_cicd)
+            # self.config_global_data['spec']["oaiEnb"][0]["oaiEnbImage"]             = "mosaic5gecosys/oairan:v1-cicd".format()
+            self.config_global_data['spec']["oaiEnb"][0]["snap"]["channel"]         = snap_channel_cicd
+            self.config_global_data['spec']["oaiEnb"][0]["snap"]["devmode"]         = snap_devmode_cicd
             self.config_global_data['spec']["oaiEnb"][0]["snap"]["refresh"]         = False
         def config_cicd_flexran(self):
             # flexran
-            self.config_global_data['spec']["flexran"][0]["flexranImage"]           = "mosaic5gecosys/flexran:v1-cicd"
-            self.config_global_data['spec']["flexran"][0]["snap"]["channel"]        = "edge/ci"
-            self.config_global_data['spec']["flexran"][0]["snap"]["devmode"]        = True
+            entity = "flexran"
+            self.config_global_data['spec']["flexran"][0]["flexranImage"]           = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v1_cicd)
+            self.config_global_data['spec']["flexran"][0]["snap"]["channel"]        = snap_channel_cicd
+            self.config_global_data['spec']["flexran"][0]["snap"]["devmode"]        = snap_devmode_cicd
             self.config_global_data['spec']["flexran"][0]["snap"]["refresh"]        = False
         def config_cicd_oaiCn(self):
             # oaiCn v1
-            self.config_global_data['spec']["oaiCn"]["v1"][0]["oaiCnImage"]         = "mosaic5gecosys/oaicn:v1-cicd"
-            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["channel"]    = "edge/ci"
-            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["devmode"]    = True
+            entity = "oaicn"
+            self.config_global_data['spec']["oaiCn"]["v1"][0]["oaiCnImage"]         = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v1_cicd)
+            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["channel"]    = snap_channel_cicd
+            self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["devmode"]    = snap_devmode_cicd
             self.config_global_data['spec']["oaiCn"]["v1"][0]["snap"]["refresh"]    = False
             # oaiCn v2
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiCnImage"]         = "mosaic5gecosys/oaicn:v2-cicd"
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiCnImage"]         = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v2_cicd)
             # oaiCn:oaiHss v2
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["channel"]    = "edge/ci"
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["channel"]    = snap_channel_cicd
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["devmode"]    = snap_devmode_cicd
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiHss"]["snap"]["refresh"]    = False
             # oaiCn:oaiMme v2
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["channel"]    = "edge/ci"
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["channel"]    = snap_channel_cicd
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["devmode"]    = snap_devmode_cicd
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiMme"]["snap"]["refresh"]    = False
             # oaiCn:oaiSpgwc v2
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["channel"]    = "edge/ci"
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["channel"]    = snap_channel_cicd
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["devmode"]    = snap_devmode_cicd
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwc"]["snap"]["refresh"]    = False
             # oaiCn:oaiSpgwu v2
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["channel"]    = "edge/ci"
-            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["devmode"]    = True
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["channel"]    = snap_channel_cicd
+            self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["devmode"]    = snap_devmode_cicd
             self.config_global_data['spec']["oaiCn"]["v2"][0]["oaiSpgwu"]["snap"]["refresh"]    = False
         def config_cicd_oaiHss(self):
             # oaiHss v1
-            self.config_global_data['spec']["oaiHss"]["v1"][0]["oaiHssImage"]       = "mosaic5gecosys/oaihss:v1-cicd"
-            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["channel"]   = "edge/ci"
-            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["devmode"]   = True
+            entity = "oaihss"
+            self.config_global_data['spec']["oaiHss"]["v1"][0]["oaiHssImage"]       = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v1_cicd)
+            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["channel"]   = snap_channel_cicd
+            self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["devmode"]   = snap_devmode_cicd
             self.config_global_data['spec']["oaiHss"]["v1"][0]["snap"]["refresh"]   = False
             # oaiHss v2
-            self.config_global_data['spec']["oaiHss"]["v2"][0]["oaiHssImage"]       = "mosaic5gecosys/oaihss:v2-cicd"
-            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["channel"]   = "edge/ci"
-            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiHss"]["v2"][0]["oaiHssImage"]       = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v2_cicd)
+            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["channel"]   = snap_channel_cicd
+            self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["devmode"]   = snap_devmode_cicd
             self.config_global_data['spec']["oaiHss"]["v2"][0]["snap"]["refresh"]   = False
         def config_cicd_oaiMme(self):
             # oaiMme v1
-            self.config_global_data['spec']["oaiMme"]["v1"][0]["oaiMmeImage"] = "mosaic5gecosys/oaimme:v1-cicd"
-            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["channel"]   = "edge/ci"
-            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["devmode"]   = True
+            entity = "oaimme"
+            self.config_global_data['spec']["oaiMme"]["v1"][0]["oaiMmeImage"] = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v1_cicd)
+            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["channel"]   = snap_channel_cicd
+            self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["devmode"]   = snap_devmode_cicd
             self.config_global_data['spec']["oaiMme"]["v1"][0]["snap"]["refresh"]   = False
             # oaiMme v2
-            self.config_global_data['spec']["oaiMme"]["v2"][0]["oaiMmeImage"] = "mosaic5gecosys/oaimme:v2-cicd"
-            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["channel"]   = "edge/ci"
-            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["devmode"]   = True
+            self.config_global_data['spec']["oaiMme"]["v2"][0]["oaiMmeImage"] = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v2_cicd)
+            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["channel"]   = snap_channel_cicd
+            self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["devmode"]   = snap_devmode_cicd
             self.config_global_data['spec']["oaiMme"]["v2"][0]["snap"]["refresh"]   = False
         def config_cicd_oaiSpgw(self):
             # oaiSpgw v1
-            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["oaiSpgwImage"] = "mosaic5gecosys/oaispgw:v1-cicd"
-            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["channel"]   = "edge/ci"
-            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["devmode"]   = True
+            entity = "oaispgw"
+            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["oaiSpgwImage"] = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v1_cicd)
+            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["channel"]   = snap_channel_cicd
+            self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["devmode"]   = snap_devmode_cicd
             self.config_global_data['spec']["oaiSpgw"]["v1"][0]["snap"]["refresh"]   = False
         def config_cicd_oaiSpgwc(self):
             # oaiSpgwc v2
-            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["oaiSpgwcImage"] = "mosaic5gecosys/oaispgwc:v2-cicd"
-            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["channel"]   = "edge/ci"
-            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["devmode"]   = True
+            entity = "oaispgwc"
+            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["oaiSpgwcImage"] = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v2_cicd)
+            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["channel"]   = snap_channel_cicd
+            self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["devmode"]   = snap_devmode_cicd
             self.config_global_data['spec']["oaiSpgwc"]["v2"][0]["snap"]["refresh"]   = False
         def config_cicd_oaiSpgwu(self):
             # oaiSpgwu v2
-            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["oaiSpgwuImage"] = "mosaic5gecosys/oaispgwu:v2-cicd"
-            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["channel"]   = "edge/ci"
-            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["devmode"]   = True
+            entity = "oaispgwu"
+            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["oaiSpgwuImage"] = "{}/{}:{}".format(docker_reg_cicd, entity, docker_tag_v2_cicd)
+            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["channel"]   = snap_channel_cicd
+            self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["devmode"]   = snap_devmode_cicd
             self.config_global_data['spec']["oaiSpgwu"]["v2"][0]["snap"]["refresh"]   = False
         if entity_cicd == "all":
             config_cicd_oairan(self)
@@ -297,7 +315,7 @@ class ConfigManager(object):
         # oaiEnb
         conf_docker_lte_all_in_one_data["oaiEnb"][0]["flexRAN"] = False
 
-        # remove un-necessary parameters for docker
+        # remove unnecessary parameters for docker
         k8s_param = ["k8sGlobalNamespace", "database"]
         for key in k8s_param:
             try:
@@ -516,7 +534,7 @@ class ConfigManager(object):
             logger.error(message)
             exit(0)
     # config docker compose and crs of kube5g-operator for lte-all-in-one-with-flexran
-    def config_lte_all_in_one_flexran(self, version):
+    def config_lte_all_in_one_with_flexran(self, version):
         logger.debug("configuring crs of lte_all_in_one with flexran for the version {}".format(version))
         alter_version = "v1" if version == "v2" else "v2"
         alter_database_type = "cassandra" if version == "v1" else "mysql"
@@ -1031,14 +1049,36 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--conf-short', metavar='[option]', action='store', type=str,
                             required=False, default='{}'.format(conf_short_default), 
                             help="short configuration file, default: {}".format(conf_short_default))
-    parser.add_argument('-C', '--CICD', metavar='[option]', nargs='+', action='store', type=str,
+    parser.add_argument('-CSnapName', '--cicd-snap-name', metavar='[option]', nargs='+', action='store', type=str,
                         required=False, default=['none'], 
                         choices=("none", "all", "oai-ran", "oai-hss", "oai-spgw", "oai-spgwc", "oai-spgwu", "oai-mme", "oai-cn", "flexran"),
                             help="THis is intended ONLY for testing in CI/CD. Specify the entity to be tested. "
                             "This will replace the tag of the concerned docker images by v1-cicd (for snap version v1) and v2-cicd (for snap version v2). "
                             "Allowed options: none(default), all, oai-ran, oai-hss, oai-spgw, oai-spgwc, oai-spgwu, oai-mme, oai-cn, flexran")
-    args = parser.parse_args()
 
+    parser.add_argument('-CSnapChannel', '--cicd-snap-channel', metavar='[option]', action='store', type=str,
+                        required=False, default='{}'.format(cicd_default_snap_channel), 
+                        help="Define the channel that will be used to install the snap"
+                            "Possible options: {}(default), edge/ci, etc.".format(cicd_default_snap_channel))
+    parser.add_argument('-CSnapDevmode', '--cicd-snap-devmode', metavar='[option]', action='store', type=bool,
+                        required=False, default=False, 
+                        help="Define whether the snaps will be installed in devmode (True) or not (False)")
+
+    parser.add_argument('-CDockerRegistry', '--cicd-docker-reg', metavar='[option]', action='store', type=str,
+                        required=False, default='{}'.format(cicd_default_docker_registry), 
+                        help="Docker registry"
+                        "Example options: {}(default), localhost:5000 (for local registry), etc.".format(cicd_default_docker_registry))
+
+    parser.add_argument('-CDockerTagV1', '--cicd-docker-tag-v1', metavar='[option]', action='store', type=str,
+                        required=False, default='{}'.format(cicd_default_docker_tag_v1), 
+                        help="valid string as docker tag for oai snaps v1. default: {}".format(cicd_default_docker_tag_v1))
+    
+    parser.add_argument('-CDockerTagV2', '--cicd-docker-tag-v2', metavar='[option]', action='store', type=str,
+                        required=False, default='{}'.format(cicd_default_docker_tag_v2), 
+                        help="valid string as docker tag for oai snaps v2. default: {}".format(cicd_default_docker_tag_v2))
+
+    args = parser.parse_args()
+    
     config_short = False
     if(args.conf_short):
         logger.info("short configuration file: {}".format(args.conf_short))
@@ -1046,13 +1086,13 @@ if __name__ == "__main__":
     else:
         logger.info("global configuration file: {}".format(args.conf_global))
     
-    conf_manager = ConfigManager(args.conf_short, args.conf_global, config_short, args.CICD)
+    conf_manager = ConfigManager(args.conf_short, args.conf_global, config_short, args.cicd_snap_name, args.cicd_snap_channel, args.cicd_snap_devmode, args.cicd_docker_reg, args.cicd_docker_tag_v1, args.cicd_docker_tag_v2)
     versions = ["v1", "v2"]
     for version in versions:
         conf_manager.config_lte_all_in_one(version)
         conf_manager.config_lte(version)
+        conf_manager.config_lte_all_in_one_with_flexran(version)
         conf_manager.config_lte_with_flexran(version)
-        conf_manager.config_lte_all_in_one_flexran(version)
     conf_manager.config_docker_build() # configure the configuration file for docker-build
     logger.info("configuration of crs for the versions {} is successfully finished".format(versions))
     logger.info("Here is the list of configured files:")

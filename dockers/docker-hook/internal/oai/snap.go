@@ -242,6 +242,19 @@ func installOairan(OaiObj Oai) {
 			}
 		}
 	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiEnb[0].Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiEnb[0].Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
+		}
+	}
+
 	//Wait a moment, cn is not ready yet !
 	OaiObj.Logger.Print("Wait 15 seconds... OK now cn should be ready")
 	fmt.Println("Wait 15 seconds... OK now cn should be ready")
@@ -340,6 +353,18 @@ func installOaiCnHssV2(OaiObj Oai, buildSnap bool) {
 				util.RunCmd(OaiObj.Logger, "snap", "refresh", snapName, "--channel="+OaiObj.Conf.OaiCn.V2[0].OaiHss.Snap.Channel)
 				OaiObj.Logger.Print(snapName + " is refreshed from the channel " + OaiObj.Conf.OaiCn.V2[0].OaiHss.Snap.Channel)
 			}
+		}
+	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiCn.V2[0].OaiHss.Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiCn.V2[0].OaiHss.Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
 		}
 	}
 }
@@ -561,6 +586,19 @@ func installOaiHssV2(OaiObj Oai, buildSnap bool) {
 		}
 	}
 
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiHss.V2[0].Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiHss.V2[0].Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
+		}
+	}
+
 }
 
 // installOaiCnMmeV2 : Install oai-mme v2 snap for all-in-one mode
@@ -605,6 +643,18 @@ func installOaiCnMmeV2(OaiObj Oai, buildSnap bool) {
 				util.RunCmd(OaiObj.Logger, "snap", "refresh", snapName, "--channel="+OaiObj.Conf.OaiCn.V2[0].OaiMme.Snap.Channel)
 				OaiObj.Logger.Print("oaimme is refreshed from the channel " + OaiObj.Conf.OaiCn.V2[0].OaiMme.Snap.Channel)
 			}
+		}
+	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiCn.V2[0].OaiMme.Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiCn.V2[0].OaiMme.Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
 		}
 	}
 }
@@ -802,6 +852,19 @@ func installOaiMmeV2(OaiObj Oai, buildSnap bool) {
 			}
 		}
 	}
+
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiMme.V2[0].Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiMme.V2[0].Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
+		}
+	}
 }
 
 // installOaiSpgwV1 : Install oai-spgw v1 snap in dissagregated mode
@@ -956,6 +1019,18 @@ func installOaiCnSpgwcV2(OaiObj Oai) {
 			}
 		}
 	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiCn.V2[0].OaiSpgwc.Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiCn.V2[0].OaiSpgwc.Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
+		}
+	}
 }
 
 // installOaiSpgwcV2 : Install oai-spgwc v2 snap in dissagregated mode
@@ -992,6 +1067,18 @@ func installOaiSpgwcV2(OaiObj Oai) {
 				util.RunCmd(OaiObj.Logger, "snap", "refresh", snapName, "--channel="+OaiObj.Conf.OaiSpgwc.V2[0].Snap.Channel)
 				OaiObj.Logger.Print(snapName + " is refreshed from the channel " + OaiObj.Conf.OaiSpgwc.V2[0].Snap.Channel)
 			}
+		}
+	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiSpgwc.V2[0].Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiSpgwc.V2[0].Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
 		}
 	}
 
@@ -1032,6 +1119,18 @@ func installOaiCnSpgwuV2(OaiObj Oai) {
 			}
 		}
 	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiCn.V2[0].OaiSpgwu.Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiCn.V2[0].OaiSpgwu.Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
+		}
+	}
 
 }
 
@@ -1068,6 +1167,18 @@ func installOaiSpgwuV2(OaiObj Oai) {
 				util.RunCmd(OaiObj.Logger, "snap", "refresh", snapName, "--channel="+OaiObj.Conf.OaiSpgwu.V2[0].Snap.Channel)
 				OaiObj.Logger.Print(snapName + " is refreshed from the channel " + OaiObj.Conf.OaiSpgwu.V2[0].Snap.Channel)
 			}
+		}
+	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiSpgwu.V2[0].Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiSpgwu.V2[0].Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
 		}
 	}
 
@@ -1107,6 +1218,23 @@ func installFlexRAN(OaiObj Oai) {
 			}
 		}
 	}
+	// enable the plugs
+	var flexranPlugs []string = []string{"network", "network-control", "log-observe", "process-control", "cpu-control", "network-observe", "network-bind"}
+	var permission string
+	if len(OaiObj.Conf.Flexran[0].Snap.Plugs) > 0 {
+		flexranPlugs = OaiObj.Conf.Flexran[0].Snap.Plugs
+	}
+	for i := 0; i < len(flexranPlugs); i++ {
+		permission = snapName + ":" + flexranPlugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
+		}
+	}
+
 	//Wait a moment, cn is not ready yet !
 	OaiObj.Logger.Print("Wait 5 seconds... OK now " + snapName + " should be ready")
 	time.Sleep(5 * time.Second)
@@ -1142,6 +1270,18 @@ func installMEC(OaiObj Oai) {
 				util.RunCmd(OaiObj.Logger, "snap", "refresh", snapName, "--channel="+OaiObj.Conf.LlMec[0].Snap.Channel)
 				OaiObj.Logger.Print(snapName + " is refreshed from the channel " + OaiObj.Conf.LlMec[0].Snap.Channel)
 			}
+		}
+	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.LlMec[0].Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.LlMec[0].Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
 		}
 	}
 	//Wait a moment, cn is not ready yet !

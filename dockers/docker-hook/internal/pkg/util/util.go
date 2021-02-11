@@ -53,8 +53,6 @@ func RunCmd(logger *log.Logger, cmdName string, args ...string) cmd.Status {
 	finalStatus := <-installSnap.Start() // block and wait
 	// logger.Print(finalStatus.Cmd)
 	logger.Print(finalStatus)
-	fmt.Println("19 installSnap=", installSnap)
-	fmt.Println("20 finalStatus=", finalStatus)
 	return finalStatus
 }
 
@@ -150,4 +148,14 @@ func GetInterfaceByIP(targetIP string) (string, error) {
 		}
 	}
 	return "", err
+}
+
+// FindValInList check if the value 'val' exist in the list "list"
+func FindValInList(list []string, val string) (bool, int) {
+	for i, item := range list {
+		if item == val {
+			return true, i
+		}
+	}
+	return false, -1
 }

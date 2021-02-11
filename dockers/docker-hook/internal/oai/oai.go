@@ -41,14 +41,17 @@ import (
 
 // Oai stores the log and conf
 type Oai struct {
-	logFile *os.File          // File for log to write something
-	Logger  *log.Logger       // Collect log
-	Conf    *common.CfgGlobal // config files
-
+	logFile          *os.File          // File for log to write something
+	Logger           *log.Logger       // Collect log
+	Conf             *common.CfgGlobal // config files
+	UsersPath        string
+	FlexranStatsPath string
 }
 
 // Init the Oai with log and conf
-func (me *Oai) Init(logPath string, confPath string) error {
+func (me *Oai) Init(logPath string, confPath string, usersPath string, flexranStatsPath string) error {
+	me.UsersPath = usersPath
+	me.FlexranStatsPath = flexranStatsPath
 	newFile, err := os.Create(logPath)
 	if err != nil {
 		return err

@@ -40,8 +40,20 @@ spec:
       name: "oaicnv1"
       snapVersion: "v1"   # allowed values: v1, v2
       ipv4: ""
+    # "flexRAN" and "flexRANServiceName" will be DEPRECATED, Please use "flexranService"
     flexRAN: true
     flexRANServiceName: "flexran"
+    # flexranService:
+    #   description: |
+    #     If 'ipv4' and 'interfceName'are provided, the enb connects FlexRAN using the provied configuration.
+    #     Otherwise, it will connect to the service FlexRAN provided by 'name'  
+    #     If both are provied, 'ipv4' and  will be taked. If none of them is provided, the configuration will skip it and flexran will not be configured
+    #     in the configuration file of oai-ran
+    #   enabled: true
+    #   name: "flexran"
+    #   interface_name: ""
+    #   ipv4: ""
+    #   port: "2210"
     snap:
       description: |
         Define the version of the snap to be used. The field (refresh), if true, it will get the lates version of snap. 
@@ -50,6 +62,8 @@ spec:
       channel: "edge"
       devmode: true
       refresh: false
+      plugs: [network, network-control, log-observe, process-control, cpu-control,
+        network-observe, network-bind, raw-usb, netlink-connector, hardware-observe]
     eutra_band:
       description: "Setting the LTE  EUTRA frequency band."
       default: "7"
@@ -120,7 +134,34 @@ spec:
       channel: "edge"
       devmode: true
       refresh: false
-
+      plugs: [network, network-control, log-observe, process-control, cpu-control,
+        network-observe, network-bind]
+    # # define the stats of felxran. For more info. https://mosaic5g.io/apidocs/flexran/#api-Stats-SetStatsConf
+    # stats: >-
+    #   {
+    #     "reports": [
+    #       {
+    #         "reportFrequency": "FLSRF_PERIODICAL",
+    #         "sf": 10,
+    #         "cellReports": [
+    #           "FLCST_NOISE_INTERFERENCE"
+    #         ],
+    #         "ueReports": [
+    #           "FLUST_PHR",
+    #           "FLUST_DL_CQI",
+    #           "FLUST_BSR",
+    #           "FLUST_RLC_BS",
+    #           "FLUST_MAC_CE_BS",
+    #           "FLUST_UL_CQI",
+    #           "FLUST_RRC_MEASUREMENTS",
+    #           "FLUST_PDCP_STATS",
+    #           "FLUST_MAC_STATS",
+    #           "FLUST_GTP_STATS",
+    #           "FLUST_S1AP_STATS"
+    #         ]
+    #       }
+    #     ]
+    #   }
   database:
   - databaseSize: 1
     databaseType: "mysql"   # accepted values: "mysql", "cassandra"

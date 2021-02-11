@@ -46,25 +46,48 @@ import (
 )
 
 func startENB(OaiObj Oai, buildSnap bool) error {
+	var msg string = ""
 	// get the configuration
 	c := OaiObj.Conf
 	// config filename of the snap
-	confFileName := "enb.band7.tm1.50PRB.usrpb210.conf"
+	// confFileName := "enb.band7.tm1.50PRB.usrpb210.conf"
+	nodeFunction := OaiObj.Conf.OaiEnb[0].NodeFunction
+	cmdNodeFunction := "oai-ran." + nodeFunction
+	OaiObj.Logger.Print("getting the config file of " + OaiObj.Conf.OaiEnb[0].NodeFunction)
+	retStatus := util.RunCmd(OaiObj.Logger, cmdNodeFunction+"-conf-get")
+	confFileName := ""
+	if retStatus.Exit == 0 {
+		s := strings.Split(retStatus.Stdout[0], "/")
+		confFileName = s[len(s)-1]
+		OaiObj.Logger.Print("the config file of " + OaiObj.Conf.OaiEnb[0].NodeFunction + " is " + confFileName)
+	} else {
+		var outError string
+		for i := 0; i < len(retStatus.Stderr); i++ {
+			outError += retStatus.Stderr[i] + "\n"
+		}
+		return errors.New("Error while getting the config file of " + OaiObj.Conf.OaiEnb[0].NodeFunction + "\n" + outError)
+	}
 
-	retStatus := util.RunCmd(OaiObj.Logger, "which", "oai-ran.enb-status")
+	ranConfLinesStr := util.RunCmd(OaiObj.Logger, cmdNodeFunction+"-conf-show")
+	var ranConfStr string
+	for i := 0; i < len(ranConfLinesStr.Stdout); i++ {
+		ranConfStr += ranConfLinesStr.Stdout[i] + "\n"
+	}
+
+	retStatus = util.RunCmd(OaiObj.Logger, "which", cmdNodeFunction+"-status")
 	s := strings.Split(retStatus.Stdout[0], "/")
 	snapBinaryPath := strings.Join(s[0:len(s)-1], "/")
 
 	// Stop oai-enb
 	OaiObj.Logger.Print("Stop enb daemon")
 	for {
-		retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+		retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-stop"}, "/"))
 
 		if len(retStatus.Stderr) == 0 {
 			oaiRanDisabledInactive := 0
 			for {
 				time.Sleep(1 * time.Second)
-				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-status"}, "/"))
+				retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-status"}, "/"))
 				oairanStatus := strings.Join(retStatus.Stdout, " ")
 				if strings.Contains(oairanStatus, "disabled") && strings.Contains(oairanStatus, "inactive") {
 					oaiRanDisabledInactive = 1
@@ -79,13 +102,15 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 		time.Sleep(1 * time.Second)
 	}
 
-	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-conf-get"}, "/"))
+	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-conf-get"}, "/"))
 
+	OaiObj.Logger.Print("confFileName=" + confFileName)
 	s = strings.Split(retStatus.Stdout[0], "/")
 	enbConf := strings.Join(s[0:len(s)-1], "/")
 	enbConf = strings.Join([]string{enbConf, confFileName}, "/")
+	OaiObj.Logger.Print("confFileName=" + confFileName)
 	OaiObj.Logger.Print("enbConf=", enbConf)
-	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-conf-set"}, "/"), enbConf)
+	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-conf-set"}, "/"), enbConf)
 
 	// Replace MCC
 	sedCommand := "s/mcc =.[^;]*/mcc = " + c.OaiEnb[0].MCC + "/g"
@@ -173,23 +198,74 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 	// Set up FlexRAN
-	if (OaiObj.Conf.OaiEnb[0].FlexRAN == true) && (buildSnap == false) {
-		// Get flexRAN ip
-		var flexranIP string
-		OaiObj.Logger.Print("Configure FlexRAN Parameters")
-		flexranIP, err = util.GetIPFromDomain(OaiObj.Logger, c.OaiEnb[0].FlexRANServiceName)
-		if err != nil {
-			OaiObj.Logger.Print(err)
-			OaiObj.Logger.Print("Getting IP of FlexRAN failed, try again later")
+	if buildSnap == false {
+		var flexranIP, flexranIface, flexranPort string = "", "", ""
+		var flexranEnabled bool = false
+
+		if OaiObj.Conf.OaiEnb[0].FlexranService.Enabled == true {
+			// supported already exists flexran with specific ip address
+			flexranEnabled = true
+			if (OaiObj.Conf.OaiEnb[0].FlexranService.IPV4 != "") && (OaiObj.Conf.OaiEnb[0].FlexranService.InterfaceName != "") {
+				flexranIP = OaiObj.Conf.OaiEnb[0].FlexranService.IPV4
+				flexranIface = OaiObj.Conf.OaiEnb[0].FlexranService.InterfaceName
+				flexranPort = OaiObj.Conf.OaiEnb[0].FlexranService.Port
+			} else {
+				flexranIface = outInterface
+			}
+		} else if OaiObj.Conf.OaiEnb[0].FlexRAN == true {
+			// supported FlexRAN only be the service name, old method
+			flexranEnabled = true
+			flexranIface = outInterface
 		}
-		sedCommand = "s:FLEXRAN_ENABLED.*;:FLEXRAN_ENABLED=        \"yes\";:g"
-		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
-		sedCommand = "s:FLEXRAN_INTERFACE_NAME.*;:FLEXRAN_INTERFACE_NAME= \"eth0\";:g"
-		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
-		sedCommand = "s:FLEXRAN_IPV4_ADDRESS.*;:FLEXRAN_IPV4_ADDRESS   = \"" + flexranIP + "\";:g"
-		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+		if flexranEnabled {
+			if (flexranIP == "") && (flexranIface == "") {
+				var counter, maxCounter uint16 = 0, 10
+				for {
+					flexranIP, err = util.GetIPFromDomain(OaiObj.Logger, c.OaiEnb[0].FlexranService.Name)
+					if err != nil {
+						OaiObj.Logger.Print(err)
+						OaiObj.Logger.Print(err)
+						time.Sleep(time.Duration(1) * time.Second)
+						counter++
+						if counter >= maxCounter {
+							msg = "Maximum waiting time reached while failed to get the ip address of FlexRAN. Error:" + err.Error() + "\n FlexRAN will be disabled in oairan"
+							OaiObj.Logger.Print(msg)
+							fmt.Println(msg)
+							flexranEnabled = false
+							break
+						}
+					} else {
+						flexranIface = outInterface
+						flexranPort = ""
+						break
+					}
+				}
+			}
+			//
+			if flexranEnabled {
+				//
+				sedCommand = "s:FLEXRAN_ENABLED.*;:FLEXRAN_ENABLED=        \"yes\";:g"
+				util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+				sedCommand = "s:FLEXRAN_INTERFACE_NAME.*;:FLEXRAN_INTERFACE_NAME= \"" + flexranIface + "\";:g"
+				util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+				sedCommand = "s:FLEXRAN_IPV4_ADDRESS.*;:FLEXRAN_IPV4_ADDRESS   = \"" + flexranIP + "\";:g"
+				util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+				flexranPort = OaiObj.Conf.OaiEnb[0].FlexranService.Port
+				if flexranPort != "" {
+					sedCommand = "s:FLEXRAN_PORT.*;:FLEXRAN_PORT   = " + flexranPort + ";:g"
+					util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+				}
+			} else {
+				msg = "Disabling FlexRAN in oairan, as the ip address and the interface can not be retreived"
+				OaiObj.Logger.Print(msg)
+				fmt.Println(msg)
+				sedCommand = "s:FLEXRAN_ENABLED.*;:FLEXRAN_ENABLED=        \"no\";:g"
+				util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+			}
+
+		}
 	} else {
-		OaiObj.Logger.Print("Disable FlexRAN Feature")
+		OaiObj.Logger.Print("FlexRAN is not active, disable it in the configuration of oairan")
 		sedCommand = "s:FLEXRAN_ENABLED.*;:FLEXRAN_ENABLED=        \"no\";:g"
 		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 	}
@@ -207,6 +283,131 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	mmeIPV4Customized := OaiObj.Conf.OaiEnb[0].MmeService.IPV4
 	mmeSnapVersion := OaiObj.Conf.OaiEnb[0].MmeService.SnapVersion
 	if buildSnap == false {
+
+		if c.OaiEnb[0].Usrp.N3xx.Enabled {
+			firstAdd := c.OaiEnb[0].Usrp.N3xx.SdrAddrs.Addr
+			secondAdd := c.OaiEnb[0].Usrp.N3xx.SdrAddrs.SecondAddr
+			clockSrcVal := c.OaiEnb[0].Usrp.N3xx.ClockSrc
+			clockSrcEnbStr := `clock_src\s*=\s*"[a-z]*[A-Z]*[0-9]*";`
+			cdrAddrsEnbStr := `sdr_addrs\s*=\s*"`
+			OaiObj.Logger.Print("clockSrcEnbStr=", clockSrcEnbStr)
+			OaiObj.Logger.Print("cdrAddrsEnbStr=", cdrAddrsEnbStr)
+			reclockSrcEnb := regexp.MustCompile(clockSrcEnbStr)
+			submatchallClockSrc := reclockSrcEnb.FindAllString(ranConfStr, -1)
+
+			cdrAddrsSrcEnb := regexp.MustCompile(cdrAddrsEnbStr)
+			submatchallCdrAddrs := cdrAddrsSrcEnb.FindAllString(ranConfStr, -1)
+			if (len(submatchallClockSrc) == 0) && (len(submatchallCdrAddrs) == 0) {
+				// sdr_addrs and clock_src do not exist in the file, add it
+				OaiObj.Logger.Print("Adding sdr_addrs and clock_src to the config file of " + nodeFunction)
+				lineNumberToAddSdrAddrsClockSrc := 0
+				eNBInstancesStr := `eNB_instances\s*=\s*`
+				regeNBInstances := regexp.MustCompile(eNBInstancesStr)
+				for i := 0; i < len(ranConfLinesStr.Stdout); i++ {
+					submatchall := regeNBInstances.FindAllString(ranConfLinesStr.Stdout[i], -1)
+					if len(submatchall) >= 1 {
+						lineNumberToAddSdrAddrsClockSrc = i + 2
+						break
+					}
+				}
+				// sdr_addrs      = "addr=192.168.20.2,second_addr=192.168.10.2";
+				StrToAdd := strconv.Itoa(lineNumberToAddSdrAddrsClockSrc) + `i         sdr_addrs      = "addr=` + firstAdd + `,second_addr=` + secondAdd + `";`
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", StrToAdd, enbConf)
+				if retStatus.Exit != 0 {
+					return errors.New(`Insert the following is failed:` + StrToAdd)
+				}
+				//     clock_src      = "internal";
+				StrToAdd = strconv.Itoa(lineNumberToAddSdrAddrsClockSrc+1) + `i clock_src      = "` + clockSrcVal + `";`
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", StrToAdd, enbConf) //eNB_instances
+				if retStatus.Exit != 0 {
+					return errors.New(`Insert clock_src      = "internal"; failed`)
+				}
+
+			} else if len(submatchallClockSrc) == 0 {
+				// sdr_addrs and clock_src do not exist in the file, add it
+				OaiObj.Logger.Print("Adding sdr_addrs and clock_src to the config file of " + nodeFunction)
+				lineNumberToAddSdrAddrsClockSrc := 0
+				for i := 0; i < len(ranConfLinesStr.Stdout); i++ {
+					submatchall := cdrAddrsSrcEnb.FindAllString(ranConfLinesStr.Stdout[i], -1)
+					if len(submatchall) >= 1 {
+						lineNumberToAddSdrAddrsClockSrc = i + 1
+						break
+					}
+				}
+				// sdr_addrs      = "addr=192.168.20.2,second_addr=192.168.10.2";
+				StrToAdd := strconv.Itoa(lineNumberToAddSdrAddrsClockSrc) + `s/.*/         sdr_addrs      = "addr=` + firstAdd + `,second_addr=` + secondAdd + `";/`
+				// sed -i '60s/.*/new-content-line/' file.conf
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", StrToAdd, enbConf)
+				if retStatus.Exit != 0 {
+					return errors.New(`Insert the following is failed:` + StrToAdd)
+				}
+				//     clock_src      = "internal";
+
+				StrToAdd = strconv.Itoa(lineNumberToAddSdrAddrsClockSrc+1) + `i clock_src      = "` + clockSrcVal + `";`
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", StrToAdd, enbConf) //eNB_instances
+				if retStatus.Exit != 0 {
+					return errors.New(`Insert clock_src      = "internal"; failed`)
+				}
+
+			} else if len(submatchallCdrAddrs) == 0 {
+				// sdr_addrs and clock_src do not exist in the file, add it
+				OaiObj.Logger.Print("Adding sdr_addrs and clock_src to the config file of " + nodeFunction)
+				lineNumberToAddSdrAddrsClockSrc := 0
+				for i := 0; i < len(ranConfLinesStr.Stdout); i++ {
+					submatchall := reclockSrcEnb.FindAllString(ranConfLinesStr.Stdout[i], -1)
+					if len(submatchall) >= 1 {
+						lineNumberToAddSdrAddrsClockSrc = i + 1
+						break
+					}
+				}
+				// sdr_addrs      = "addr=192.168.20.2,second_addr=192.168.10.2";
+				StrToAdd := strconv.Itoa(lineNumberToAddSdrAddrsClockSrc) + `i sdr_addrs      = "addr=` + firstAdd + `,second_addr=` + secondAdd + `";`
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", StrToAdd, enbConf)
+				if retStatus.Exit != 0 {
+					return errors.New(`Insert the following is failed:` + StrToAdd)
+				}
+
+				// sed -i '60s/.*/new-content-line/' file.conf
+				StrToAdd = strconv.Itoa(lineNumberToAddSdrAddrsClockSrc+1) + `s/.*/         clock_src      = "` + clockSrcVal + `";/`
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", StrToAdd, enbConf) //eNB_instances
+				if retStatus.Exit != 0 {
+					return errors.New(`Insert clock_src      = "internal"; failed`)
+				}
+				////////////////////////////////////////////////////////////////
+			} else {
+				OaiObj.Logger.Print("Configure sdr_addrs and clock_src in the config file of " + nodeFunction)
+				cdrAddrsFound := false
+				clockSrcFound := false
+				for i := 0; i < len(ranConfLinesStr.Stdout); i++ {
+					submatchall := cdrAddrsSrcEnb.FindAllString(ranConfLinesStr.Stdout[i], -1)
+					if len(submatchall) >= 1 {
+						// sdr_addrs      = "addr=192.168.20.2,second_addr=192.168.10.2";
+						StrToAdd := strconv.Itoa(i+1) + `s/.*/         sdr_addrs      = "addr=` + firstAdd + `,second_addr=` + secondAdd + `";/`
+						// sed -i '60s/.*/new-content-line/' file.conf
+						retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", StrToAdd, enbConf)
+						if retStatus.Exit != 0 {
+							return errors.New(`Insert the following is failed:` + StrToAdd)
+						}
+						cdrAddrsFound = true
+					}
+
+					submatchall = reclockSrcEnb.FindAllString(ranConfLinesStr.Stdout[i], -1)
+					if len(submatchall) >= 1 {
+
+						// sed -i '60s/.*/new-content-line/' file.conf
+						StrToAdd := strconv.Itoa(i+1) + `s/.*/         clock_src      = "` + clockSrcVal + `";/`
+						retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", StrToAdd, enbConf) //eNB_instances
+						if retStatus.Exit != 0 {
+							return errors.New(`Insert clock_src      = "internal"; failed`)
+						}
+						clockSrcFound = true
+					}
+					if cdrAddrsFound && clockSrcFound {
+						break
+					}
+				}
+			}
+		}
 		mmeIP, err := util.GetIPFromDomain(OaiObj.Logger, mmeServiceName)
 
 		if (mmeServiceName == "") && (mmeIPV4Customized == "") {
@@ -336,21 +537,25 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 		}
 		OaiObj.Logger.Print("Start enb daemon")
 
-		if mmeIPV4Customized == "" && mmeSnapVersion == "v2" {
+		if mmeSnapVersion == "v2" {
 			// curl http://127.0.0.1:5552/mme/journal
 			urlMmeJournal := "http://" + mmeIP + ":5552/mme/journal"
 			OaiObj.Logger.Print("urlMmeJournal=", urlMmeJournal)
-			retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+			retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-start"}, "/"))
 			time.Sleep(5 * time.Second)
 			var counterOairabActiveTime int64
-
+			var counterGlobalMaxTime int64
+			var counterGlobal int64
 			counter = 0
-			counterOairabActiveTime = 30
+			counterOairabActiveTime = 5
+			counterGlobalMaxTime = 15
+			counterGlobal = 0
+
 			for {
 				time.Sleep(1 * time.Second)
 				if len(retStatus.Stderr) == 0 {
 					counter++
-					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-status"}, "/"))
+					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-status"}, "/"))
 					oairanStatus := strings.Join(retStatus.Stdout, " ")
 					checkInactive := strings.Contains(oairanStatus, "inactive")
 					if checkInactive != true {
@@ -378,18 +583,18 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 								} else {
 									// enb is NOT connected yet, restart the eNB
 									OaiObj.Logger.Print("enb is in not connected to the mme/cn, restarting the service")
-									util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+									util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-stop"}, "/"))
 									// time.Sleep(5 * time.Second)
 									for {
 										time.Sleep(1 * time.Second)
-										retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-status"}, "/"))
+										retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-status"}, "/"))
 										oairanStatus := strings.Join(retStatus.Stdout, " ")
 										if strings.Contains(oairanStatus, "disabled") && strings.Contains(oairanStatus, "inactive") {
 											break
 										}
 									}
 									// time.Sleep(3 * time.Second)
-									retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+									retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-start"}, "/"))
 									// time.Sleep(5 * time.Second)
 									time.Sleep(5 * time.Second)
 									counter = 0
@@ -405,32 +610,38 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 						}
 					} else {
 						OaiObj.Logger.Print("enb is in inactive status, restarting the service")
-						util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+						util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-stop"}, "/"))
 						// time.Sleep(5 * time.Second)
 						for {
 							time.Sleep(1 * time.Second)
-							retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-status"}, "/"))
+							retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-status"}, "/"))
 							oairanStatus := strings.Join(retStatus.Stdout, " ")
 							if strings.Contains(oairanStatus, "disabled") && strings.Contains(oairanStatus, "inactive") {
 								break
 							}
 						}
 						// time.Sleep(3 * time.Second)
-						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-start"}, "/"))
 						// time.Sleep(5 * time.Second)
 						time.Sleep(5 * time.Second)
 						counter = 0
 					}
 				} else {
 					OaiObj.Logger.Print("Start enb failed, try again later")
-					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-start"}, "/"))
 					time.Sleep(5 * time.Second)
 					// time.Sleep(5 * time.Second)
 					counter = 0
 				}
+				counterGlobal++
+				OaiObj.Logger.Print("counterGlobal: ", counterGlobal)
+				if counterGlobal >= counterGlobalMaxTime {
+					OaiObj.Logger.Print("Maximum time ", counterGlobalMaxTime, " reached, exit...")
+					break
+				}
 			}
 		} else {
-			retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+			retStatus := util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-start"}, "/"))
 			time.Sleep(5 * time.Second)
 			var counterOairabActiveTime int64
 
@@ -440,7 +651,7 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 				time.Sleep(1 * time.Second)
 				if len(retStatus.Stderr) == 0 {
 					counter++
-					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-status"}, "/"))
+					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-status"}, "/"))
 					oairanStatus := strings.Join(retStatus.Stdout, " ")
 					checkInactive := strings.Contains(oairanStatus, "inactive")
 					if checkInactive != true {
@@ -450,23 +661,23 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 						}
 					} else {
 						OaiObj.Logger.Print("enb is in inactive status, restarting the service")
-						util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-stop"}, "/"))
+						util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-stop"}, "/"))
 						for {
 							time.Sleep(1 * time.Second)
-							retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-status"}, "/"))
+							retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-status"}, "/"))
 							oairanStatus := strings.Join(retStatus.Stdout, " ")
 							if strings.Contains(oairanStatus, "disabled") && strings.Contains(oairanStatus, "inactive") {
 								break
 							}
 						}
 						// time.Sleep(5 * time.Second)
-						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+						retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-start"}, "/"))
 						time.Sleep(5 * time.Second)
 						counter = 0
 					}
 				} else {
 					OaiObj.Logger.Print("Start enb failed, try again later")
-					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, "oai-ran.enb-start"}, "/"))
+					retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-start"}, "/"))
 					time.Sleep(5 * time.Second)
 					counter = 0
 				}

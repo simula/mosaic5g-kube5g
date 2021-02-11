@@ -2,7 +2,7 @@ version: '2'
 
 services:
   oaicn: # Domain name of container
-    image: "mosaic5gecosys/oaicn:v1-1.0-1" # image of the container
+    image: "mosaic5gecosys/oaicn:v1-1.0-1"    # image of the container
     restart: always # Operation Policy
     container_name: oaicn # Name of the container
     hostname: ubuntu # hostname
@@ -43,6 +43,8 @@ services:
     - "oaicn"
     ports:
     - 9999:9999
+    - 5530:5530
+    - 6630:6630
     volumes:
     - /sys/fs/cgroup:/sys/fs/cgroup:ro
     - /lib/modules:/lib/modules:ro

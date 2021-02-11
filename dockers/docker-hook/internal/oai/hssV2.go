@@ -46,6 +46,7 @@ import (
 
 // startHssV2 : Start HSS as a daemon
 func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
+	var msg string
 	fmt.Println("Starting configuring HSS V2")
 	OaiObj.Logger.Print("Starting configuration of OAI-HSS V2")
 
@@ -71,12 +72,17 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 	// Getting the ip address of the database
 	var cassandraIP, databaseCassandraName string
 	var APINi string
+	var Imsi, Users string
 	if CnAllInOneMode == true {
 		databaseCassandraName = OaiObj.Conf.OaiCn.V2[0].OaiHss.DatabaseServiceName
 		APINi = OaiObj.Conf.OaiCn.V2[0].ApnNi.Default
+		Imsi = OaiObj.Conf.OaiCn.V2[0].Imsi.Default
+		Users = OaiObj.Conf.OaiCn.V2[0].Users
 	} else {
 		databaseCassandraName = OaiObj.Conf.OaiHss.V2[0].DatabaseServiceName
 		APINi = OaiObj.Conf.OaiHss.V2[0].ApnNi.Default
+		Imsi = OaiObj.Conf.OaiHss.V2[0].Imsi.Default
+		Users = OaiObj.Conf.OaiHss.V2[0].Users
 	}
 	var err error
 	if buildSnap != true {
@@ -201,6 +207,9 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 
 		OaiObj.Logger.Print("Adding users to Cassanra DB ")
 		retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", APINi, "-C", cassandraIP)
+		if Imsi != "" {
+			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", Imsi, "-a", APINi, "-C", cassandraIP)
+		}
 		// retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", "oai.ipv4", "-C", cassandraIP)
 		for {
 			if retStatus.Exit != 0 {
@@ -216,6 +225,24 @@ func startHssV2(OaiObj Oai, CnAllInOneMode bool, buildSnap bool) error {
 			OaiObj.Logger.Print("Retrying to add users to hss database")
 			fmt.Println("Retrying to add users to hss database")
 			retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-I", "208950000000001-208950000000020", "-a", APINi, "-C", cassandraIP)
+		}
+		if Users != "" {
+			// dump the users in json file
+			err = ioutil.WriteFile(OaiObj.UsersPath, []byte(Users), 0644)
+			if err != nil {
+				msg = "Error while trying to dump the following list of users to json file \n Users=" + Users + "\n Error=" + err.Error()
+				OaiObj.Logger.Print(msg)
+				fmt.Println(msg)
+			} else {
+				// Add the users to the database with the option of -f for accepting json files
+				retStatus = util.RunCmd(OaiObj.Logger, hssBin+".add-users", "-f", OaiObj.UsersPath, "-C", cassandraIP)
+				if retStatus.Exit != 0 {
+					msg = "Error while adding the users to the database: " + strings.Join(retStatus.Stderr, " ")
+					OaiObj.Logger.Print(msg)
+					fmt.Println(msg)
+				}
+
+			}
 		}
 
 		if CnAllInOneMode == false {

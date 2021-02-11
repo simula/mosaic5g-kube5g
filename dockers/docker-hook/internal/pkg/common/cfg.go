@@ -60,25 +60,27 @@ type CnEntityV2Status struct {
 // CfgOaiEnb the configuration of oai-enb
 type CfgOaiEnb struct {
 	// Configurations of ENB
-	MCC        string `yaml:"mcc"`
-	MNC        string `yaml:"mnc"`
-	MmeService struct {
+	NodeFunction string `json:"nodeFunction" yaml:"nodeFunction"`
+	MCC          string `yaml:"mcc"`
+	MNC          string `yaml:"mnc"`
+	MmeService   struct {
 		Description string `yaml:"description"`
 		Name        string `yaml:"name"`
 		SnapVersion string `yaml:"snapVersion"`
 		IPV4        string `yaml:"ipv4"`
 	} `yaml:"mmeService"`
-	FlexRAN            bool   `yaml:"flexRAN"`
-	FlexRANServiceName string `yaml:"flexRANServiceName"`
-	Snap               struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
-
-	EutraBand struct {
+	FlexranService struct {
+		Description   string `yaml:"description"`
+		Enabled       bool   `yaml:"enabled"`
+		Name          string `yaml:"name"`
+		InterfaceName string `yaml:"interface_name"`
+		IPV4          string `yaml:"ipv4"`
+		Port          string `yaml:"port"`
+	} `yaml:"flexranService"`
+	FlexRAN            bool                 `yaml:"flexRAN"`
+	FlexRANServiceName string               `yaml:"flexRANServiceName"`
+	Snap               SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	EutraBand          struct {
 		Default     string `yaml:"default"`
 		Description string `yaml:"description"`
 	} `yaml:"eutra_band"`
@@ -130,28 +132,20 @@ type CfgOaiEnb struct {
 		Default     string `yaml:"default"`
 		Description string `yaml:"description"`
 	} `yaml:"max_rxgain"`
+	Usrp struct {
+		N3xx N3xxDescription `yaml:"n3xx"`
+	} `json:"usrp" yaml:"usrp"`
 }
 
 // CfgFlexran the configuration of flexran
 type CfgFlexran struct {
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
+	Snap  SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	Stats string               `json:"stats" yaml:"stats"`
 }
 
 // CfgLlMec the configuration of flexran
 type CfgLlMec struct {
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
+	Snap SnapDescriptionFinal `json:"snap" yaml:"snap"`
 }
 
 // CfgHssV1 the configuration of flexran
@@ -160,15 +154,9 @@ type CfgHssV1 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
-	DatabaseServiceName string `yaml:"databaseServiceName"`
-	MmeServiceName      string `yaml:"mmeServiceName"`
+	Snap                SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	DatabaseServiceName string               `yaml:"databaseServiceName"`
+	MmeServiceName      string               `yaml:"mmeServiceName"`
 }
 
 // CfgHssV2 the configuration of flexran
@@ -177,21 +165,14 @@ type CfgHssV2 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	ApnNi struct {
-		Description string `yaml:"description"`
-		Default     string `yaml:"default"`
-	} `yaml:"APN_NI"`
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
-	DatabaseServiceName string `yaml:"databaseServiceName"`
-	HssServiceName      string `yaml:"hssServiceName"`
-	MmeServiceName      string `yaml:"mmeServiceName"`
-	SpgwcServiceName    string `yaml:"spgwcServiceName"`
+	ApnNi               GeneralDescription   `json:"APN_NI" yaml:"APN_NI"`
+	Imsi                GeneralDescription   `json:"imsi" yaml:"imsi"`
+	Users               string               `json:"users" yaml:"users"`
+	Snap                SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	DatabaseServiceName string               `yaml:"databaseServiceName"`
+	HssServiceName      string               `yaml:"hssServiceName"`
+	MmeServiceName      string               `yaml:"mmeServiceName"`
+	SpgwcServiceName    string               `yaml:"spgwcServiceName"`
 }
 
 // CfgMmeV1 the configuration of flexran
@@ -200,17 +181,11 @@ type CfgMmeV1 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
-	MCC             string `yaml:"mcc"`
-	MNC             string `yaml:"mnc"`
-	HssServiceName  string `yaml:"hssServiceName"`
-	SpgwServiceName string `yaml:"spgwServiceName"`
+	Snap            SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	MCC             string               `yaml:"mcc"`
+	MNC             string               `yaml:"mnc"`
+	HssServiceName  string               `yaml:"hssServiceName"`
+	SpgwServiceName string               `yaml:"spgwServiceName"`
 }
 
 // CfgMmeV2 the configuration of flexran
@@ -219,17 +194,11 @@ type CfgMmeV2 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
-	MCC              string `yaml:"mcc"`
-	MNC              string `yaml:"mnc"`
-	HssServiceName   string `yaml:"hssServiceName"`
-	SpgwcServiceName string `yaml:"spgwcServiceName"`
+	Snap             SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	MCC              string               `yaml:"mcc"`
+	MNC              string               `yaml:"mnc"`
+	HssServiceName   string               `yaml:"hssServiceName"`
+	SpgwcServiceName string               `yaml:"spgwcServiceName"`
 }
 
 // CfgSpgwV1 the configuration of flexran
@@ -238,16 +207,10 @@ type CfgSpgwV1 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
-	DNS            string `yaml:"dns"`
-	HssServiceName string `yaml:"hssServiceName"`
-	MmeServiceName string `yaml:"mmeServiceName"`
+	Snap           SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	DNS            string               `yaml:"dns"`
+	HssServiceName string               `yaml:"hssServiceName"`
+	MmeServiceName string               `yaml:"mmeServiceName"`
 }
 
 // CfgSpgwcV2 the configuration of flexran
@@ -256,18 +219,9 @@ type CfgSpgwcV2 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	ApnNi struct {
-		Description string `yaml:"description"`
-		Default     string `yaml:"default"`
-	} `yaml:"APN_NI"`
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
-	DNS string `yaml:"dns"`
+	ApnNi GeneralDescription   `json:"APN_NI" yaml:"APN_NI"`
+	Snap  SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	DNS   string               `yaml:"dns"`
 }
 
 // CfgSpgwuV2 the configuration of flexran
@@ -276,14 +230,8 @@ type CfgSpgwuV2 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
-	SpgwcServiceName string `yaml:"spgwcServiceName"`
+	Snap             SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	SpgwcServiceName string               `yaml:"spgwcServiceName"`
 }
 
 // CfgHssGlobal CfgGlobal
@@ -319,13 +267,7 @@ type CfgCnV1 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	Snap struct {
-		Description string `yaml:"description"`
-		Name        string `yaml:"name"`
-		Channel     string `yaml:"channel"`
-		Devmode     bool   `yaml:"devmode"`
-		Refresh     bool   `yaml:"refresh"`
-	} `yaml:"snap"`
+	Snap SnapDescriptionFinal `json:"snap" yaml:"snap"`
 	// OaiCnServiceName string `yaml:"oaiCnServiceName"`
 	OaiHss struct {
 		DatabaseServiceName string `yaml:"databaseServiceName"`
@@ -345,49 +287,24 @@ type CfgCnV2 struct {
 		Description string `yaml:"description"`
 		Default     string `yaml:"default"`
 	} `yaml:"realm"`
-	ApnNi struct {
-		Description string `yaml:"description"`
-		Default     string `yaml:"default"`
-	} `yaml:"APN_NI"`
+	ApnNi  GeneralDescription `json:"APN_NI" yaml:"APN_NI"`
+	Imsi   GeneralDescription `json:"imsi" yaml:"imsi"`
+	Users  string             `json:"users" yaml:"users"`
 	OaiHss struct {
-		Snap struct {
-			Description string `yaml:"description"`
-			Name        string `yaml:"name"`
-			Channel     string `yaml:"channel"`
-			Devmode     bool   `yaml:"devmode"`
-			Refresh     bool   `yaml:"refresh"`
-		} `yaml:"snap"`
-		DatabaseServiceName string `yaml:"databaseServiceName"`
+		Snap                SnapDescriptionFinal `json:"snap" yaml:"snap"`
+		DatabaseServiceName string               `yaml:"databaseServiceName"`
 	} `yaml:"oaiHss"`
 	OaiMme struct {
-		Snap struct {
-			Description string `yaml:"description"`
-			Name        string `yaml:"name"`
-			Channel     string `yaml:"channel"`
-			Devmode     bool   `yaml:"devmode"`
-			Refresh     bool   `yaml:"refresh"`
-		} `yaml:"snap"`
-		MCC string `yaml:"mcc"`
-		MNC string `yaml:"mnc"`
+		Snap SnapDescriptionFinal `json:"snap" yaml:"snap"`
+		MCC  string               `yaml:"mcc"`
+		MNC  string               `yaml:"mnc"`
 	} `yaml:"oaiMme"`
 	OaiSpgwc struct {
-		Snap struct {
-			Description string `yaml:"description"`
-			Name        string `yaml:"name"`
-			Channel     string `yaml:"channel"`
-			Devmode     bool   `yaml:"devmode"`
-			Refresh     bool   `yaml:"refresh"`
-		} `yaml:"snap"`
-		DNS string `yaml:"dns"`
+		Snap SnapDescriptionFinal `json:"snap" yaml:"snap"`
+		DNS  string               `yaml:"dns"`
 	} `yaml:"oaiSpgwc"`
 	OaiSpgwu struct {
-		Snap struct {
-			Description string `yaml:"description"`
-			Name        string `yaml:"name"`
-			Channel     string `yaml:"channel"`
-			Devmode     bool   `yaml:"devmode"`
-			Refresh     bool   `yaml:"refresh"`
-		} `yaml:"snap"`
+		Snap SnapDescriptionFinal `json:"snap" yaml:"snap"`
 	} `yaml:"oaiSpgwu"`
 }
 
@@ -408,6 +325,32 @@ type CfgGlobal struct {
 	OaiSpgw  CfgSpgwGlobal  `json:"oaiSpgw" yaml:"oaiSpgw"`
 	OaiSpgwc CfgSpgwcGlobal `json:"oaiSpgwc" yaml:"oaiSpgwc"`
 	OaiSpgwu CfgSpgwuGlobal `json:"oaiSpgwu" yaml:"oaiSpgwu"`
+}
+
+// SnapDescriptionFinal this type is to descripe the details of the snap to be used for the current application
+type SnapDescriptionFinal struct {
+	Description string   `json:"description" yaml:"description"`
+	Name        string   `json:"name" yaml:"name"`
+	Channel     string   `json:"channel" yaml:"channel"`
+	Devmode     bool     `json:"devmode" yaml:"devmode"`
+	Refresh     bool     `json:"refresh" yaml:"refresh"`
+	Plugs       []string `json:"plugs" yaml:"plugs"`
+}
+
+// GeneralDescription This is general description for every parameters defined above
+type GeneralDescription struct {
+	Default     string `json:"default" yaml:"default"`
+	Description string `json:"description" yaml:"description"`
+}
+
+// N3xxDescription define the parameters of N3XX family of USRP
+type N3xxDescription struct {
+	Enabled  bool `json:"enabled" yaml:"enabled"`
+	SdrAddrs struct {
+		Addr       string `yaml:"addr"`
+		SecondAddr string `yaml:"second_addr"`
+	} `yaml:"sdr_addrs"`
+	ClockSrc string `yaml:"clock_src"`
 }
 
 // GetConf : read yaml into struct

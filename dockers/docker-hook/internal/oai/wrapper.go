@@ -213,11 +213,29 @@ func InstallRAN(OaiObj Oai) {
 
 //StartENB is a wrapper for configuring and starting OAI RAN services
 func StartENB(OaiObj Oai, buildSnap bool) {
-	OaiObj.Logger.Print("Starting RAN")
-	fmt.Println("Starting RAN")
-	startENB(OaiObj, buildSnap)
-	OaiObj.Logger.Print("RAN is started")
-	fmt.Println("RAN is started")
+	nodeFunction := OaiObj.Conf.OaiEnb[0].NodeFunction
+	if nodeFunction == "enb" {
+		OaiObj.Logger.Print("Starting 4G RAN")
+		fmt.Println("Starting 4G RAN")
+		startENB(OaiObj, buildSnap)
+		OaiObj.Logger.Print("4G RAN is started")
+		fmt.Println("4G RAN is started")
+	} else if nodeFunction == "gnb" {
+		OaiObj.Logger.Print("Starting 5G RAN")
+		fmt.Println("Starting 5G RAN")
+		// startGNB(OaiObj, buildSnap) // this will be used later
+		startENB(OaiObj, buildSnap)
+		OaiObj.Logger.Print("5G RAN is started")
+		fmt.Println("5G RAN is started")
+	} else {
+		OaiObj.Logger.Print("Error while trying to start the RAN: the functionality of RAN as ", nodeFunction, " is not recognized")
+		OaiObj.Logger.Print("The allowed values of nodeFunction of oaiEnb are: enb, gnb")
+		OaiObj.Logger.Print("Starting the RAN in the defaut mode as 4G RAN")
+		startENB(OaiObj, buildSnap)
+		OaiObj.Logger.Print("4G RAN is started")
+		fmt.Println("4G RAN is started")
+	}
+
 }
 
 //InstallFlexRAN is a wrapper for installing FlexRAN

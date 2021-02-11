@@ -38,14 +38,16 @@ import (
 )
 
 const (
-	logPath  = "/root/hook.log"
-	confPath = "/root/config/conf.yaml"
+	logPath          = "/root/hook.log"
+	confPath         = "/root/config/conf.yaml"
+	usersPath        = "/root/users.json"
+	flexranStatsPath = "/root/flexran_stats.json"
 )
 
 func main() {
 	// Initialize oai struct
 	OaiObj := oai.Oai{}
-	err := OaiObj.Init(logPath, confPath)
+	err := OaiObj.Init(logPath, confPath, usersPath, flexranStatsPath)
 	if err != nil {
 		fmt.Println(err)
 		return
