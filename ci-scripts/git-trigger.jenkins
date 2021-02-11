@@ -26,7 +26,7 @@ def dockerRegister = 'mosaic5gecosys'
 
 // Credentials
 def gitlabCredentials   = 'mosaic5g_jenkins'
-// Node label on which the current pipeline will be executed
+
 // def nodeExecutor = params.nodeExecutor
 def nodeExecutor = 'cigarier'//params.nodeExecutor
 
@@ -58,49 +58,206 @@ pipeline {
         // Clone the project from git: Source Control Management (SCM)
         stage('clone-scm') {
             steps {
-                script { 
-                    ENUM_STAGE = ENUM_STAGE + 1
-                    echo "STAGE#$ENUM_STAGE: cloning from git: SCM mode"
-                }
                 checkout scm
             }
         } 
+
+        // // Clone the project from git: Pipeline Scritp
+        // stage('clone-local') {
+        //     steps {
+        //         script{
+        //             try{
+        //                 git credentialsId: "${gitlabCredentials}",
+        //                 url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
+        //                 branch: "develop"
+        //             } catch (err) {
+        //                 throw(err)
+        //             }
+        //         }
+        //     }
+        // }
 
         // Trigget pipeline for FlexRAN
         stage('trigger-flexran') {
             when { 
                 allOf {
                     // branch 'develop'
-                    changeset "ci-scripts/**"
-                    // changeset "snaps/flexran/**"
-                    
-                    // expression {  // there are changes in some-directory/...
-                    //     sh(returnStatus: true, script: 'git diff  origin/master --name-only | grep --quiet "^some-directory/.*"') == 0
-                    // }
-                    // expression {   // ...and nowhere else.
-                    //     sh(returnStatus: true, script: 'git diff origin/master --name-only | grep --quiet --invert-match "^some-directory/.*"') == 1
-                    // }
+                    changeset "snaps/flexran/**"
                 }
             }
-            // environment {
-            //     SNAP_NAME = "flexran"
-            //     SNAP_VERSION = "v1" 
-            // }
             steps{
                 echo 'Trriget CICD for FlexRAN'
-                build job:'e2e-cd-final' , parameters:[
+                build job:'mosaic5g-ci' , parameters:[
                     string(name: 'snapName',value: "flexran")
+                    string(name: 'oaiSnapVersion',value: "v2" )            
+                    string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
+                    string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
+                    string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
+                    string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
+                    string(name: 'snapChannel',value: env.SNAP_CHANNEL)
+                    string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
+                    string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
+                    string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
                 ], wait: false
-                // string(name: 'oaiSnapVersion',value: "v1" )            
-                // string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
-                // string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
-                // string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
-                // string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
-                // string(name: 'snapChannel',value: env.SNAP_CHANNEL)
-                // string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
-                // string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
-                // string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+
             }
         }
+        // 
+        // Trigget pipeline for oai-ran
+        stage('trigger-oairan') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-ran/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-ran'
+                build job:'mosaic5g-ci' , parameters:[
+                    string(name: 'snapName',value: "oai-ran")
+                    string(name: 'oaiSnapVersion',value: "v2" )            
+                    string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
+                    string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
+                    string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
+                    string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
+                    string(name: 'snapChannel',value: env.SNAP_CHANNEL)
+                    string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
+                    string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
+                    string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-hss
+        stage('trigger-oaihss') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-hss/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-hss'
+                build job:'mosaic5g-ci' , parameters:[
+                    string(name: 'snapName',value: "oai-hss")
+                    string(name: 'oaiSnapVersion',value: "v2" )            
+                    string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
+                    string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
+                    string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
+                    string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
+                    string(name: 'snapChannel',value: env.SNAP_CHANNEL)
+                    string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
+                    string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
+                    string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-mme
+        stage('trigger-oaimme') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-mme/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-mme'
+                build job:'mosaic5g-ci' , parameters:[
+                    string(name: 'snapName',value: "oai-mme")
+                    string(name: 'oaiSnapVersion',value: "v2" )            
+                    string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
+                    string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
+                    string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
+                    string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
+                    string(name: 'snapChannel',value: env.SNAP_CHANNEL)
+                    string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
+                    string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
+                    string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+                ], wait: false
+
+            }
+        }
+        //
+        // Trigget pipeline for oai-spgw
+        stage('trigger-oaispgw') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-spgw/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-spgw'
+                build job:'mosaic5g-ci' , parameters:[
+                    string(name: 'snapName',value: "oai-spgw")
+                    string(name: 'oaiSnapVersion',value: "v2" )            
+                    string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
+                    string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
+                    string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
+                    string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
+                    string(name: 'snapChannel',value: env.SNAP_CHANNEL)
+                    string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
+                    string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
+                    string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-spgwc
+        stage('trigger-oaispgwc') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-spgwc/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-spgwc'
+                build job:'mosaic5g-ci' , parameters:[
+                    string(name: 'snapName',value: "oai-spgwc")
+                    string(name: 'oaiSnapVersion',value: "v2" )            
+                    string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
+                    string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
+                    string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
+                    string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
+                    string(name: 'snapChannel',value: env.SNAP_CHANNEL)
+                    string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
+                    string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
+                    string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-spgwu
+        stage('trigger-oaispgwu') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-spgwu/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-spgwu'
+                build job:'mosaic5g-ci' , parameters:[
+                    string(name: 'snapName',value: "oai-spgwu")
+                    string(name: 'oaiSnapVersion',value: "v2" )            
+                    string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
+                    string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
+                    string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
+                    string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
+                    string(name: 'snapChannel',value: env.SNAP_CHANNEL)
+                    string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
+                    string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
+                    string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+                ], wait: false
+
+            }
+        }
+        // 
     }
 }
