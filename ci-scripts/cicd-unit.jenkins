@@ -1,5 +1,6 @@
 // TODO
 /*          &
+Test to trigget jenkins pipeline
 New added parameters:
 - def snapChannel = params.snapChannelCicd
 TO be changed: 
