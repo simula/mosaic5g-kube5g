@@ -86,20 +86,21 @@ pipeline {
             //     SNAP_NAME = "flexran"
             //     SNAP_VERSION = "v1" 
             // }
-
-            echo 'Trriget CICD for FlexRAN'
-            build job:'e2e-cd-final' , parameters:[
-                string(name: 'snapName',value: "flexran")
-            ], wait: false
-            // string(name: 'oaiSnapVersion',value: "v1" )            
-            // string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
-            // string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
-            // string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
-            // string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
-            // string(name: 'snapChannel',value: env.SNAP_CHANNEL)
-            // string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
-            // string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
-            // string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+            steps{
+                echo 'Trriget CICD for FlexRAN'
+                build job:'e2e-cd-final' , parameters:[
+                    string(name: 'snapName',value: "flexran")
+                ], wait: false
+                // string(name: 'oaiSnapVersion',value: "v1" )            
+                // string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
+                // string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
+                // string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
+                // string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
+                // string(name: 'snapChannel',value: env.SNAP_CHANNEL)
+                // string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
+                // string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
+                // string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
+            }
         }
     }
 }
