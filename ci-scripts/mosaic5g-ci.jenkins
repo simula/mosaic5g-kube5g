@@ -250,15 +250,16 @@ pipeline {
         success {
             echo 'Trigger mosaic5g-cd-deployment'
             build job:'mosaic5g-cd-deployment' , parameters:[
-                string(name: 'snapName',value: env.SNAP_NAME)
-                string(name: 'oaiSnapVersion',value: env.SNAP_VERSION )            
-                string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
-                string(name: 'dockerImageTagCicd',value: env.DOCKER_IMAGE_TAG_CICD)
-                string(name: 'dockerRegisteryCicd',value: env.DOCKER_REGISTRY_CICD)
-                string(name: 'snapChannel',value: env.SNAP_CHANNEL)
-                string(name: 'dockerImageTag',value: env.DOCKER_IMAGE_TAG)
-                string(name: 'dockerRegistery',value: env.DOCKER_REGISTRY)
+                [$class: 'StringParameterValue', name: 'snapName', value: env.SNAP_NAME],
+                [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.SNAP_VERSION], 
+                [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
+                [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
+                [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
             ], wait: false
+
         }
     }
 }
