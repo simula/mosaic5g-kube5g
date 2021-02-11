@@ -70,20 +70,20 @@ pipeline {
                     // }
                 }
             }
-            environment {
-                SNAP_NAME = "flexran"
-                SNAP_VERSION = "v1" 
-            }
+            // environment {
+            //     SNAP_NAME = "flexran"
+            //     SNAP_VERSION = "v1" 
+            // }
             steps {
                 script{
                     echo 'Trriget CICD for FlexRAN'
                     build job:'e2e-cd-final' , parameters:[
-                        string(name: 'snapName',value: env.SNAP_NAME)
-                        string(name: 'oaiSnapVersion',value: env.SNAP_VERSION)
+                        string(name: 'snapName',value: "flexran")
+                        string(name: 'oaiSnapVersion',value: "v1" )
                         string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
                         string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
                         string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
-                        string(name: 'DOCKER_REGISTRY_CICD',value: env.dockerRegisteryCicd)
+                        string(name: 'DOCKER_REGISTRY_CICD',value: env.DOCKER_REGISTRY_CICD)
                         string(name: 'snapChannel',value: env.SNAP_CHANNEL)
                         string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
                         string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
@@ -93,44 +93,5 @@ pipeline {
                 }
             }
         }
-        // 
-        // Trigget pipeline for FlexRAN
-        stage('trigger-oairan') {
-            when { 
-                allOf {
-                    // branch 'develop'
-                    changeset "snaps/oai-ran/**"
-                    // expression {  // there are changes in some-directory/...
-                    //     sh(returnStatus: true, script: 'git diff  origin/master --name-only | grep --quiet "^some-directory/.*"') == 0
-                    // }
-                    // expression {   // ...and nowhere else.
-                    //     sh(returnStatus: true, script: 'git diff origin/master --name-only | grep --quiet --invert-match "^some-directory/.*"') == 1
-                    // }
-                }
-            }
-            environment {
-                SNAP_NAME = "oai-ran"
-                SNAP_VERSION = "v1" 
-            }
-            steps {
-                script{
-                    echo 'Trriget CICD for FlexRAN'
-                    build job:'e2e-cd-final' , parameters:[
-                        string(name: 'snapName',value: env.SNAP_NAME)
-                        string(name: 'oaiSnapVersion',value: env.SNAP_VERSION)
-                        string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
-                        string(name: 'dockerImageTagCicdV1',value: env.DOCKER_IMAGE_TAG_V1_CICD)
-                        string(name: 'dockerImageTagCicdV2',value: env.DOCKER_IMAGE_TAG_V2_CICD)
-                        string(name: 'DOCKER_REGISTRY_CICD',value: env.dockerRegisteryCicd)
-                        string(name: 'snapChannel',value: env.SNAP_CHANNEL)
-                        string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
-                        string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
-                        string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
-                        // booleanParam(name: 'keyNameOfParam2',value:'valueNameOfParam2')
-                    ], wait: false
-                }
-            }
-        }
-        // 
     }
 }
