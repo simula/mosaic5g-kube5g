@@ -31,6 +31,7 @@ def gitlabCredentials   = 'mosaic5g_jenkins'
 def nodeExecutor = 'cigarier'//params.nodeExecutor
 
 def snapName = "flexran"
+def ENUM_STAGE = 0
 pipeline {
     agent {
         node {
@@ -54,6 +55,17 @@ pipeline {
     }
 
     stages {
+        // Clone the project from git: Source Control Management (SCM)
+        stage('clone-scm') {
+            steps {
+                script { 
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: cloning from git: SCM mode"
+                }
+                // checkout scm
+            }
+        } 
+
         // Trigget pipeline for FlexRAN
         stage('trigger-flexran') {
             when { 
