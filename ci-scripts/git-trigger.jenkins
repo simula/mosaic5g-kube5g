@@ -99,7 +99,6 @@ pipeline {
                 string(name: 'dockerImageTagV1',value: env.DOCKER_IMAGE_TAG_V1)
                 string(name: 'dockerImageTagV2',value: env.DOCKER_IMAGE_TAG_V2)
                 string(name: 'dockerRegister',value: env.DOCKER_REGISTRY)
-                booleanParam(name: 'keyNameOfParam2',value:'valueNameOfParam2')
             ], wait: false
         }
     }
