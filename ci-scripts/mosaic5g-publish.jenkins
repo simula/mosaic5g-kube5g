@@ -1,0 +1,144 @@
+
+/*
+jenkinsfila.final
+#!/bin/groovy
+*/
+
+// TODO: Add the parameters for ease of edit and access
+def pipelineContext = [:] // Parameters will go here
+
+// Name of the snap to build; oai-ran, oai-hss, oai-mme, flexran, etc.
+def snapName = params.snapName
+// This is related to oai-cn versions: v1 and v2
+def oaiSnapVersion = params.oaiSnapVersion
+
+// snapcraft channel to which the snap will be pushed for testing it later. This channel is ONLY for testing (i.e., private channel)
+def snapChannelCicd = params.snapChannelCicd
+def dockerImageTagCicd = params.dockerImageTagCicd
+def dockerRegisteryCicd = params.dockerRegisteryCicd
+
+// snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
+def snapChannel = params.snapChannel
+def dockerImageTag = params.dockerImageTag
+def dockerRegistery = params.dockerRegistery
+
+// Credentials
+def gitlabCredentials   = 'mosaic5g_jenkins'
+
+// def nodeExecutor = params.nodeExecutor
+def nodeExecutor = 'cigarier'//params.nodeExecutor
+
+// monolithic mode
+def dockerComposeLteMonolithicV1                = 'dockers/docker-compose/oai-v1/lte-all-in-one'
+def dockerComposeLteMonolithicV2                = 'dockers/docker-compose/oai-v2/lte-all-in-one'
+def dockerComposeLteMonolithicFlexranV1         = 'dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran'
+def dockerComposeLteMonolithicFlexranV2         = 'dockers/docker-compose/oai-v2/lte-all-in-one-with-flexran'
+// disaggregated mode
+def dockerComposeLteDisaggregatedV1             = 'dockers/docker-compose/oai-v1/lte'
+def dockerComposeLteDisaggregatedV2             = 'dockers/docker-compose/oai-v2/lte'
+def dockerComposeLteDisaggregatedFlexranV1      = 'dockers/docker-compose/oai-v1/lte-with-flexran'
+def dockerComposeLteDisaggregatedFlexranV2      = 'dockers/docker-compose/oai-v2/lte-with-flexran'
+// Name of docker image for the concerned snap. it is the same as the snap name but without hyphen (-)
+def dockerEntityName = ''
+String[] str
+str = (params.snapName).split('-')
+for ( String values : str ) {
+    dockerEntityName = dockerEntityName + values
+}
+
+// Define counter for the stages and steps
+def ENUM_STAGE  = 1
+def ENUM_STEP   = 1
+def EXIT_STAGE  = 0
+pipeline {
+    // Here we define the node that will run this script using the labels assigned to them previously
+    agent {
+        node {
+            label nodeExecutor
+        }
+    }
+    
+    environment {
+
+    }
+
+    environment {
+        SNAP_NAME = "${snapName}"
+        SNAP_VERSION = "${oaiSnapVersion}"
+        // For CICD
+        SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
+        DOCKER_IMAGE_TAG_CICD= "${dockerImageTagCicd}"
+        DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        // For stabel channels: snap and docker
+        SNAP_CHANNEL            = "${snapChannel}"
+        DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
+        DOCKER_REGISTRY         = "${dockerRegistery}"  
+        
+        SNAP_REFRESH_DATE   = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
+        // The following are for building kube5G
+        KUBE5G_RDIR_DOCKER_HOOK = "dockers/docker-hook/cmd/hook"
+        KUBE5G_RDIR_DOCKER_BUILD = "dockers/docker-build/build"
+    }
+    // 
+
+    // Define the stages
+    stages {
+        // Publish snap
+        stage('snap-publish') {
+            steps {
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Publish the snap"
+                    try{
+                        sh(
+                            label: '',
+                            script: '''
+                                snap_revision=$(snapcraft   list-revisions ${SNAP_NAME}|head -n 2|tail -n 1 | cut -f 1 -d " ")
+                                snapcraft release ${SNAP_NAME} ${snap_revision} ${SNAP_CHANNEL}
+                            '''
+                        )
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
+        // 
+        // Push the docker image to docker-hub
+        stage('docker-Push') {
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: publish the docker image tagged as ${DOCKER_IMAGE_TAG} to docker-hub"
+                    
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Tag the docker image"
+                    try {
+                        sh 'docker tag ${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} ${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}'
+                    } catch (err) {
+                        throw(err)
+                    }
+
+                    try {
+                        //Local Registry
+                        sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                        docker.withRegistry('https://${DOCKER_REGISTRY}/v1/') {
+                                docker.image("${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push("${DOCKER_IMAGE_TAG}")
+                                // docker.image("localhost:5000/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push('latest')
+                        }
+                        //Remote Registry
+                        // sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                        // docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
+                        //         docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push("${DOCKER_IMAGE_TAG}")
+                        //         docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push()
+                        // }
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
+
+
+    }
+}
