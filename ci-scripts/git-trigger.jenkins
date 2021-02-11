@@ -89,7 +89,7 @@ pipeline {
 
             echo 'Trriget CICD for FlexRAN'
             build job:'e2e-cd-final' , parameters:[
-                string(name: 'snapName',value: "flexran")
+                string(name: 'snapNameExport',value: "flexran")
             ], wait: false
             // string(name: 'oaiSnapVersion',value: "v1" )            
             // string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
