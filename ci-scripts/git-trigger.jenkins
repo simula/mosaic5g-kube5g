@@ -59,7 +59,9 @@ pipeline {
             when { 
                 allOf {
                     // branch 'develop'
-                    changeset "snaps/flexran/**"
+                    changeset "ci-scripts/**"
+                    // changeset "snaps/flexran/**"
+                    
                     // expression {  // there are changes in some-directory/...
                     //     sh(returnStatus: true, script: 'git diff  origin/master --name-only | grep --quiet "^some-directory/.*"') == 0
                     // }
