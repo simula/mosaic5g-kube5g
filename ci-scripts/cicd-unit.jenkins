@@ -1,5 +1,5 @@
 // TODO
-/*
+/*          &
 New added parameters:
 - def snapChannel = params.snapChannelCicd
 TO be changed: 
@@ -59,8 +59,8 @@ def storeBranchUrl      = 'git@gitlab.eurecom.fr:mosaic5g/store.git'
 def storeBranchName     = 'develop' //params.storeRepoBranch
 
 // Node label on which the current pipeline will be executed
-def nodeExecutor = params.nodeExecutor
-// def nodeExecutor = 'cigarier'//params.nodeExecutor
+// def nodeExecutor = params.nodeExecutor
+def nodeExecutor = 'cigarier'//params.nodeExecutor
 
 // create the directory dirSnapBuildPublish inside which the project store will be cloned, for the purpose of building and puplishing the snaps
 def dirSnapBuildPublish = 'snap-build-publish'
@@ -99,18 +99,38 @@ pipeline {
         OAI_SNAP_VERSION    = "${oaiSnapVersion}"
         DOCKER_IMAGE_TAG    = "${dockerImageTag}"
         ENUM_STAGE          = 1
+        SNAP_REFRESH_DATE = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
     }
 
 
     // The pipeline will contain a set of stages grouped here, that will run sequentially
     // Each stage itself contains a sequence of steps that may contain some scripts to run
     stages {
+
         // STAGE #1: Clone the project from git using source control management (scm)
-        stage('clone') {
+        // stage('clone') {
+        //     steps {
+        //         checkout scm
+        //     }
+        // }
+
+        stage('clone-kube5g-locally') {
             steps {
-                checkout scm
+                script{
+                    try{
+                        git credentialsId: "${gitlabCredentials}",
+                        url: "git@gitlab.eurecom.fr:mosaic5g/kube5g.git",
+                        branch: "jenkins"
+                        currentBuild.result = 'SUCCESS'
+                    } catch (err) {
+                        echo err.getMessage()
+                        error("Failed to clone Kube5G using config manager. Check the script output and access rights.")
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
             }
         }
+
         // STAGE #2: Configure Kube5G for CICD phase
         stage('kube5g-configure') {
             steps {
@@ -127,15 +147,15 @@ pipeline {
                                     ./conf-manager.py -s conf_short_default.yaml -C ${SNAP_NAME}
                                 '''
                             )
-                            currentStage.result = 'SUCCESS'
+                            currentBuild.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
                             error("Failed to configure Kube5G using config manager. Check the script output and access rights.")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
-                echo "STAGE #2 OUTPUT ${currentStage.result}"
+                echo "STAGE #2 OUTPUT ${currentBuild.result}"
             }
         }
         // STAGE #3: Pull the store from gitlab to temporary directory dirSnapBuildPublish to start building the concerned snap in the following stages/steps
@@ -154,13 +174,13 @@ pipeline {
                                 url: "${storeBranchUrl}",
                                 branch: "${storeBranchName}"
                         }
-                        currentStage.result = 'SUCCESS'
+                        currentBuild.result = 'SUCCESS'
                     } catch (err) {
                         echo err.getMessage()
                         error("Failed to clone store from gitlab. Check the script output and access rights.")
-                        currentStage.result = 'FAILURE'
+                        currentBuild.result = 'FAILURE'
                     }
-                    echo "STAGE #3 OUTPUT ${currentStage.result}"
+                    echo "STAGE #3 OUTPUT ${currentBuild.result}"
                 }
             }
         }
@@ -194,24 +214,24 @@ pipeline {
                                         ########sudo chown -R jenkins:jenkins ${SNAP_NAME}/$snap_name
                                     '''
                                 )
-                                currentStage.result = 'SUCCESS'
+                                currentBuild.result = 'SUCCESS'
                             } catch (err) {
                                 echo err.getMessage()
                                 error("Failed to change the owner of the built snap ${SNAP_NAME}. Check the script output and access rights.")
-                                currentStage.result = 'FAILURE'
+                                currentBuild.result = 'FAILURE'
                             }
                         } catch (err) {
                             echo err.getMessage()
                             error("Failed to build the snap ${SNAP_NAME}. Check the script output and access rights.")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
-                echo "STAGE #4 OUTPUT ${currentStage.result}"
+                echo "STAGE #4 OUTPUT ${currentBuild.result}"
             }
         }
 
-        // STAGE: Push the snap to the CICD channel on snapcraft
+        // STAGE5: Push the snap to the CICD channel on snapcraft
         stage('snap-push-cicd') {
             steps {
                 dir("${dirSnapBuildPublish}/snaps"){
@@ -224,15 +244,15 @@ pipeline {
                                     ########./publish-final.sh -s ${SNAP_NAME} -c ${SNAP_CHANNEL_CICD}
                                 '''
                             )
-                            currentStage.result = 'SUCCESS'
+                            currentBuild.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
                             error("Failed to push the snap ${SNAP_NAME} to the channel ${SNAP_CHANNEL_CICD}. Check the script output and access rights.")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
-                echo "STAGE #5 OUTPUT ${currentStage.result}"
+                echo "STAGE #5 OUTPUT ${currentBuild.result}"
             }
         }
         
@@ -244,36 +264,22 @@ pipeline {
                     try{
                         // Remove the older versions that maybe present from older usages
                         echo "Remove the older version if present"
-                        // sh "if snap list --all | grep -q $SNAP_NAME; then \n sudo snap remove $SNAP_NAME \n fi"
-                        sh(
-                            label: "remove the snap",
-                            script: '''
-                                if snap list --all | grep -q $SNAP_NAME; then
-                                    sudo snap remove $SNAP_NAME
-                                fi
-                            '''
-                        )
-
+                        snap_action("$SNAP_NAME", "remove")
                         // Get and install the snap from the store on the CI channel
                         echo "Install the snap ${SNAP_NAME} from ${SNAP_CHANNEL_CICD} channel"
                         try{
-                            sh(
-                                label: "install the snap from the channel ${SNAP_CHANNEL_CICD}",
-                                script: '''
-                                    sudo snap install ${SNAP_NAME} --devmode --channel=${SNAP_CHANNEL_CICD}
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
+                            snap_action("$SNAP_NAME", "install", "${SNAP_CHANNEL_CICD}", "devmode")
+                            currentBuild.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
                             error("Failed to install the snap ${SNAP_NAME} from the channel ${SNAP_CHANNEL_CICD}")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }
                     } catch (err) {
                         echo err.getMessage()
                         error("Failed to remove the previously installed snap.")
                     }
-                    echo "STAGE #6 OUTPUT ${currentStage.result}"
+                    echo "STAGE #6 OUTPUT ${currentBuild.result}"
                 }
             }
         }
@@ -289,33 +295,27 @@ pipeline {
                         echo "Checking the snap $SNAP_NAME"
                         // sh "sudo $SNAP_NAME.check"
                         sh(
-                            label: "check the snap",
+                            label: "connect the required plugins for the concerned snap",
                             script: '''
                                 sudo snap connect $SNAP_NAME:log-observe
                                 sudo snap connect $SNAP_NAME:process-control
-                                sudo $SNAP_NAME.check
                             '''
                         )
-                        currentStage.result = 'SUCCESS'
+                        snap_exec("${SNAP_NAME}", "check")
+                        // snap_exec("${SNAP_NAME}", "stop")
+                        currentBuild.result = 'SUCCESS'
                     } catch (err) {
                         echo err.getMessage()
                         try{
-                            // Run the check command to test
-                            echo "Testing the snap $SNAP_NAME"
-                            sh(
-                                label: "check the snap",
-                                script: '''
-                                    sudo $SNAP_NAME.test
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
+                            snap_exec("${SNAP_NAME}", "test")
+                            currentBuild.result = 'SUCCESS'
                         } catch (errSecond) {
                             echo errSecond.getMessage()
                             error("Failed in the unitary test for the snap ${SNAP_NAME}")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }
                     }
-                    echo "STAGE #7 OUTPUT ${currentStage.result}"
+                    echo "STAGE #7 OUTPUT ${currentBuild.result}"
                 }
             }
         }
@@ -327,19 +327,14 @@ pipeline {
                 script{
                     echo "Roll back everything"
                     try{                            
-                        sh(
-                            label: "remove the snap",
-                            script: '''
-                                sudo snap remove ${SNAP_NAME}
-                            '''
-                        )
-                        currentStage.result = 'SUCCESS'
+                        snap_action("$SNAP_NAME", "remove")
+                        currentBuild.result = 'SUCCESS'
                     } catch (err) {
                         echo err.getMessage()
                         error("Failed to remove the snap ${SNAP_NAME}. Check if the snap was previously (correctly) installed.")
-                        currentStage.result = 'FAILURE'
+                        currentBuild.result = 'FAILURE'
                     }
-                    echo "STAGE #8 OUTPUT ${currentStage.result}"
+                    echo "STAGE #8 OUTPUT ${currentBuild.result}"
                 }
             }
         }
@@ -348,18 +343,19 @@ pipeline {
         stage('docker-build') {
             steps {
                 echo "STEP #9.1 Copy the hook to docker-build before starting building doker image"
-                try {
-                    script { 
+                script { 
+                    try {
                         sh label: 'copy dokcer-hook', script: '''pwd
                         cp dockers/docker-hook/cmd/hook/hook dockers/docker-build/build/
                         '''
+                    } catch (err) {
+                        echo err.getMessage()
+                        echo "Error of getting the hook, exit..."
+                        currentBuild.result = 'FAILURE'
+                        throw(err)
                     }
-                } catch (err) {
-                    echo err.getMessage()
-                    echo "Error of getting the hook, exit..."
-                    currentBuild.result = 'FAILURE'
-                    throw(err)
                 }
+                
                 echo "STEP #9.2 remove the docker build_base if it is already running"
                 script {
                     try {
@@ -372,42 +368,46 @@ pipeline {
                     }
                 }
                 echo "STEP #9.3 start building the docker image for the concerned snap"
-                try {
-                    dir('dockers/docker-build/build'){
-                        sh label: 'Build docker image', script: '''
-                            ./build.sh ${SNAP_NAME} ${DOCKER_IMAGE_TAG} ${OAI_SNAP_VERSION}
-                        '''
+                script {
+                    try {
+                        dir('dockers/docker-build/build'){
+                            sh label: 'Build docker image', script: '''
+                                ##./build.sh ${SNAP_NAME} ${DOCKER_IMAGE_TAG} ${OAI_SNAP_VERSION}
+                            '''
+                        }
+                        currentBuild.result = 'SUCCESS'
+                    } catch (err) {
+                        echo err.getMessage()
+                        echo "Erro building docker image for the snap ${SNAP_NAME}, exit..."
+                        currentBuild.result = 'FAILURE'
+                        throw(err)
                     }
-                    currentStage.result = 'SUCCESS'
-                } catch (err) {
-                    echo err.getMessage()
-                    echo "Erro building docker image for the snap ${SNAP_NAME}, exit..."
-                    currentBuild.result = 'FAILURE'
-                    throw(err)
                 }
-                echo "STAGE #9 OUTPUT ${currentStage.result}"
+                echo "STAGE #9 OUTPUT ${currentBuild.result}"
             }
         }
+
         // STAGE 10: Push the docker image to docker-hub
         stage('docker-Push') {
             steps {
-                try {
-                    script { 
-                    echo "STEP #10.1 push the docker image tagged as ${DOCKER_IMAGE_TAG} to docker-hub"
-                    sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
-                    docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
-                            docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push "${DOCKER_IMAGE_TAG}"
-                            // docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push()
-                        }
+                script { 
+                    try {
+                        echo "STEP #10.1 push the docker image tagged as ${DOCKER_IMAGE_TAG} to docker-hub"
+                        sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                        // docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
+                        //         docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push "${DOCKER_IMAGE_TAG}"
+                        //         // docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push()
+                        //     }
+                       currentBuild.result = 'SUCCESS'
+                    } catch (err) {
+                        echo err.getMessage()
+                        echo "Erro pushing the docker image mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG} to dockerhub, exit..."
+                        currentBuild.result = 'FAILURE'
+                        throw(err)
                     }
-                    currentStage.result = 'SUCCESS'
-                } catch (err) {
-                    echo err.getMessage()
-                    echo "Erro pushing the docker image mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG} to dockerhub, exit..."
-                    currentBuild.result = 'FAILURE'
-                    throw(err)
                 }
-                echo "STAGE #10 OUTPUT ${currentStage.result}"
+                    
+                echo "STAGE #10 OUTPUT ${currentBuild.result}"
             }
         }
         
@@ -423,45 +423,47 @@ pipeline {
             steps {
                 echo "STEP #11.1 Build the docker hook"
                 // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicFlexranV1}"){
-                    echo "STEP #11.2 bring the network down if it is already up"
-                    script{
-                        try{
-                            // Remove the docker-compose if available
-                            echo "Remove the docker-compose"
-                            sh(
-                                label: 'remove the docker compose if it is previously deployed',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                            echo err.getMessage()
-                            error("Failed to make the network down. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                    script{
-                        try{
-                            // Setup the docker-compse
-                            echo "Running the docker-compose"
-                            sh(
-                                label: 'setup the docker-compose',
-                                script: '''
-                                    docker-compose up -d
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                            echo err.getMessage()
-                            error("Failed to make the network up. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
-                        }   
+                // dir("${dockerComposeLteMonolithicFlexranV1}"){
+                echo "STEP #11.2 bring the network down if it is already up"
+                script{
+                    try{
+                        // Remove the docker-compose if available
+                        // echo "Remove the docker-compose"
+                        // sh(
+                        //     label: 'remove the docker compose if it is previously deployed',
+                        //     script: '''
+                        //         docker-compose down
+                        //     '''
+                        // )
+                        docker_compose("${dockerComposeLteMonolithicFlexranV1}", "down")
+                        currentBuild.result = 'SUCCESS'
+                    } catch (err) {
+                        echo err.getMessage()
+                        error("Failed to make the network down. Check the docker compse.")
+                        currentBuild.result = 'FAILURE'
                     }
                 }
+                script{
+                    try{
+                        // Setup the docker-compse
+                        echo "Running the docker-compose"
+                        docker_compose("${dockerComposeLteMonolithicFlexranV1}", "up -d")
+                        // sh(
+                        //     label: 'setup the docker-compose',
+                        //     script: '''
+                        //         docker-compose up -d
+                        //     '''
+                        // )
+                        currentBuild.result = 'SUCCESS'
+                    } catch (err) {
+                        echo err.getMessage()
+                        error("Failed to make the network up. Check the docker compse.")
+                        currentBuild.result = 'FAILURE'
+                    }   
+                }
+                // }
 
-                echo "STAGE #11 OUTPUT ${currentStage.result}"
+                echo "STAGE #11 OUTPUT ${currentBuild.result}"
             }
         }
         
@@ -481,42 +483,45 @@ pipeline {
                         try{
                             // List and check the containers and snaps
                             echo "Listing the containers and snaps"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    # Sleep  for 10 seconds to make sure that the network is up
-                                    sleep 10
-                                    docker ps
-                                    docker network ls
+                            deploymentTestMonoCnRanFlexran("${DOCKER_ENTITY_NAME}")
+                            // sh(
+                            //     label: 'list the docker containers to see the deployed networks',
+                            //     script: '''
+                            //         # Sleep  for 10 seconds to make sure that the network is up
+                            //         sleep 10
+                            //         docker ps
+                            //         docker network ls
                                     
-                                    cmd="snap list"
-                                    cmd_info_cn="snap info oai-cn"
-                                    cmd_info_ran="snap info oai-ran"
-                                    cmd_info_flexran="snap info flexran"
+                            //         cmd="snap list"
+                            //         cmd_info_cn="snap info oai-cn"
+                            //         cmd_info_ran="snap info oai-ran"
+                            //         cmd_info_flexran="snap info flexran"
                     
-                                    docker exec oaicn $cmd
-                                    docker exec oaicn $cmd_info_cn
+                            //         docker exec oaicn $cmd
+                            //         docker exec oaicn $cmd_info_cn
 
-                                    docker exec oairan $cmd
-                                    docker exec oairan $cmd_info_ran
+                            //         docker exec oairan $cmd
+                            //         docker exec oairan $cmd_info_ran
 
-                                    docker exec flexran $cmd
-                                    docker exec flexran $cmd_info_flexran
+                            //         docker exec flexran $cmd
+                            //         docker exec flexran $cmd_info_flexran
+                            //         docker exec flexran flexran.start
 
-                                    cmd_log_observe="snap connect flexran:log-observe" 
-                                    cmd_process_control="snap connect flexran:process-control" 
-                                    docker exec ${DOCKER_ENTITY_NAME} $cmd_log_observe
-                                    docker exec ${DOCKER_ENTITY_NAME} $cmd_process_control
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
+                            //         cmd_log_observe="snap connect flexran:log-observe" 
+                            //         cmd_process_control="snap connect flexran:process-control" 
+                            //         docker exec ${DOCKER_ENTITY_NAME} $cmd_log_observe
+                            //         docker exec ${DOCKER_ENTITY_NAME} $cmd_process_control
+                            //     '''
+                            // )
+                            currentBuild.result = 'SUCCESS'
                         } catch (err){
                             error("Failed to test the network components in monolithic mode; v1")
-                            currentStage.result = 'FAILURE'
+                            echo err.getMessage()
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
-                echo "STAGE #12 OUTPUT ${currentStage.result}"
+                echo "STAGE #12 OUTPUT ${currentBuild.result}"
             }
         }
         
@@ -540,11 +545,11 @@ pipeline {
                                     ./unit-flexran.sh
                                 '''
                             )
-                            currentStage.result = 'SUCCESS'
+                            currentBuild.result = 'SUCCESS'
                         } catch (err) {
                             echo err.getMessage()
                             error("Failed to test flexran in the deployment stage. Check the script output.")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
@@ -554,33 +559,36 @@ pipeline {
                     try{
                         // Snap unit check
                         echo "Snap unit check"
-                        sh(
-                            label: "${SNAP_NAME} snap unit check",
-                            script: '''
-                                docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.check
-                            '''
-                        )
-                        currentStage.result = 'SUCCESS'
+                        docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
+                        
+                        // sh(
+                        //     label: "${SNAP_NAME} snap unit check",
+                        //     script: '''
+                        //         docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.check
+                        //     '''
+                        // )
+                        currentBuild.result = 'SUCCESS'
                     } catch (err) {
                         echo err.getMessage()
                         try{
                             // Snap unit test
                             echo "Snap unit test"
-                            sh(
-                                label: "${SNAP_NAME} snap unit test",
-                                script: '''
-                                    docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.test
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
+                            docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.test")
+                            // sh(
+                            //     label: "${SNAP_NAME} snap unit test",
+                            //     script: '''
+                            //         docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.test
+                            //     '''
+                            // )
+                            currentBuild.result = 'SUCCESS'
                         } catch (errSecond) {
                             echo errSecond.getMessage()
                             error("Failed of the unitary test of FlexRAN insider the docker container")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
-                echo "STAGE #13 OUTPUT ${currentStage.result}"
+                echo "STAGE #13 OUTPUT ${currentBuild.result}"
             }
         }
         
@@ -595,236 +603,240 @@ pipeline {
             steps {
                 echo "STEP #14.1: Rollback the docker-compse"
                 // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicFlexranV1}"){
-                    script{
-                        try{
-                            // Rollback
-                            echo "Shutting down the docker-compose"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to make the network down. Check the docker-compose output")
-                            currentStage.result = 'FAILURE'
-
-                        }
-                    }
-                }
-                echo "STAGE #14 OUTPUT ${currentStage.result}"
-            }
-        }
-        /*=========== Continuous deployment: lte network with monolithic RAN and CN, and flexran as controller:v2 ===========*/
-        // STAGE #15: DOCKER COMPOSE
-        stage('monolithic-flexran-deploy-v2') {
-            when{
-                anyOf{
-                    expression{env.SNAP_NAME == 'flexran'}
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                }
-            }
-            steps {
-                echo "STEP #15.1 Build the docker hook"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicFlexranV2}"){
-                    echo "STEP #15.2 bring the network down if it is already up"
-                    script{
-                        try{
-                            // Remove the docker-compose if available
-                            echo "Remove the docker-compose"
-                            sh(
-                                label: 'remove the docker compose if it is previously deployed',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                            echo err.getMessage()
-                            error("Failed make the network down. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                    script{
-                        try{
-                            // Setup the docker-compse
-                            echo "Running the docker-compose"
-                            sh(
-                                label: 'setup the docker-compose',
-                                script: '''
-                                    docker-compose up -d
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                            echo err.getMessage()
-                            error("Failed make the netwrok up. Check docker-compose.yaml and conf.yaml")
-                            currentStage.result = 'FAILURE'
-                        }   
-                    }
-                }
-                echo "STAGE #15 OUTPUT ${currentStage.result}"
-            }
-        }
-        
-        // STAGE #16: DOCKER COMPOSE TEST
-        stage('monolithic-flexran-network-test-v2') {
-            when{
-                anyOf{
-                    expression{env.SNAP_NAME == 'flexran'}
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                }
-            }
-            steps {
-                echo "STEP #16.1 Test lte with flexran network"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicFlexranV2}"){
-                    script{
-                        try{
-                            // List and check the containers and snaps
-                            echo "Listing the containers and snaps"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    # Sleep  for 10 seconds to make sure that the network is up
-                                    sleep 10
-                                    docker ps
-                                    docker network ls
-                                    
-                                    cmd="snap list"
-                                    cmd_info_cn="snap info oai-cn"
-                                    cmd_info_ran="snap info oai-ran"
-                                    cmd_info_flexran="snap info flexran"
-                    
-                                    docker exec oaicn $cmd
-                                    docker exec oaicn $cmd_info_cn
-
-                                    docker exec oairan $cmd
-                                    docker exec oairan $cmd_info_ran
-
-                                    docker exec flexran $cmd
-                                    docker exec flexran $cmd_info_flexran
-                                    cmd_log_observe="snap connect flexran:log-observe" 
-                                    cmd_process_control="snap connect flexran:process-control" 
-                                    docker exec ${DOCKER_ENTITY_NAME} $cmd_log_observe
-                                    docker exec ${DOCKER_ENTITY_NAME} $cmd_process_control
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to test the network in monolithic mode with FlexRAN: v2")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
-
-                echo "STAGE #16 OUTPUT ${currentStage.result}"
-            }
-        }
-        
-        // STAGE #17: DOCKER COMPOSE
-        stage('deployment-unit-test-flexran-v2') {
-            when{
-                expression{env.SNAP_NAME == 'flexran'}
-            }
-            steps {
-                
-                // Change the directory to an specific one for the scripts
-                echo "STEP #17.1: Perform a unit test of flexran"
-                dir('ci-scripts/unit-tests/flexran/4G'){
-                    script{
-                        try{
-                            // Unit test script
-                            echo "Unit test script"
-                            sh(
-                                label: '${SNAP_NAME} unit test script',
-                                script: '''
-                                    chmod 777 unit-flexran.sh
-                                    ./unit-flexran.sh
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                            echo err.getMessage()
-                            error("Failed to finish the stage #10. Check the script output.")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
-                
-                echo "STEP #17.2: Perform ${SNAP_NAME} check"
+                // dir("${dockerComposeLteMonolithicFlexranV1}"){
                 script{
                     try{
-                        // Snap unit check
-                        echo "Snap unit check"
-                        sh(
-                            label: "${SNAP_NAME} snap unit check",
-                            script: '''
-                                docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.test
-                            '''
-                        )
-                        currentStage.result = 'SUCCESS'
-                    } catch (err) {
-                        echo err.getMessage()
-                        try{
-                            // Snap unit check
-                            echo "Snap unit check"
-                            sh(
-                                label: "${SNAP_NAME} snap unit check",
-                                script: '''
-                                    docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.check
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (errSecond) {
-                            echo errSecond.getMessage()
-                            error("Failed to perform check for the snap ${SNAP_NAME}")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
+                        // Rollback
+                        echo "Shutting down the docker-compose"
+                        docker_compose("${dockerComposeLteMonolithicFlexranV1}", "down")
 
-                echo "STAGE #17 OUTPUT ${currentStage.result}"
-            }
-        }
-        
-        // STAGE 18: DOCKER COMPOSE CLEAN
-        stage('monolithic-flexran-down-v2') {
-            when{
-                anyOf{
-                    expression{env.SNAP_NAME == 'flexran'}
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                }
-            }
-            steps {
-                echo "STEP #18.1: Rollback the docker-compse"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicFlexranV2}"){
-                    script{
-                        try{
-                            // Rollback
-                            echo "Shutting down the docker-compose"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed make the network down. Check the docker-compose")
-                            currentStage.result = 'FAILURE'
-                        }
+                        // sh(
+                        //     label: 'list the docker containers to see the deployed networks',
+                        //     script: '''
+                        //         docker-compose down
+                        //     '''
+                        // )
+                        currentBuild.result = 'SUCCESS'
+                    } catch (err){
+                        error("Failed to make the network down. Check the docker-compose output")
+                        currentBuild.result = 'FAILURE'
+
                     }
                 }
-                echo "STAGE #18 OUTPUT ${currentStage.result}"
+                // }
+                echo "STAGE #14 OUTPUT ${currentBuild.result}"
             }
         }
+
+        // // /*=========== Continuous deployment: lte network with monolithic RAN and CN, and flexran as controller:v2 ===========*/
+        // // STAGE #15: DOCKER COMPOSE
+        // stage('monolithic-flexran-deploy-v2') {
+        //     when{
+        //         anyOf{
+        //             expression{env.SNAP_NAME == 'flexran'}
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #15.1 Build the docker hook"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteMonolithicFlexranV2}"){
+        //             echo "STEP #15.2 bring the network down if it is already up"
+        //             script{
+        //                 try{
+        //                     // Remove the docker-compose if available
+        //                     echo "Remove the docker-compose"
+        //                     sh(
+        //                         label: 'remove the docker compose if it is previously deployed',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                     echo err.getMessage()
+        //                     error("Failed make the network down. Check the docker compse.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //             script{
+        //                 try{
+        //                     // Setup the docker-compse
+        //                     echo "Running the docker-compose"
+        //                     sh(
+        //                         label: 'setup the docker-compose',
+        //                         script: '''
+        //                             docker-compose up -d
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                     echo err.getMessage()
+        //                     error("Failed make the netwrok up. Check docker-compose.yaml and conf.yaml")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }   
+        //             }
+        //         }
+        //         echo "STAGE #15 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
         
-        /*=========== Continuous deployment: lte network with monolithic RAN and CN:v1 ===========*/
+        // // STAGE #16: DOCKER COMPOSE TEST
+        // stage('monolithic-flexran-network-test-v2') {
+        //     when{
+        //         anyOf{
+        //             expression{env.SNAP_NAME == 'flexran'}
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #16.1 Test lte with flexran network"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteMonolithicFlexranV2}"){
+        //             script{
+        //                 try{
+        //                     // List and check the containers and snaps
+        //                     echo "Listing the containers and snaps"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             # Sleep  for 10 seconds to make sure that the network is up
+        //                             sleep 10
+        //                             docker ps
+        //                             docker network ls
+                                    
+        //                             cmd="snap list"
+        //                             cmd_info_cn="snap info oai-cn"
+        //                             cmd_info_ran="snap info oai-ran"
+        //                             cmd_info_flexran="snap info flexran"
+                    
+        //                             docker exec oaicn $cmd
+        //                             docker exec oaicn $cmd_info_cn
+
+        //                             docker exec oairan $cmd
+        //                             docker exec oairan $cmd_info_ran
+
+        //                             docker exec flexran $cmd
+        //                             docker exec flexran $cmd_info_flexran
+        //                             docker exec flexran flexran.start
+        //                             cmd_log_observe="snap connect flexran:log-observe" 
+        //                             cmd_process_control="snap connect flexran:process-control" 
+        //                             docker exec ${DOCKER_ENTITY_NAME} $cmd_log_observe
+        //                             docker exec ${DOCKER_ENTITY_NAME} $cmd_process_control
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to test the network in monolithic mode with FlexRAN: v2")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
+
+        //         echo "STAGE #16 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
+        
+        // // STAGE #17: DOCKER COMPOSE
+        // stage('deployment-unit-test-flexran-v2') {
+        //     when{
+        //         expression{env.SNAP_NAME == 'flexran'}
+        //     }
+        //     steps {
+                
+        //         // Change the directory to an specific one for the scripts
+        //         echo "STEP #17.1: Perform a unit test of flexran"
+        //         dir('ci-scripts/unit-tests/flexran/4G'){
+        //             script{
+        //                 try{
+        //                     // Unit test script
+        //                     echo "Unit test script"
+        //                     sh(
+        //                         label: '${SNAP_NAME} unit test script',
+        //                         script: '''
+        //                             chmod 777 unit-flexran.sh
+        //                             ./unit-flexran.sh
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                     echo err.getMessage()
+        //                     error("Failed to finish the stage #10. Check the script output.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
+                
+        //         echo "STEP #17.2: Perform ${SNAP_NAME} check"
+        //         script{
+        //             try{
+        //                 // Snap unit check
+        //                 echo "Snap unit check"
+        //                 sh(
+        //                     label: "${SNAP_NAME} snap unit check",
+        //                     script: '''
+        //                         docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.test
+        //                     '''
+        //                 )
+        //                 currentBuild.result = 'SUCCESS'
+        //             } catch (err) {
+        //                 echo err.getMessage()
+        //                 try{
+        //                     // Snap unit check
+        //                     echo "Snap unit check"
+        //                     sh(
+        //                         label: "${SNAP_NAME} snap unit check",
+        //                         script: '''
+        //                             docker exec ${DOCKER_ENTITY_NAME} ${SNAP_NAME}.check
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (errSecond) {
+        //                     echo errSecond.getMessage()
+        //                     error("Failed to perform check for the snap ${SNAP_NAME}")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
+
+        //         echo "STAGE #17 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
+        
+        // // STAGE 18: DOCKER COMPOSE CLEAN
+        // stage('monolithic-flexran-down-v2') {
+        //     when{
+        //         anyOf{
+        //             expression{env.SNAP_NAME == 'flexran'}
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #18.1: Rollback the docker-compse"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteMonolithicFlexranV2}"){
+        //             script{
+        //                 try{
+        //                     // Rollback
+        //                     echo "Shutting down the docker-compose"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed make the network down. Check the docker-compose")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
+        //         echo "STAGE #18 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
+        
+        // /*=========== Continuous deployment: lte network with monolithic RAN and CN:v1 ===========*/
         // STAGE #18: DOCKER COMPOSE
         stage('monolithic-deploy-v1') {
             when{
@@ -848,11 +860,11 @@ pipeline {
                                     docker-compose down
                                 '''
                             )
-                            currentStage.result = 'SUCCESS'
+                            currentBuild.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
                             error("Failed to make the network down. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                     script{
@@ -865,557 +877,670 @@ pipeline {
                                     docker-compose up -d
                                 '''
                             )
-                            currentStage.result = 'SUCCESS'
+                            currentBuild.result = 'SUCCESS'
                         } catch (err) {
                         echo err.getMessage()
                             error("Failed to make the network up. Check docker-compose.yaml and conf.yaml")
-                            currentStage.result = 'FAILURE'
+                            currentBuild.result = 'FAILURE'
                         }   
                     }
                 }
-                echo "STAGE #18 OUTPUT ${currentStage.result}"
+                echo "STAGE #18 OUTPUT ${currentBuild.result}"
             }
         }
         
-        // STAGE #19: DOCKER COMPOSE TEST
-        stage('monolithic-network-test-v1') {
-            when{
-                anyOf{
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                    expression{env.SNAP_NAME == 'oai-cn'}
-                }
-            }
-            steps {
-                echo "STEP #19.1 Test lte network: monolithic mode"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicV1}"){
-                    script{
-                        try{
-                            // List and check the containers and snaps
-                            echo "Listing the containers and snaps"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    # Sleep  for 10 seconds to make sure that the network is up
-                                    sleep 10
-                                    docker ps
-                                    docker network ls
+        // // STAGE #19: DOCKER COMPOSE TEST
+        // stage('monolithic-network-test-v1') {
+        //     when{
+        //         anyOf{
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //             expression{env.SNAP_NAME == 'oai-cn'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #19.1 Test lte network: monolithic mode"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteMonolithicV1}"){
+        //             script{
+        //                 try{
+        //                     // List and check the containers and snaps
+        //                     echo "Listing the containers and snaps"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             # Sleep  for 10 seconds to make sure that the network is up
+        //                             sleep 10
+        //                             docker ps
+        //                             docker network ls
                                     
-                                    cmd="snap list"
-                                    cmd_info_cn="snap info oai-cn"
-                                    cmd_info_ran="snap info oai-ran"
+        //                             cmd="snap list"
+        //                             cmd_info_cn="snap info oai-cn"
+        //                             cmd_info_ran="snap info oai-ran"
                     
-                                    docker exec oaicn $cmd
-                                    docker exec oaicn $cmd_info_cn
+        //                             docker exec oaicn $cmd
+        //                             docker exec oaicn $cmd_info_cn
 
-                                    docker exec oairan $cmd
-                                    docker exec oairan $cmd_info_ran
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to test the network in monolithic mode. Check the modules.")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
-                echo "STAGE #19 OUTPUT ${currentStage.result}"
-            }
-        }
+        //                             docker exec oairan $cmd
+        //                             docker exec oairan $cmd_info_ran
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to test the network in monolithic mode. Check the modules.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
+        //         echo "STAGE #19 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
         
-        // STAGE 18: DOCKER COMPOSE CLEAN
-        stage('monolithic-down-v1') {
-            when{
-                anyOf{
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                    expression{env.SNAP_NAME == 'oai-cn'}
-                }
-            }
-            steps {
-                echo "STEP #18.1: Rollback the docker-compse"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicV1}"){
-                    script{
-                        try{
-                            // Rollback
-                            echo "Shutting down the docker-compose"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to make the network, monolithic mode, down. Check the docker-compose")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
-                echo "STAGE #18 OUTPUT ${currentStage.result}"
-            }
-        }
+        // // STAGE 18: DOCKER COMPOSE CLEAN
+        // stage('monolithic-down-v1') {
+        //     when{
+        //         anyOf{
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //             expression{env.SNAP_NAME == 'oai-cn'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #18.1: Rollback the docker-compse"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteMonolithicV1}"){
+        //             script{
+        //                 try{
+        //                     // Rollback
+        //                     echo "Shutting down the docker-compose"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to make the network, monolithic mode, down. Check the docker-compose")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
+        //         echo "STAGE #18 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
 
-        /*=========== Continuous deployment: lte network with monolithic RAN and CN:v2 ===========*/
-        // STAGE #19: DOCKER COMPOSE
-        stage('monolithic-deploy-v2') {
-            when{
-                anyOf{
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                    expression{env.SNAP_NAME == 'oai-cn'}
-                }
-            }
-            steps {
-                echo "STEP #19.1 Build the docker hook"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicV2}"){
-                    echo "STEP #19.2 bring the network down if it is already up"
-                    script{
-                        try{
-                            // Remove the docker-compose if available
-                            echo "Remove the docker-compose"
-                            sh(
-                                label: 'remove the docker compose if it is previously deployed',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                        echo err.getMessage()
-                            error("Failed to make the network down. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                    script{
-                        try{
-                            // Setup the docker-compse
-                            echo "Running the docker-compose"
-                            sh(
-                                label: 'setup the docker-compose',
-                                script: '''
-                                    docker-compose up -d
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                        echo err.getMessage()
-                            error("Failed to make the network up. Check docker-compose.yaml and conf.yaml")
-                            currentStage.result = 'FAILURE'
-                        }   
-                    }
-                }
-                echo "STAGE #19 OUTPUT ${currentStage.result}"
-            }
-        }
+        // /*=========== Continuous deployment: lte network with monolithic RAN and CN:v2 ===========*/
+        // // STAGE #19: DOCKER COMPOSE
+        // stage('monolithic-deploy-v2') {
+        //     when{
+        //         anyOf{
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //             expression{env.SNAP_NAME == 'oai-cn'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #19.1 Build the docker hook"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteMonolithicV2}"){
+        //             echo "STEP #19.2 bring the network down if it is already up"
+        //             script{
+        //                 try{
+        //                     // Remove the docker-compose if available
+        //                     echo "Remove the docker-compose"
+        //                     sh(
+        //                         label: 'remove the docker compose if it is previously deployed',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                 echo err.getMessage()
+        //                     error("Failed to make the network down. Check the docker compse.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //             script{
+        //                 try{
+        //                     // Setup the docker-compse
+        //                     echo "Running the docker-compose"
+        //                     sh(
+        //                         label: 'setup the docker-compose',
+        //                         script: '''
+        //                             docker-compose up -d
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                 echo err.getMessage()
+        //                     error("Failed to make the network up. Check docker-compose.yaml and conf.yaml")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }   
+        //             }
+        //         }
+        //         echo "STAGE #19 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
         
-        // STAGE #20: DOCKER COMPOSE TEST
-        stage('monolithic-network-test-v2') {
-            when{
-                anyOf{
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                    expression{env.SNAP_NAME == 'oai-cn'}
-                }
-            }
-            steps {
-                echo "STEP #20.1 Test lte network: monolithic mode"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicV2}"){
-                    script{
-                        try{
-                            // List and check the containers and snaps
-                            echo "Listing the containers and snaps"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    # Sleep  for 10 seconds to make sure that the network is up
-                                    sleep 10
-                                    docker ps
-                                    docker network ls
+        // // STAGE #20: DOCKER COMPOSE TEST
+        // stage('monolithic-network-test-v2') {
+        //     when{
+        //         anyOf{
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //             expression{env.SNAP_NAME == 'oai-cn'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #20.1 Test lte network: monolithic mode"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteMonolithicV2}"){
+        //             script{
+        //                 try{
+        //                     // List and check the containers and snaps
+        //                     echo "Listing the containers and snaps"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             # Sleep  for 10 seconds to make sure that the network is up
+        //                             sleep 10
+        //                             docker ps
+        //                             docker network ls
                                     
-                                    cmd="snap list"
-                                    cmd_info_cn="snap info oai-cn"
-                                    cmd_info_ran="snap info oai-ran"
+        //                             cmd="snap list"
+        //                             cmd_info_cn="snap info oai-cn"
+        //                             cmd_info_ran="snap info oai-ran"
                     
-                                    docker exec oaicn $cmd
-                                    docker exec oaicn $cmd_info_cn
+        //                             docker exec oaicn $cmd
+        //                             docker exec oaicn $cmd_info_cn
 
-                                    docker exec oairan $cmd
-                                    docker exec oairan $cmd_info_ran
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to test the network in monolithic mode v2")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
+        //                             docker exec oairan $cmd
+        //                             docker exec oairan $cmd_info_ran
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to test the network in monolithic mode v2")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
 
-                echo "STAGE #20 OUTPUT ${currentStage.result}"
-            }
-        }
+        //         echo "STAGE #20 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
         
-        // STAGE 21: DOCKER COMPOSE CLEAN
-        stage('monolithic-down-v2') {
-            when{
-                anyOf{
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                    expression{env.SNAP_NAME == 'oai-cn'}
-                }
-            }
-            steps {
-                echo "STEP #21.1: Rollback the docker-compse"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteMonolithicV2}"){
-                    script{
-                        try{
-                            // Rollback
-                            echo "Shutting down the docker-compose"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to make the network down. Check the docker-compose")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
+        // // STAGE 21: DOCKER COMPOSE CLEAN
+        // stage('monolithic-down-v2') {
+        //     when{
+        //         anyOf{
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //             expression{env.SNAP_NAME == 'oai-cn'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #21.1: Rollback the docker-compse"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteMonolithicV2}"){
+        //             script{
+        //                 try{
+        //                     // Rollback
+        //                     echo "Shutting down the docker-compose"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to make the network down. Check the docker-compose")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
 
-                echo "STAGE #21 OUTPUT ${currentStage.result}"
-            }
-        }
+        //         echo "STAGE #21 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
 
-        /*=========== Continuous deployment: lte network with monolithic RAN and disaggregated CN:v1 ===========*/
-        // STAGE #22: DOCKER COMPOSE
-        stage('disaggregated-deploy-v1') {
-            when{
-                allOf{
-                    anyOf{
-                        expression{env.SNAP_NAME == 'oai-ran'}
-                        expression{env.SNAP_NAME == 'oai-hss'}
-                        expression{env.SNAP_NAME == 'oai-mme'}
-                        expression{env.SNAP_NAME == 'oai-spgw'}
-                    }
-                    expression{env.OAI_SNAP_VERSION == 'v1'}
-                }
-            }
-            steps {
-                echo "STEP #22.1 Build the docker hook"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteDisaggregatedV1}"){
-                    echo "STEP #22.2 bring the network down if it is already up"
-                    script{
-                        try{
-                            // Remove the docker-compose if available
-                            echo "Remove the docker-compose"
-                            sh(
-                                label: 'remove the docker compose if it is previously deployed',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                        echo err.getMessage()
-                            error("Failed to make the network, disaggregated mode v1, down. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                    script{
-                        try{
-                            // Setup the docker-compse
-                            echo "Running the docker-compose"
-                            sh(
-                                label: 'setup the docker-compose',
-                                script: '''
-                                    docker-compose up -d
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                        echo err.getMessage()
-                            error("Failed to make the network, disaggregated mode v1, up. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
-                        }   
-                    }
-                }
-                echo "STAGE #22 OUTPUT ${currentStage.result}"
-            }
-        }
+        // /*=========== Continuous deployment: lte network with monolithic RAN and disaggregated CN:v1 ===========*/
+        // // STAGE #22: DOCKER COMPOSE
+        // stage('disaggregated-deploy-v1') {
+        //     when{
+        //         allOf{
+        //             anyOf{
+        //                 expression{env.SNAP_NAME == 'oai-ran'}
+        //                 expression{env.SNAP_NAME == 'oai-hss'}
+        //                 expression{env.SNAP_NAME == 'oai-mme'}
+        //                 expression{env.SNAP_NAME == 'oai-spgw'}
+        //             }
+        //             expression{env.OAI_SNAP_VERSION == 'v1'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #22.1 Build the docker hook"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteDisaggregatedV1}"){
+        //             echo "STEP #22.2 bring the network down if it is already up"
+        //             script{
+        //                 try{
+        //                     // Remove the docker-compose if available
+        //                     echo "Remove the docker-compose"
+        //                     sh(
+        //                         label: 'remove the docker compose if it is previously deployed',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                 echo err.getMessage()
+        //                     error("Failed to make the network, disaggregated mode v1, down. Check the docker compse.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //             script{
+        //                 try{
+        //                     // Setup the docker-compse
+        //                     echo "Running the docker-compose"
+        //                     sh(
+        //                         label: 'setup the docker-compose',
+        //                         script: '''
+        //                             docker-compose up -d
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                 echo err.getMessage()
+        //                     error("Failed to make the network, disaggregated mode v1, up. Check the docker compse.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }   
+        //             }
+        //         }
+        //         echo "STAGE #22 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
         
-        // STAGE #23: DOCKER COMPOSE TEST
-        stage('disaggregated-network-test-v1') {
-            when{
-                allOf{
-                    anyOf{
-                        expression{env.SNAP_NAME == 'oai-ran'}
-                        expression{env.SNAP_NAME == 'oai-hss'}
-                        expression{env.SNAP_NAME == 'oai-mme'}
-                        expression{env.SNAP_NAME == 'oai-spgw'}
-                    }
-                    expression{env.OAI_SNAP_VERSION == 'v1'}
-                }
-            }
-            steps {
-                echo "STEP #23.1 Test lte network: disaggregated mode"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteDisaggregatedV1}"){
-                    script{
-                        try{
-                            // List and check the containers and snaps
-                            echo "Listing the containers and snaps"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    # Sleep  for 10 seconds to make sure that the network is up
-                                    sleep 10
-                                    docker ps
-                                    docker network ls
+        // // STAGE #23: DOCKER COMPOSE TEST
+        // stage('disaggregated-network-test-v1') {
+        //     when{
+        //         allOf{
+        //             anyOf{
+        //                 expression{env.SNAP_NAME == 'oai-ran'}
+        //                 expression{env.SNAP_NAME == 'oai-hss'}
+        //                 expression{env.SNAP_NAME == 'oai-mme'}
+        //                 expression{env.SNAP_NAME == 'oai-spgw'}
+        //             }
+        //             expression{env.OAI_SNAP_VERSION == 'v1'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #23.1 Test lte network: disaggregated mode"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteDisaggregatedV1}"){
+        //             script{
+        //                 try{
+        //                     // List and check the containers and snaps
+        //                     echo "Listing the containers and snaps"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             # Sleep  for 10 seconds to make sure that the network is up
+        //                             sleep 10
+        //                             docker ps
+        //                             docker network ls
                                     
-                                    cmd="snap list"
-                                    cmd_info_ran="snap info oai-ran"
-                                    cmd_info_hss="snap info oai-cn"
-                                    cmd_info_mme="snap info oai-cn"
-                                    cmd_info_spgw="snap info oai-cn"
+        //                             cmd="snap list"
+        //                             cmd_info_ran="snap info oai-ran"
+        //                             cmd_info_hss="snap info oai-cn"
+        //                             cmd_info_mme="snap info oai-cn"
+        //                             cmd_info_spgw="snap info oai-cn"
 
-                                    docker exec oaihss $cmd
-                                    docker exec oaihss $cmd_info_hss
+        //                             docker exec oaihss $cmd
+        //                             docker exec oaihss $cmd_info_hss
 
-                                    docker exec oaimme $cmd
-                                    docker exec oaimme $cmd_info_mme
+        //                             docker exec oaimme $cmd
+        //                             docker exec oaimme $cmd_info_mme
 
-                                    docker exec oaispgw $cmd
-                                    docker exec oaispgw $cmd_info_spgw
+        //                             docker exec oaispgw $cmd
+        //                             docker exec oaispgw $cmd_info_spgw
 
-                                    docker exec oairan $cmd
-                                    docker exec oairan $cmd_info_ran
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to test the network in dissagregated mode v1. Check the modules.")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
+        //                             docker exec oairan $cmd
+        //                             docker exec oairan $cmd_info_ran
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to test the network in dissagregated mode v1. Check the modules.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
 
-                echo "STAGE #23 OUTPUT ${currentStage.result}"
-            }
-        }
+        //         echo "STAGE #23 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
         
-        // STAGE 24: DOCKER COMPOSE CLEAN
-        stage('disaggregated-down-v1') {
-            when{
-                allOf{
-                    anyOf{
-                        expression{env.SNAP_NAME == 'oai-ran'}
-                        expression{env.SNAP_NAME == 'oai-hss'}
-                        expression{env.SNAP_NAME == 'oai-mme'}
-                        expression{env.SNAP_NAME == 'oai-spgw'}
-                    }
-                    expression{env.OAI_SNAP_VERSION == 'v1'}
-                }
-            }
-            steps {
-                echo "STEP #24.1: Rollback the docker-compse"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteDisaggregatedV1}"){
-                    script{
-                        try{
-                            // Rollback
-                            echo "Shutting down the docker-compose"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to make the network, disaggregated mode v1, down. Check the docker-compose")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
+        // // STAGE 24: DOCKER COMPOSE CLEAN
+        // stage('disaggregated-down-v1') {
+        //     when{
+        //         allOf{
+        //             anyOf{
+        //                 expression{env.SNAP_NAME == 'oai-ran'}
+        //                 expression{env.SNAP_NAME == 'oai-hss'}
+        //                 expression{env.SNAP_NAME == 'oai-mme'}
+        //                 expression{env.SNAP_NAME == 'oai-spgw'}
+        //             }
+        //             expression{env.OAI_SNAP_VERSION == 'v1'}
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #24.1: Rollback the docker-compse"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteDisaggregatedV1}"){
+        //             script{
+        //                 try{
+        //                     // Rollback
+        //                     echo "Shutting down the docker-compose"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to make the network, disaggregated mode v1, down. Check the docker-compose")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
 
-                echo "STAGE #24 OUTPUT ${currentStage.result}"
+        //         echo "STAGE #24 OUTPUT ${currentBuild.result}"
 
-            }
-        }
-        /*=========== Continuous deployment: lte network with monolithic RAN and disaggregated CN:v2 ===========*/
-        // STAGE #25: DOCKER COMPOSE
-        stage('disaggregated-deploy-v2') {
-            when{
-                anyOf{                
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                    allOf{
-                        expression{env.OAI_SNAP_VERSION == 'v2'}
-                        anyOf{
-                            expression{env.SNAP_NAME == 'oai-hss'}
-                            expression{env.SNAP_NAME == 'oai-mme'}
-                            expression{env.SNAP_NAME == 'oai-spgwc'}
-                            expression{env.SNAP_NAME == 'oai-spgwu'}
-                        }
-                    }
-                }
-            }
-            steps {
-                echo "STEP #25.1 Build the docker hook"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteDisaggregatedV2}"){
-                    echo "STEP #25.2 bring the network down if it is already up"
-                    script{
-                        try{
-                            // Remove the docker-compose if available
-                            echo "Remove the docker-compose"
-                            sh(
-                                label: 'remove the docker compose if it is previously deployed',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                        echo err.getMessage()
-                            error("Failed to make the network, disaggregated v2, down. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                    script{
-                        try{
-                            // Setup the docker-compse
-                            echo "Running the docker-compose"
-                            sh(
-                                label: 'setup the docker-compose',
-                                script: '''
-                                    docker-compose up -d
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err) {
-                        echo err.getMessage()
-                            error("Failed to make the network, disaggregated v2, up. Check the docker compse.")
-                            currentStage.result = 'FAILURE'
-                        }   
-                    }
-                }
-
-                echo "STAGE #25 OUTPUT ${currentStage.result}"
-            }
-        }
+        //     }
+        // }
         
-        // STAGE #26: DOCKER COMPOSE TEST
-        stage('disaggregated-network-test-v2') {
-            when{
-                anyOf{                
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                    allOf{
-                        expression{env.OAI_SNAP_VERSION == 'v2'}
-                        anyOf{
-                            expression{env.SNAP_NAME == 'oai-hss'}
-                            expression{env.SNAP_NAME == 'oai-mme'}
-                            expression{env.SNAP_NAME == 'oai-spgwc'}
-                            expression{env.SNAP_NAME == 'oai-spgwu'}
-                        }
-                    }
-                }
-            }
-            steps {
-                echo "STEP #26.1 Test lte network: disaggregated mode"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteDisaggregatedV2}"){
-                    script{
-                        try{
-                            // List and check the containers and snaps
-                            echo "Listing the containers and snaps"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    # Sleep  for 10 seconds to make sure that the network is up
-                                    sleep 10
-                                    docker ps
-                                    docker network ls
+        // /*=========== Continuous deployment: lte network with monolithic RAN and disaggregated CN:v2 ===========*/
+        // // STAGE #25: DOCKER COMPOSE
+        // stage('disaggregated-deploy-v2') {
+        //     when{
+        //         anyOf{                
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //             allOf{
+        //                 expression{env.OAI_SNAP_VERSION == 'v2'}
+        //                 anyOf{
+        //                     expression{env.SNAP_NAME == 'oai-hss'}
+        //                     expression{env.SNAP_NAME == 'oai-mme'}
+        //                     expression{env.SNAP_NAME == 'oai-spgwc'}
+        //                     expression{env.SNAP_NAME == 'oai-spgwu'}
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #25.1 Build the docker hook"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteDisaggregatedV2}"){
+        //             echo "STEP #25.2 bring the network down if it is already up"
+        //             script{
+        //                 try{
+        //                     // Remove the docker-compose if available
+        //                     echo "Remove the docker-compose"
+        //                     sh(
+        //                         label: 'remove the docker compose if it is previously deployed',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                 echo err.getMessage()
+        //                     error("Failed to make the network, disaggregated v2, down. Check the docker compse.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //             script{
+        //                 try{
+        //                     // Setup the docker-compse
+        //                     echo "Running the docker-compose"
+        //                     sh(
+        //                         label: 'setup the docker-compose',
+        //                         script: '''
+        //                             docker-compose up -d
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err) {
+        //                 echo err.getMessage()
+        //                     error("Failed to make the network, disaggregated v2, up. Check the docker compse.")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }   
+        //             }
+        //         }
+
+        //         echo "STAGE #25 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
+       
+        // // STAGE #26: DOCKER COMPOSE TEST
+        // stage('disaggregated-network-test-v2') {
+        //     when{
+        //         anyOf{                
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //             allOf{
+        //                 expression{env.OAI_SNAP_VERSION == 'v2'}
+        //                 anyOf{
+        //                     expression{env.SNAP_NAME == 'oai-hss'}
+        //                     expression{env.SNAP_NAME == 'oai-mme'}
+        //                     expression{env.SNAP_NAME == 'oai-spgwc'}
+        //                     expression{env.SNAP_NAME == 'oai-spgwu'}
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #26.1 Test lte network: disaggregated mode"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteDisaggregatedV2}"){
+        //             script{
+        //                 try{
+        //                     // List and check the containers and snaps
+        //                     echo "Listing the containers and snaps"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             # Sleep  for 10 seconds to make sure that the network is up
+        //                             sleep 10
+        //                             docker ps
+        //                             docker network ls
                                     
-                                    cmd="snap list"
-                                    cmd_info_ran="snap info oai-ran"
-                                    cmd_info_hss="snap info oai-hss"
-                                    cmd_info_mme="snap info oai-mme"
-                                    cmd_info_spgwc="snap info oai-spgwc"
-                                    cmd_info_spgwu="snap info oai-spgwu"
+        //                             cmd="snap list"
+        //                             cmd_info_ran="snap info oai-ran"
+        //                             cmd_info_hss="snap info oai-hss"
+        //                             cmd_info_mme="snap info oai-mme"
+        //                             cmd_info_spgwc="snap info oai-spgwc"
+        //                             cmd_info_spgwu="snap info oai-spgwu"
 
-                                    docker exec oaihss $cmd
-                                    docker exec oaihss $cmd_info_hss
+        //                             docker exec oaihss $cmd
+        //                             docker exec oaihss $cmd_info_hss
 
-                                    docker exec oaimme $cmd
-                                    docker exec oaimme $cmd_info_mme
+        //                             docker exec oaimme $cmd
+        //                             docker exec oaimme $cmd_info_mme
 
-                                    docker exec oaispgwc $cmd
-                                    docker exec oaispgwc $cmd_info_spgwc
+        //                             docker exec oaispgwc $cmd
+        //                             docker exec oaispgwc $cmd_info_spgwc
 
-                                    docker exec oaispgwu $cmd
-                                    docker exec oaispgwu $cmd_info_spgwu
+        //                             docker exec oaispgwu $cmd
+        //                             docker exec oaispgwu $cmd_info_spgwu
 
-                                    docker exec oairan $cmd
-                                    docker exec oairan $cmd_info_ran
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to test the network, disaggregated v2")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
+        //                             docker exec oairan $cmd
+        //                             docker exec oairan $cmd_info_ran
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to test the network, disaggregated v2")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
 
-                echo "STAGE #26 OUTPUT ${currentStage.result}"
-            }
-        }
+        //         echo "STAGE #26 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
         
-        // STAGE 27: DOCKER COMPOSE CLEAN
-        stage('disaggregated-down-v2') {
-            when{
-                anyOf{                
-                    expression{env.SNAP_NAME == 'oai-ran'}
-                    allOf{
-                        expression{env.OAI_SNAP_VERSION == 'v2'}
-                        anyOf{
-                            expression{env.SNAP_NAME == 'oai-hss'}
-                            expression{env.SNAP_NAME == 'oai-mme'}
-                            expression{env.SNAP_NAME == 'oai-spgwc'}
-                            expression{env.SNAP_NAME == 'oai-spgwu'}
-                        }
-                    }
-                }
-            }
-            steps {
-                echo "STEP #27.1: Rollback the docker-compse"
-                // Change the directory to an specific one for the compose
-                dir("${dockerComposeLteDisaggregatedV2}"){
-                    script{
-                        try{
-                            // Rollback
-                            echo "Shutting down the docker-compose"
-                            sh(
-                                label: 'list the docker containers to see the deployed networks',
-                                script: '''
-                                    docker-compose down
-                                '''
-                            )
-                            currentStage.result = 'SUCCESS'
-                        } catch (err){
-                            error("Failed to make the network, disaggregated v2, down. Check the docker-compose")
-                            currentStage.result = 'FAILURE'
-                        }
-                    }
-                }
+        // // STAGE 27: DOCKER COMPOSE CLEAN
+        // stage('disaggregated-down-v2') {
+        //     when{
+        //         anyOf{                
+        //             expression{env.SNAP_NAME == 'oai-ran'}
+        //             allOf{
+        //                 expression{env.OAI_SNAP_VERSION == 'v2'}
+        //                 anyOf{
+        //                     expression{env.SNAP_NAME == 'oai-hss'}
+        //                     expression{env.SNAP_NAME == 'oai-mme'}
+        //                     expression{env.SNAP_NAME == 'oai-spgwc'}
+        //                     expression{env.SNAP_NAME == 'oai-spgwu'}
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     steps {
+        //         echo "STEP #27.1: Rollback the docker-compse"
+        //         // Change the directory to an specific one for the compose
+        //         dir("${dockerComposeLteDisaggregatedV2}"){
+        //             script{
+        //                 try{
+        //                     // Rollback
+        //                     echo "Shutting down the docker-compose"
+        //                     sh(
+        //                         label: 'list the docker containers to see the deployed networks',
+        //                         script: '''
+        //                             docker-compose down
+        //                         '''
+        //                     )
+        //                     currentBuild.result = 'SUCCESS'
+        //                 } catch (err){
+        //                     error("Failed to make the network, disaggregated v2, down. Check the docker-compose")
+        //                     currentBuild.result = 'FAILURE'
+        //                 }
+        //             }
+        //         }
 
-                echo "STAGE #27 OUTPUT ${currentStage.result}"
-            }
-        }
+        //         echo "STAGE #27 OUTPUT ${currentBuild.result}"
+        //     }
+        // }
     }
 }
+
+def snap_action(String snapName, String action, String channel="edge", String devmode="") {
+    env.ACTION = action
+    env.CHANNEL = channel
+    env.DEVMODE = devmode
+    sh(
+        label: "action the snap ${snapName}",
+        script: '''
+            if [ "${ACTION}" != "remove" ]; then
+                if [ "${DEVMODE}" != "" ]; then
+                    sudo snap ${ACTION} ${snapName} --devmode --channel=${CHANNEL}
+                else
+                    sudo snap ${ACTION} ${snapName} --channel=${CHANNEL}
+                fi
+            else
+                if snap list --all | grep -q ${snapName}; then
+                    sudo snap ${ACTION} ${snapName}
+                fi
+            fi
+        '''
+    )
+}
+
+def snap_exec(String snapName, String action) {
+    env.ACTION = action
+    echo "Testing the snap $SNAP_NAME"
+    sh(
+        label: "perform ${ACTION} on the snap ${snapName}",
+        script: '''
+            sudo $SNAP_NAME.${ACTION}
+        '''
+    )
+}
+
+
+
+def docker_compose(String DIR, String action) {
+    env.ACTION = action
+    dir("${DIR}"){
+        echo "${ACTION} the docker-compose"
+        sh(
+            label: '${ACTION} the docker compose',
+            script: '''
+                docker-compose ${ACTION}
+            '''
+        )
+    }
+}
+
+def docker_exec(String DOCKER_ENTITY_NAME, String command) {
+    env.COMMAND = command
+    sh(
+        label: "${SNAP_NAME} snap unit check",
+        script: '''
+            docker exec ${DOCKER_ENTITY_NAME} $COMMAND
+        '''
+    )
+}
+
+def deploymentTestMonoCnRanFlexran(String DOCKER_ENTITY_NAME) {
+    // env.SNAP_REFRESH_DATE = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
+    env.SNAP_REFRESH_ABORT = 'snap abort 8'
+    // List and check the containers and snaps
+    echo "Listing the containers and snaps"
+    
+    // docker exec ${DOCKER_ENTITY_NAME} bash -c 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
+    // docker exec ${DOCKER_ENTITY_NAME} bash -c 'sudo snap abort 8'
+
+    sh(
+        label: 'list the docker containers to see the deployed networks',
+        script: '''
+            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_DATE
+            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_ABORT
+
+            # Sleep  for 10 seconds to make sure that the network is up
+            sleep 10
+            docker ps
+            docker network ls
+            
+            cmd="snap list"
+            cmd_info_cn="snap info oai-cn"
+            cmd_info_ran="snap info oai-ran"
+            cmd_info_flexran="snap info flexran"
+
+            docker exec oaicn $cmd
+            docker exec oaicn $cmd_info_cn
+
+            docker exec oairan $cmd
+            docker exec oairan $cmd_info_ran
+
+            docker exec flexran $cmd
+            docker exec flexran $cmd_info_flexran
+            
+            sleep 10
+            cmd_log_observe="snap connect flexran:log-observe" 
+            cmd_process_control="snap connect flexran:process-control" 
+            sleep 5
+            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_DATE
+            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_ABORT
+            echo "cmd_log_observe=$cmd_log_observe"
+            docker exec ${DOCKER_ENTITY_NAME} $cmd_log_observe
+            sleep 5
+            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_DATE
+            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_ABORT
+            echo "cmd_process_control=$cmd_process_control"
+            docker exec ${DOCKER_ENTITY_NAME} $cmd_process_control
+
+            docker exec flexran flexran.start
+        '''
+    )   
+}
+
