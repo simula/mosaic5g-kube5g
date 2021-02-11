@@ -70,7 +70,7 @@ pipeline {
                     try{
                         git credentialsId: "${gitlabCredentials}",
                         url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
-                        branch: "jenkins"
+                        branch: "develop"
                     } catch (err) {
                         throw(err)
                     }

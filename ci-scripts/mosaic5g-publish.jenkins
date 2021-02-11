@@ -57,10 +57,6 @@ pipeline {
             label nodeExecutor
         }
     }
-    
-    environment {
-
-    }
 
     environment {
         SNAP_NAME = "${snapName}"
@@ -72,7 +68,8 @@ pipeline {
         // For stabel channels: snap and docker
         SNAP_CHANNEL            = "${snapChannel}"
         DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
-        DOCKER_REGISTRY         = "${dockerRegistery}"  
+        DOCKER_REGISTRY         = "${dockerRegistery}"
+        DOCKER_ENTITY_NAME         = "${dockerEntityName}"  
         
         SNAP_REFRESH_DATE   = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
         // The following are for building kube5G
@@ -115,6 +112,7 @@ pipeline {
                     echo "STEP#$ENUM_STAGE.$ENUM_STEP: Tag the docker image"
                     try {
                         sh 'docker tag ${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} ${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}'
+                        // SOLUTION END
                     } catch (err) {
                         throw(err)
                     }
@@ -122,9 +120,9 @@ pipeline {
                     try {
                         //Local Registry
                         sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                        dockerImage = docker.image('${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}')
                         docker.withRegistry('https://${DOCKER_REGISTRY}/v1/') {
-                                docker.image("${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push("${DOCKER_IMAGE_TAG}")
-                                // docker.image("localhost:5000/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push('latest')
+                                dockerImage.push()
                         }
                         //Remote Registry
                         // sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'

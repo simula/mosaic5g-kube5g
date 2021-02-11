@@ -57,10 +57,6 @@ pipeline {
             label nodeExecutor
         }
     }
-    
-    environment {
-
-    }
 
     environment {
         SNAP_NAME = "${snapName}"
@@ -73,6 +69,8 @@ pipeline {
         SNAP_CHANNEL            = "${snapChannel}"
         DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
         DOCKER_REGISTRY         = "${dockerRegistery}"  
+        DOCKER_ENTITY_NAME = "${dockerEntityName}"  
+        
         
         SNAP_REFRESH_DATE   = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
         // The following are for building kube5G
@@ -897,6 +895,7 @@ pipeline {
                 [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
                 [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
                 [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                [$class: 'StringParameterValue', name: 'dockerEntityName', value: env.DOCKER_ENTITY_NAME],
                 [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
                 [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
             ], wait: false
