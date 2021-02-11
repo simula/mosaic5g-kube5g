@@ -30,7 +30,7 @@ def gitlabCredentials   = 'mosaic5g_jenkins'
 // def nodeExecutor = params.nodeExecutor
 def nodeExecutor = 'cigarier'//params.nodeExecutor
 
-def snapName = "flexran"
+
 def ENUM_STAGE = 0
 pipeline {
     agent {
@@ -89,7 +89,7 @@ pipeline {
 
             echo 'Trriget CICD for FlexRAN'
             build job:'e2e-cd-final' , parameters:[
-                string(name: 'snapNameExport',value: "flexran")
+                string(name: 'snapName',value: "flexran")
             ], wait: false
             // string(name: 'oaiSnapVersion',value: "v1" )            
             // string(name: 'snapChannelCicd',value: env.SNAP_CHANNEL_CICD)
