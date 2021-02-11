@@ -62,7 +62,7 @@ pipeline {
                     ENUM_STAGE = ENUM_STAGE + 1
                     echo "STAGE#$ENUM_STAGE: cloning from git: SCM mode"
                 }
-                // checkout scm
+                checkout scm
             }
         } 
 
