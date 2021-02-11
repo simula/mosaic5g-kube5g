@@ -29,7 +29,7 @@
 */
 
 // TODO: Add the parameters for ease of edit and access
-def pipelineContext = [:] // Parameters will go here
+def pipelineContext = [:]
 
 //
 def snapName = params.snapNameRemote
