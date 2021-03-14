@@ -139,7 +139,7 @@ build_target(){
     echo "copying init_deploy.sh to docker"
     cmd="mv /root/init_deploy.sh /root/init.sh"
     docker exec ${BASE_CONTAINER} $cmd
-    
+
     docker commit ${BASE_CONTAINER} ${TARGET}:${RELEASE_TAG}
     docker stop ${BASE_CONTAINER}
     docker container rm ${BASE_CONTAINER} -f
@@ -226,6 +226,11 @@ main() {
             DIR="oai-ran"
             TARGET_NAME="oairan"
             build_target ${1}
+        ;;
+        oai-gnb)
+            DIR="oai-gnb"
+            TARGET_NAME="oaignb"
+            build_target "oai-ran" # oai-ran enb and oai-ran gnb have the same snap that is oai-ran
         ;;
         flexran)
             DIR="flexran"

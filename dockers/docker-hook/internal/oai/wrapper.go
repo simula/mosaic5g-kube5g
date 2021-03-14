@@ -211,7 +211,18 @@ func InstallRAN(OaiObj Oai) {
 	fmt.Println("RAN RAN is installed")
 }
 
-//StartENB is a wrapper for configuring and starting OAI RAN services
+//InstallRanGnb is a wrapper for installing OAI RAN
+func InstallRanGnb(OaiObj Oai) {
+
+	// Install oai-ran snap
+	OaiObj.Logger.Print("Installing RAN gNB")
+	fmt.Println("Installing RAN gNB")
+	installOairanGnb(OaiObj)
+	OaiObj.Logger.Print("RAN gNB is installed")
+	fmt.Println("RAN gNB is installed")
+}
+
+//StartENB is a wrapper for configuring and starting OAI RAN services as 4G eNB
 func StartENB(OaiObj Oai, buildSnap bool) {
 	nodeFunction := OaiObj.Conf.OaiEnb[0].NodeFunction
 	if nodeFunction == "enb" {
@@ -220,20 +231,32 @@ func StartENB(OaiObj Oai, buildSnap bool) {
 		startENB(OaiObj, buildSnap)
 		OaiObj.Logger.Print("4G RAN is started")
 		fmt.Println("4G RAN is started")
-	} else if nodeFunction == "gnb" {
-		OaiObj.Logger.Print("Starting 5G RAN")
-		fmt.Println("Starting 5G RAN")
-		// startGNB(OaiObj, buildSnap) // this will be used later
-		startENB(OaiObj, buildSnap)
-		OaiObj.Logger.Print("5G RAN is started")
-		fmt.Println("5G RAN is started")
 	} else {
 		OaiObj.Logger.Print("Error while trying to start the RAN: the functionality of RAN as ", nodeFunction, " is not recognized")
-		OaiObj.Logger.Print("The allowed values of nodeFunction of oaiEnb are: enb, gnb")
 		OaiObj.Logger.Print("Starting the RAN in the defaut mode as 4G RAN")
 		startENB(OaiObj, buildSnap)
 		OaiObj.Logger.Print("4G RAN is started")
 		fmt.Println("4G RAN is started")
+	}
+
+}
+
+//StartGNB is a wrapper for configuring and starting OAI RAN services as 5G gNB
+func StartGNB(OaiObj Oai, buildSnap bool) {
+	nodeFunction := OaiObj.Conf.OaiGnb[0].NodeFunction
+	if nodeFunction == "gnb" {
+		OaiObj.Logger.Print("Starting 5G RAN")
+		fmt.Println("Starting 5G RAN")
+		// startGNB(OaiObj, buildSnap) // this will be used later
+		startGNB(OaiObj, buildSnap)
+		OaiObj.Logger.Print("5G RAN is started")
+		fmt.Println("5G RAN is started")
+	} else {
+		OaiObj.Logger.Print("Error while trying to start the RAN: the functionality of RAN as ", nodeFunction, " is not recognized")
+		OaiObj.Logger.Print("Starting the RAN in the defaut mode as 5G RAN")
+		startGNB(OaiObj, buildSnap)
+		OaiObj.Logger.Print("5G RAN is started")
+		fmt.Println("5G RAN is started")
 	}
 
 }

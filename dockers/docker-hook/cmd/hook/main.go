@@ -57,7 +57,8 @@ func main() {
 	OaiObj.Logger.Print("Starting parsing input parameters")
 	fmt.Println("Starting parsing input parameters")
 	installCN := flag.Bool("installCN", false, "a bool to indicate whether to install the snap oai-cn (v1) or (oai-hss, oai-mme, oai-spgwc, and oai-spgwu) (v2), if it is true")
-	installRAN := flag.Bool("installRAN", false, "a bool to indicate whether to install the snap oai-ran, if it is true")
+	installRanEnb := flag.Bool("installRAN", false, "a bool to indicate whether to deploy 4G eNB, if it is true")
+	installRanGnb := flag.Bool("installRanGnb", false, "a bool to indicate whether to  deploy 5G gNB, if it is true")
 	installHSS := flag.Bool("installHSS", false, "a bool to indicate whether to install the snap oai-cn (v1) oai-hss (v2), if it is true")
 	installMME := flag.Bool("installMME", false, "a bool to indicate whether to install the snap oai-cn (v1) or oai-mme (v2), if it is true")
 	installSPGW := flag.Bool("installSPGW", false, "a bool to indicate whether to install the snap oai-cn, if it is true")
@@ -96,16 +97,26 @@ func main() {
 
 		OaiObj.Logger.Print("CN is started: exit")
 		fmt.Println("CN is started: exit")
-	} else if *installRAN {
-		OaiObj.Logger.Print("Installing RAN")
-		fmt.Println("Installing RAN")
+	} else if *installRanEnb {
+		OaiObj.Logger.Print("Installing RAN eNB")
+		fmt.Println("Installing RAN eNB")
 
 		oai.InstallRAN(OaiObj)
 
-		OaiObj.Logger.Print("Starting RAN")
-		fmt.Println("Starting RAN")
+		OaiObj.Logger.Print("Starting RAN eNB")
+		fmt.Println("Starting RAN eNB")
 
 		oai.StartENB(OaiObj, buildSnap)
+	} else if *installRanGnb {
+		OaiObj.Logger.Print("Installing RAN gNB")
+		fmt.Println("Installing RAN gNB")
+
+		oai.InstallRanGnb(OaiObj)
+
+		OaiObj.Logger.Print("Starting RAN gNB")
+		fmt.Println("Starting RAN gNB")
+
+		oai.StartGNB(OaiObj, buildSnap)
 	} else if *installHSS {
 		// CnAllInOneMode = false
 		oai.InstallHSS(OaiObj, buildSnap, snapVersion)

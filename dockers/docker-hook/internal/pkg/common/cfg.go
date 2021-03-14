@@ -26,6 +26,7 @@
 # authors:
 		- Osama Arouk (arouk@eurecom.fr)
 		- Kevin Hsi-Ping Hsu (hsuh@eurecom.fr)
+		- Alireza Mohammadi (alireza.mohamamdi@eurecom.fr)
 *-------------------------------------------------------------------------------
 */
 
@@ -41,7 +42,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// MmeStatus parse the satus of mme when interacting with it using url
+// MmeStatus parse the status of mme when interacting with it using url
 type MmeStatus struct {
 	Service string `json:"service" yaml:"service"`
 	Startup string `json:"startup" yaml:"startup"`
@@ -49,7 +50,7 @@ type MmeStatus struct {
 	Notes   string `json:"notes" yaml:"notes"`
 }
 
-// CnEntityV2Status parse the satus of oai-cn entity (i.e., oai-hss, oai-mme, oai-spgwc, and oai-spgwu) when interacting with it using url
+// CnEntityV2Status parse the status of oai-cn entity (i.e., oai-hss, oai-mme, oai-spgwc, and oai-spgwu) when interacting with it using url
 type CnEntityV2Status struct {
 	Service string `json:"service" yaml:"service"`
 	Startup string `json:"startup" yaml:"startup"`
@@ -135,6 +136,69 @@ type CfgOaiEnb struct {
 	Usrp struct {
 		N3xx N3xxDescription `yaml:"n3xx"`
 	} `json:"usrp" yaml:"usrp"`
+	X2Config struct {
+		Description     string `yaml:"description"`
+		EnableX2        string `yaml:"enable_x2"`
+		TRelocPrep      string `yaml:"t_reloc_prep"`
+		TX2RelocOverall string `yaml:"tx2_reloc_overall"`
+		TDCPrep         string `yaml:"t_dc_prep"`
+		TDCOverall      string `yaml:"t_dc_overall"`
+	} `yaml:"x2_config"`
+}
+
+// CfgOaiGnb  the configuration of oai-gnb
+type CfgOaiGnb struct {
+	// Configurations of GNB
+	NodeFunction            string `json:"nodeFunction" yaml:"nodeFunction"`
+	MCC                     string `json:"mcc" yaml:"mcc"`
+	MNC                     string `json:"mnc" yaml:"mnc"`
+	SsbSubcarrierOffset     string `yaml:"ssb_SubcarrierOffset"`
+	PdschAntennaPorts       string `yaml:"pdsch_AntennaPorts"`
+	PuschTargetSNRx10       string `yaml:"pusch_TargetSNRx10"`
+	PucchTargetSNRx10       string `yaml:"pucch_TargetSNRx10"`
+	ServingCellConfigCommon []struct {
+		AbsoluteFrequencySSB             string `yaml:"absoluteFrequencySSB"`
+		DLFrequencyBand                  string `yaml:"dl_frequencyBand"`
+		DLAbsoluteFrequencyPointA        string `yaml:"dl_absoluteFrequencyPointA"`
+		DLOffstToCarrier                 string `yaml:"dl_offstToCarrier"`
+		DLSubcarrierSpacing              string `yaml:"dl_subcarrierSpacing"`
+		DLCarrierBandwidth               string `yaml:"dl_carrierBandwidth"`
+		InitialDLBWPlocationAndBandwidth string `yaml:"initialDLBWPlocationAndBandwidth"`
+	} `yaml:"servingCellConfigCommon"`
+	MmeService struct {
+		Description string `yaml:"description"`
+		Name        string `yaml:"name"`
+		SnapVersion string `yaml:"snapVersion"`
+		IPV4        string `yaml:"ipv4"`
+		IPV6        string `yaml:"ipv6"`
+		Preference  string `yaml:"preference"`
+	} `yaml:"mmeService"`
+	Snap           SnapDescriptionFinal `json:"snap" yaml:"snap"`
+	ParallelConfig struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"parallel_config"`
+	MaxRxGain struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"max_rxgain"`
+	Usrp struct {
+		N3xx N3xxDescription `yaml:"n3xx"`
+	} `json:"usrp" yaml:"usrp"`
+	X2Config struct {
+		Description     string `yaml:"description"`
+		EnableX2        string `yaml:"enable_x2"`
+		TRelocPrep      string `yaml:"t_reloc_prep"`
+		TX2RelocOverall string `yaml:"tx2_reloc_overall"`
+		TDCPrep         string `yaml:"t_dc_prep"`
+		TDCOverall      string `yaml:"t_dc_overall"`
+		TargetENBX2IP   struct {
+			Name       string `yaml:"name"`
+			IPV4       string `yaml:"ipv4"`
+			IPV6       string `yaml:"ipv6"`
+			Preference string `yaml:"preference"`
+		} `yaml:"target_enb_x2_ip_address"`
+	} `yaml:"x2_config"`
 }
 
 // CfgFlexran the configuration of flexran
@@ -317,6 +381,7 @@ type CfgCnGlobal struct {
 // CfgGlobal CfgGlobal
 type CfgGlobal struct {
 	OaiEnb   []CfgOaiEnb    `json:"oaiEnb" yaml:"oaiEnb"`
+	OaiGnb   []CfgOaiGnb    `json:"oaiGnb" yaml:"oaiGnb"`
 	Flexran  []CfgFlexran   `json:"flexran" yaml:"flexran"`
 	LlMec    []CfgLlMec     `json:"llmec" yaml:"llmec"`
 	OaiCn    CfgCnGlobal    `json:"oaiCn" yaml:"oaiCn"`

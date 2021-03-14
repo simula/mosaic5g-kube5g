@@ -29,8 +29,8 @@ oaiEnb:
       Define the version of the snap to be used. The field (refresh), if true, it will get the lates version of snap. 
       Otherwise, the current version (supposing that it is already installed) will be kept
     name: "oai-ran"
-    channel: "edge"
-    devmode: true
+    channel: "stable"
+    devmode: false
     refresh: false
     plugs: [network, network-control, log-observe, process-control, cpu-control, network-observe,
       network-bind, raw-usb, netlink-connector, hardware-observe]
@@ -76,6 +76,79 @@ oaiEnb:
   max_rxgain:
     description: "defines the maximum Rx gain"
     default: "110"
+  x2_config:
+    description: The X2 interface configuration for the NSA mode.
+    enable_x2: "yes"
+    t_reloc_prep: "1000"
+    tx2_reloc_overall: "2000"
+    t_dc_prep: "1000"
+    t_dc_overall: "2000"
+    
+oaiGnb:
+  - nodeFunction: "gnb"
+    mcc: "208"
+    mnc: "95"
+    ssb_SubcarrierOffset: "31" # not used
+    pdsch_AntennaPorts: 1 # not used
+    pusch_TargetSNRx10: 200 # not used
+    pucch_TargetSNRx10: 200 # not used
+    servingCellConfigCommon:
+      - absoluteFrequencySSB: "641272" #641032;      #641968; 641968=start of ssb at 3600MHz + 82 RBs    641032=center of SSB at center of cell
+        dl_frequencyBand: "78"
+        dl_absoluteFrequencyPointA: "640000"
+        dl_offstToCarrier: "0"
+        dl_subcarrierSpacing: "1"
+        dl_carrierBandwidth: "106"
+        initialDLBWPlocationAndBandwidth: "6366" # 28875; //6366; #6407; #3384;
+    mmeService: 
+      description: |
+        If 'ipv4' is provided, the enb connects to MME using the provied ip address.
+        Otherwise, it will connect to the service provided by 'name'  
+        If both are provied, "ipv4" will be taked. If none of them is provided, the configuration will skip it and mme will not be configured
+        snapVersion: the version of the snap, where the allowed versions are: "v1" and "v2"
+      snapVersion: "v1" # allowed values: v1, v2
+      name: "oaimme"
+      ipv4: ""
+      ipv6: ""
+      preference: "ipv4"
+    snap:
+      description: |
+        Define the version of the snap to be used
+        The field "refresh", if true, it will get the lates version of snap.
+        Otherwise, the current version (supposing that it is already installed) will be kept
+      name: "oai-ran"
+      channel: "stable"
+      devmode: false
+      refresh: false 
+      plugs: [network, network-control, log-observe, process-control, cpu-control, network-observe, network-bind, raw-usb, netlink-connector,hardware-observe]      
+    parallel_config:
+      description: |
+        Defines the level of parallelism. There are three available values;
+        'PARALLEL_SINGLE_THREAD', 'PARALLEL_RU_L1_SPLIT', or 'PARALLEL_RU_L1_TRX_SPLIT'"
+      default: "PARALLEL_SINGLE_THREAD"
+    max_rxgain:
+      description: "defines the maximum Rx gain"  
+      default: "110"
+    usrp:
+      n3xx: # Connections of the USRP of type N3xx
+        enabled: false # if true, the enb/gnb will be configured accordingly
+        sdr_addrs:
+          addr: "192.168.20.2"
+          second_addr: "192.168.10.2"
+        clock_src: "internal"
+    x2_config:
+      description: The X2 interface configuration for the NSA mode.
+      enable_x2: "yes"
+      t_reloc_prep: "1000"
+      tx2_reloc_overall: "2000"
+      t_dc_prep: "1000"
+      t_dc_overall: "2000"
+      target_enb_x2_ip_address:
+        name: "enb"
+        ipv4: ""
+        ipv6: ""
+        preference: "ipv4"
+
 flexran:
 - snap:
     description: "Define the version of the snap to be used"

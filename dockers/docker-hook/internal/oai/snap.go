@@ -262,6 +262,62 @@ func installOairan(OaiObj Oai) {
 
 }
 
+// installOairanGnb : Install oai-ran snap
+func installOairanGnb(OaiObj Oai) {
+	// Install oai-ran snap
+	OaiObj.Logger.Print("Installing oai-ran gNB")
+	fmt.Println("Installing oai-ran gNB")
+
+	snapName := OaiObj.Conf.OaiGnb[0].Snap.Name
+	ret, err := util.CheckSnapPackageExist(OaiObj.Logger, snapName)
+	if err != nil {
+		OaiObj.Logger.Print(err)
+		OaiObj.Logger.Print("err", err)
+		fmt.Println("err", err)
+	}
+
+	if !ret {
+		// Install the snap
+
+		if OaiObj.Conf.OaiGnb[0].Snap.Devmode == true {
+			util.RunCmd(OaiObj.Logger, "snap", "install", snapName, "--channel="+OaiObj.Conf.OaiGnb[0].Snap.Channel, "--devmode")
+			OaiObj.Logger.Print(snapName + " is installed from the channel " + OaiObj.Conf.OaiGnb[0].Snap.Channel + " in devmode")
+		} else {
+			util.RunCmd(OaiObj.Logger, "snap", "install", snapName, "--channel="+OaiObj.Conf.OaiGnb[0].Snap.Channel)
+			OaiObj.Logger.Print(snapName + " is installed from the channel " + OaiObj.Conf.OaiGnb[0].Snap.Channel)
+		}
+	} else {
+		// Snap is already installed, refresh it if specified
+		if OaiObj.Conf.OaiGnb[0].Snap.Refresh == true {
+			if OaiObj.Conf.OaiGnb[0].Snap.Devmode == true {
+				util.RunCmd(OaiObj.Logger, "snap", "refresh", snapName, "--channel="+OaiObj.Conf.OaiGnb[0].Snap.Channel, "--devmode")
+				OaiObj.Logger.Print(snapName + " is refreshed from the channel " + OaiObj.Conf.OaiGnb[0].Snap.Channel + " in devmode")
+			} else {
+				util.RunCmd(OaiObj.Logger, "snap", "refresh", snapName, "--channel="+OaiObj.Conf.OaiGnb[0].Snap.Channel)
+				OaiObj.Logger.Print(snapName + " is refreshed from the channel " + OaiObj.Conf.OaiGnb[0].Snap.Channel)
+			}
+		}
+	}
+	// enable the plugs
+	var permission string
+	for i := 0; i < len(OaiObj.Conf.OaiGnb[0].Snap.Plugs); i++ {
+		permission = snapName + ":" + OaiObj.Conf.OaiGnb[0].Snap.Plugs[i]
+		OaiObj.Logger.Print("giving the permission; " + permission)
+		retStatus := util.RunCmd(OaiObj.Logger, "snap", "connect", permission)
+		if retStatus.Exit != 0 {
+			OaiObj.Logger.Print("Error while giving the permission "+permission+"\n", retStatus.Error)
+		} else {
+			OaiObj.Logger.Print("Successfully giving the permission "+permission+": \n", retStatus.Stdout)
+		}
+	}
+
+	//Wait a moment, cn is not ready yet !
+	OaiObj.Logger.Print("Wait 15 seconds... OK now cn should be ready")
+	fmt.Println("Wait 15 seconds... OK now cn should be ready")
+	// time.Sleep(15 * time.Second)
+
+}
+
 // installOaiHssV2 : Install oai-hss v2 snap for all-in-one mode
 func installOaiCnHssV2(OaiObj Oai, buildSnap bool) {
 	// get the snap name

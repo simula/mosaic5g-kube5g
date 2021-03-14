@@ -52,20 +52,23 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	// config filename of the snap
 	// confFileName := "enb.band7.tm1.50PRB.usrpb210.conf"
 	nodeFunction := OaiObj.Conf.OaiEnb[0].NodeFunction
+	if nodeFunction == "" {
+		nodeFunction = "enb"
+	}
 	cmdNodeFunction := "oai-ran." + nodeFunction
-	OaiObj.Logger.Print("getting the config file of " + OaiObj.Conf.OaiEnb[0].NodeFunction)
+	OaiObj.Logger.Print("getting the config file of " + nodeFunction)
 	retStatus := util.RunCmd(OaiObj.Logger, cmdNodeFunction+"-conf-get")
 	confFileName := ""
 	if retStatus.Exit == 0 {
 		s := strings.Split(retStatus.Stdout[0], "/")
 		confFileName = s[len(s)-1]
-		OaiObj.Logger.Print("the config file of " + OaiObj.Conf.OaiEnb[0].NodeFunction + " is " + confFileName)
+		OaiObj.Logger.Print("the config file of " + nodeFunction + " is " + confFileName)
 	} else {
 		var outError string
 		for i := 0; i < len(retStatus.Stderr); i++ {
 			outError += retStatus.Stderr[i] + "\n"
 		}
-		return errors.New("Error while getting the config file of " + OaiObj.Conf.OaiEnb[0].NodeFunction + "\n" + outError)
+		return errors.New("Error while getting the config file of " + nodeFunction + "\n" + outError)
 	}
 
 	ranConfLinesStr := util.RunCmd(OaiObj.Logger, cmdNodeFunction+"-conf-show")
@@ -457,6 +460,31 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 		sedCommand = "175s:\".*;:\"" + mmeIP + "\";:g"
 		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
+		//
+		// X2 Interface:
+		// enable_x2
+		if c.OaiEnb[0].X2Config.EnableX2 != "" {
+			sedCommand = "s:enable_x2.*;:enable_x2    = \"" + c.OaiEnb[0].X2Config.EnableX2 + "\";:g"
+			util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+			if c.OaiEnb[0].X2Config.EnableX2 == "yes" {
+				// t_reloc_prep
+				sedCommand = "s:t_reloc_prep.*;:t_reloc_prep    = " + c.OaiEnb[0].X2Config.TRelocPrep + ";:g"
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+				// tx2_reloc_overall
+				sedCommand = "s:tx2_reloc_overall.*;:tx2_reloc_overall    = " + c.OaiEnb[0].X2Config.TX2RelocOverall + ";:g"
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+				// insert t_dc_prep
+				// t_dc_prep         = 1000;      /* unit: millisecond */
+				sedCommand = "187it_dc_prep         = " + c.OaiEnb[0].X2Config.TDCPrep + ";"
+				// sedCommand = "s:t_dc_prep.*;:t_dc_prep    = " + c.OaiEnb[0].X2Config.TDCPrep + ";:g"
+				retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+				// insert t_dc_overall
+				// t_dc_overall      = 2000;      /* unit: millisecond */
+				sedCommand = "188it_dc_overall         = " + c.OaiEnb[0].X2Config.TDCOverall + ";"
+				// sedCommand = "s:t_dc_overall.*;:t_dc_overall    = " + c.OaiEnb[0].X2Config.TDCOverall + ";:g"
+				util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+			}
+		}
 		var counter int64
 		var maxWaitTime int64
 		if mmeIPV4Customized == "" {
@@ -683,7 +711,7 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 				}
 			}
 		}
+		OaiObj.Logger.Print("enb daemon Started")
 	}
-	OaiObj.Logger.Print("enb daemon Started")
 	return nil
 }
