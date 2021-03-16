@@ -21,7 +21,7 @@ pipeline {
         failure {
             emailext body: 'Failed to clone the project flexric-agent', 
                 subject: 'flexric-agent: Failure', 
-                to: "arouk@eurecom.fr"
+                to: "arouk.osama@gmail.com"
         }
     }
 }
