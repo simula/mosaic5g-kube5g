@@ -71,8 +71,6 @@ pipeline {
         DOCKER_REGISTRY         = "${dockerRegistery}"  
         DOCKER_ENTITY_NAME = "${dockerEntityName}"  
         
-        
-        SNAP_REFRESH_DATE   = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
         // The following are for building kube5G
         KUBE5G_RDIR_DOCKER_HOOK = "dockers/docker-hook/cmd/hook"
         KUBE5G_RDIR_DOCKER_BUILD = "dockers/docker-build/build"
@@ -157,7 +155,6 @@ pipeline {
                             sh 'cd /usr/src/mosaic5g/docker-hook/cmd/hook; go build -v'
                         }
                     } catch (err) {
-                        // echo "Error of compiling docker hook, exit..."
                         throw(err)
                     }
 
@@ -167,12 +164,11 @@ pipeline {
                         sh(
                             label: '',
                             script: '''
-                                sudo chown -R jenkins:jenkins ${WORKSPACE}/${KUBE5G_RDIR_DOCKER_HOOK}/hook
+                                sudo chown -R $USER:$USER ${WORKSPACE}/${KUBE5G_RDIR_DOCKER_HOOK}/hook
                             '''
                         )
                     } catch (err) {
-                        // echo "Error of changing the ownership the compiled docker hook, exit..."
-                        throw(err)
+=                        throw(err)
                     }
                 }
             }
@@ -190,7 +186,6 @@ pipeline {
                     try {
                         sh label: '', script: 'cp ${WORKSPACE}/${KUBE5G_RDIR_DOCKER_HOOK}/hook ${WORKSPACE}/${KUBE5G_RDIR_DOCKER_BUILD}/'
                     } catch (err) {
-                        // echo "Error of copying docker hook to docker build, exit..."
                         throw(err)
                     }
 
@@ -276,8 +271,7 @@ pipeline {
                     } catch (err) {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             echo err.getMessage()
-                            // echo "Failed to make the network down. Check the docker compose and the config file of ${dockerComposeLteMonolithicFlexranV1}"
-                            // sh "exit 1"
+                            sh "exit 1"
                         }
                     }
 
@@ -327,15 +321,10 @@ pipeline {
                         try {
                             docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
                         } catch (err) {
-                            echo err.getMessage()
-                            try {
-                                docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.test")
-                            } catch (errTest) {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    echo errTest.getMessage()
-                                    echo "Failed of the unitary test of FlexRAN inside the docker container"
-                                    // sh "exit 1"
-                                }
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                                // echo "Failed of the unitary test of FlexRAN inside the docker container"
+                                // sh "exit 1"
                             }
                         }
                         // 
@@ -356,7 +345,9 @@ pipeline {
                         // 
                     } catch (err) {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            echo err.getMessage()
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                            // echo err.getMessage()
                             // echo "Failed to make the network up. Check the docker compose and the config file of ${dockerComposeLteMonolithicFlexranV1}"
                             // sh "exit 1"
                         }
@@ -387,7 +378,6 @@ pipeline {
                     } catch (err) {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             echo err.getMessage()
-                            // echo "Failed to make the network down. Check the docker compose and the config file of ${dockerComposeLteMonolithicFlexranV2}"
                             sh "exit 1"
                         }
                     }
@@ -440,15 +430,10 @@ pipeline {
                         try {
                             docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
                         } catch (err) {
-                            echo err.getMessage()
-                            try {
-                                docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.test")
-                            } catch (errTest) {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    echo errTest.getMessage()
-                                    // echo "Failed of the unitary test of FlexRAN inside the docker container"
-                                    // sh "exit 1"
-                                }
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                                // echo "Failed of the unitary test of FlexRAN inside the docker container"
+                                // sh "exit 1"
                             }
                         }
                         // 
@@ -467,7 +452,9 @@ pipeline {
                         // 
                     } catch (err) {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            echo err.getMessage()
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                            // echo err.getMessage()
                             // echo "Failed to make the network up. Check the docker compose and the config file of ${dockerComposeLteMonolithicFlexranV2}"
                             // sh "exit 1"
                         }
@@ -568,7 +555,9 @@ pipeline {
                         // 
                     } catch (err) {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            echo err.getMessage()
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                            // echo err.getMessage()
                             // echo "Failed to make the network up. Check the docker compose and the config file of ${dockerComposeLteMonolithicV1}"
                             // sh "exit 1"
                         }
@@ -745,15 +734,10 @@ pipeline {
                         try {
                             docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
                         } catch (err) {
-                            echo err.getMessage()
-                            try {
-                                docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.test")
-                            } catch (errTest) {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    echo errTest.getMessage()
-                                    // echo "Failed of the unitary test of FlexRAN inside the docker container"
-                                    // sh "exit 1"
-                                }
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                                // echo "Failed of the unitary test of FlexRAN inside the docker container"
+                                // sh "exit 1"
                             }
                         }
 
@@ -764,7 +748,9 @@ pipeline {
                             docker_compose("${dockerComposeLteDisaggregatedV1}", "down")
                         } catch (err) {
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                echo err.getMessage()
+                                // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                                throw(err)
+                                // echo err.getMessage()
                                 // echo "Failed to make the network down. Check the docker compose and the config file of ${dockerComposeLteDisaggregatedV1}"
                                 // sh "exit 1"
                             }
@@ -849,15 +835,10 @@ pipeline {
                         try {
                             docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
                         } catch (err) {
-                            echo err.getMessage()
-                            try {
-                                docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.test")
-                            } catch (errTest) {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                                    echo errTest.getMessage()
-                                    // echo "Failed of the unitary test of FlexRAN inside the docker container"
-                                    // sh "exit 1"
-                                }
+                            catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                                echo echo.getMessage()
+                                // echo "Failed of the unitary test of FlexRAN inside the docker container"
+                                // sh "exit 1"
                             }
                         }
 
@@ -910,7 +891,7 @@ pipeline {
 def docker_exec(String DOCKER_ENTITY_NAME, String command) {
     env.COMMAND = command
     sh(
-        label: "${SNAP_NAME} snap unit check",
+        label: "Execute command ${COMMAND} inside dokcer ${DOCKER_ENTITY_NAME}",
         script: '''
             docker exec ${DOCKER_ENTITY_NAME} $COMMAND
         '''
@@ -934,19 +915,12 @@ def docker_compose(String DIR, String action) {
 
 // deploymentTestMonoRanCnFlexran
 def deploymentTestMonoRanCnFlexran(String DOCKER_ENTITY_NAME) {
-    // env.SNAP_REFRESH_DATE = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
-    env.SNAP_REFRESH_ABORT = 'snap abort 8'
     // List and check the containers and snaps
     echo "Listing the containers and snaps"
-    
-    // docker exec ${DOCKER_ENTITY_NAME} bash -c 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
-    // docker exec ${DOCKER_ENTITY_NAME} bash -c 'sudo snap abort 8'
 
     sh(
         label: 'list the docker containers to see the deployed networks',
         script: '''
-            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_DATE
-            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_ABORT
 
             # Sleep  for 10 seconds to make sure that the network is up
             sleep 10
@@ -967,20 +941,6 @@ def deploymentTestMonoRanCnFlexran(String DOCKER_ENTITY_NAME) {
             docker exec flexran $cmd
             docker exec flexran $cmd_info_flexran
             
-            sleep 10
-            cmd_log_observe="snap connect flexran:log-observe" 
-            cmd_process_control="snap connect flexran:process-control" 
-            sleep 5
-            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_DATE
-            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_ABORT
-            echo "cmd_log_observe=$cmd_log_observe"
-            docker exec ${DOCKER_ENTITY_NAME} $cmd_log_observe
-            sleep 5
-            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_DATE
-            docker exec ${DOCKER_ENTITY_NAME} bash -c $SNAP_REFRESH_ABORT
-            echo "cmd_process_control=$cmd_process_control"
-            docker exec ${DOCKER_ENTITY_NAME} $cmd_process_control
-
             docker exec flexran flexran.start
         '''
     )   

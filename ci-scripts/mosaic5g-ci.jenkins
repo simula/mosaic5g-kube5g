@@ -108,11 +108,7 @@ pipeline {
                                 '''
                             )
                         } catch (err) {
-                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                echo err.getMessage()
-                                // sh "Failed to build the snap ${SNAP_NAME}. Check the script output and access rights."
-                                sh "exit 1"
-                            }
+                            throw(err)
                         }
                         // 
                         ENUM_STEP = ENUM_STEP + 1
@@ -123,34 +119,37 @@ pipeline {
                                 script: '''
                                     version=$(grep -m1 version: ${SNAP_NAME}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
                                     snap_name=${SNAP_NAME}"_"$version"_multi.snap"
-                                    sudo chown -R jenkins:jenkins ${SNAP_NAME}/$snap_name
+                                    sudo chown -R $USER:$USER ${SNAP_NAME}/$snap_name
+                                    # The following step is needed since there are some folder generated when building
+                                    #   snap owned by roon and not the current user, especially for oai-ran
+                                    sudo chown --changes --recursive $USER:$USER ${SNAP_NAME}/*
                                 '''
                             )
                         } catch (err) {
-                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                echo err.getMessage()
-                                // sh "Failed to change the owner of the built snap ${SNAP_NAME}. Check the script output and access rights."
-                                sh "exit 1"
-                            }
+                            throw(err)
                         }
-                        // 
-                        ENUM_STEP = ENUM_STEP + 1
-                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Push the snap to the CICD channel ${SNAP_CHANNEL_CICD} on snapcraft"
-                        try {
-                            sh(
-                                label: '',
-                                script: '''
-                                    ./publish-final.sh -s ${SNAP_NAME} -c ${SNAP_CHANNEL_CICD}
-                                '''
-                            )
-                        } catch (err) {
-                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                echo err.getMessage()
-                                // sh "Failed to push the snap ${SNAP_NAME} to the channel ${SNAP_CHANNEL_CICD}. Check the script output and access rights."
-                                sh "exit 1"
-                            }
-                        }
-                        // 
+                        // The following step (push the snap to remporary channel) is moved after the unitary test of the snap, 
+                        // because it is risky that the snap can be pushed while it is not working properly
+                        
+                        // // 
+                        // ENUM_STEP = ENUM_STEP + 1
+                        // echo "STEP#$ENUM_STAGE.$ENUM_STEP: Push the snap to the CICD channel ${SNAP_CHANNEL_CICD} on snapcraft"
+                        // try {
+                        //     sh(
+                        //         label: '',
+                        //         script: '''
+                        //             echo TODO: Skip this step for testing only
+                        //             ##./publish-final.sh -s ${SNAP_NAME} -c ${SNAP_CHANNEL_CICD}
+                        //         '''
+                        //     )
+                        // } catch (err) {
+                        //     catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        //         echo err.getMessage()
+                        //         // sh "Failed to push the snap ${SNAP_NAME} to the channel ${SNAP_CHANNEL_CICD}. Check the script output and access rights."
+                        //         sh "exit 1"
+                        //     }
+                        // }
+                        // // 
                     }
                 }
             }
@@ -163,31 +162,35 @@ pipeline {
                     STEP_FAILURE = 0
 
                     ENUM_STAGE = ENUM_STAGE + 1
-                    echo "STAGE#$ENUM_STAGE: Clean the machine from any previously deployed snaps of dockers"
+                    echo "STAGE#$ENUM_STAGE: Clean the machine from any previously deployed snaps"
                     // 
                     ENUM_STEP = 1
                     echo "STEP#$ENUM_STAGE.$ENUM_STEP: Remove the older version if present"
                     try {
                         snap_action("$SNAP_NAME", "remove")
                     } catch (err) {
-                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            echo err.getMessage()
-                            // sh "Failed to remove the previously installed snap $SNAP_NAME"
-                            sh "exit 1"
-                        }
+                        throw(error)
                     }
                     // 
                     ENUM_STEP = ENUM_STEP + 1
                     echo "STEP#$ENUM_STAGE.$ENUM_STEP: Install the snap ${SNAP_NAME} from ${SNAP_CHANNEL_CICD} channel"
                     try {
-                        snap_action("$SNAP_NAME", "install", "${SNAP_CHANNEL_CICD}")
-                        // snap_action("$SNAP_NAME", "install", "${SNAP_CHANNEL_CICD}", "devmode")
-                    } catch (err) {
-                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            echo err.getMessage()
-                            // sh "Failed to install the snap ${SNAP_NAME} from the channel ${SNAP_CHANNEL_CICD}"
-                            sh "exit 1"
+                        // Install from snapstore
+                        // snap_action("$SNAP_NAME", "install", "${SNAP_CHANNEL_CICD}")
+                        // install snap locally, before pushing it to snapcraft
+                        dir("snaps/${SNAP_NAME}"){    
+                           sh(
+                                label: '',
+                                script: '''
+                                    version=$(grep -m1 version: snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
+                                    snap_name=${SNAP_NAME}"_"$version"_multi.snap"
+                                    sudo snap install $snap_name --dangerous
+                                '''
+                            )
                         }
+
+                    } catch (err) {
+                        throw(error)
                     }
                     
                     // 
@@ -195,12 +198,7 @@ pipeline {
                         // Enable the plugs of the snap
                         snap_enable_plugs("${SNAP_NAME}")
                     } catch (err) {
-                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            echo err.getMessage()
-                            // sh "Failed of checking/testing the snap ${SNAP_NAME}"
-                            // sh "exit 1"
-                        }
-
+                        throw(error)
                     }
                     
                     // 
@@ -209,17 +207,18 @@ pipeline {
                     try {
                         snap_exec("${SNAP_NAME}", "check")
                     } catch (err) {
-                        echo err.getMessage()
-                        try{
-                            snap_exec("${SNAP_NAME}", "test")
-                        } catch (errSecond) {
-                            catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                                STEP_FAILURE = 1
-                                echo errSecond.getMessage()
-                                // sh "Failed of checking/testing the snap ${SNAP_NAME}"
-                                // sh "exit 1"
-                            }
-                        }
+                        throw(err)
+                        // // This was related to the old version of snaps
+                        // try{
+                        //     snap_exec("${SNAP_NAME}", "test")
+                        // } catch (errSecond) {
+                        //     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                        //         STEP_FAILURE = 1
+                        //         echo errSecond.getMessage()
+                        //         // sh "Failed of checking/testing the snap ${SNAP_NAME}"
+                        //         // sh "exit 1"
+                        //     }
+                        // }
                     }
                     // 
                     ENUM_STEP = ENUM_STEP + 1
@@ -230,18 +229,18 @@ pipeline {
                         echo err.getMessage()
                         error("Failed to remove the snap ${SNAP_NAME}")
                         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                        echo errSecond.getMessage()
+                            echo err.getMessage()
                             // sh "Failed to remove the snap ${SNAP_NAME}"
-                            sh "exit 1"
+                            // sh "exit 1"
                         }
                     }
-                    // 
-                    if ("${STEP_FAILURE}" == "1"){
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            echo "One or more steps of the stage #$ENUM_STAGE were failed"
-                            sh "exit 1"
-                        }
-                    }
+                    // // 
+                    // if ("${STEP_FAILURE}" == "1"){
+                    //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    //         echo "One or more steps of the stage #$ENUM_STAGE were failed"
+                    //         sh "exit 1"
+                    //     }
+                    // }
                 }
             }
         }
@@ -249,17 +248,32 @@ pipeline {
     post {
         success {
             echo 'Trigger mosaic5g-cd-deployment'
-            build job:'mosaic5g-cd-deployment' , parameters:[
-                [$class: 'StringParameterValue', name: 'snapName', value: env.SNAP_NAME],
-                [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.SNAP_VERSION], 
-                [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
-                [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
-                [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
-                [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
-                [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
-                [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+            build job:'mosaic5g-cd-deployment' , 
+                    parameters:[
+                        [$class: 'StringParameterValue', name: 'snapName', value: env.SNAP_NAME],
+                        [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.SNAP_VERSION], 
+                        [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                        [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
+                        [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                        [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                        [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
+                        [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
             ], wait: false
-
+            
+            // /* clean up the workspace */
+            // deleteDir()
+            // /* clean up the tmp directory */
+            // dir("${workspace}@tmp") {
+            //     deleteDir()
+            // }
+        }
+        cleanup {
+            // clean up our workspace
+            deleteDir()
+            // remove the tmp directory
+            dir("${workspace}@tmp") {
+                deleteDir()
+            }
         }
     }
 }
@@ -302,7 +316,8 @@ def snap_exec(String snapName, String action) {
 def snap_enable_plugs(String snapName) {
     env.SNAP_NAME = snapName
     env.FILE_NAME = "${snapName}/snap/snapcraft.yaml"
-    env.KEY_VAL = "['apps']['${snapName}']['plugs']"
+    env.KEY_VAL = "['apps']['check']['plugs']"
+    // env.KEY_VAL = "['apps']['${snapName}']['plugs']"
     echo "Enabling the plugs for the snap ${snapName}"
     sh(
         label: '',

@@ -11,9 +11,9 @@ def snapName = "" // params.snapName
 def oaiSnapVersion = "v1" // params.oaiSnapVersion
 
 // snapcraft channel to which the snap will be pushed for testing it later. This channel is ONLY for testing (i.e., private channel)
-def snapChannelCicd = "stable/ci"// snapChannelCicd
+def snapChannelCicd = "beta/ci"// snapChannelCicd
 // snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
-def snapChannel = "beta/ci" // params.snapChannel
+def snapChannel = "stable/ci" // params.snapChannel
 
 
 def dockerImageTagCicdV1 = 'v1-1.0-cicd'
@@ -28,17 +28,9 @@ def dockerRegistery = 'localhost:5000'
 // Credentials
 def gitlabCredentials   = 'mosaic5g_jenkins'
 
-// def nodeExecutor = params.nodeExecutor
-def nodeExecutor = 'cigarier'//params.nodeExecutor
-
-
 def ENUM_STAGE = 0
 pipeline {
-    agent {
-        node {
-            label nodeExecutor
-        }
-    }
+    agent any
 
     environment {
         SNAP_NAME = "${snapName}"
@@ -223,4 +215,15 @@ pipeline {
         }
         // 
     }
+    //
+    post {
+        cleanup {
+            // clean up our workspace
+            deleteDir()
+            // remove the tmp directory
+            dir("${workspace}@tmp") {
+                deleteDir()
+            }
+        }
+    } 
 }

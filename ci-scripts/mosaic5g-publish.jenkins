@@ -28,16 +28,6 @@ def gitlabCredentials   = 'mosaic5g_jenkins'
 // def nodeExecutor = params.nodeExecutor
 def nodeExecutor = 'cigarier'//params.nodeExecutor
 
-// monolithic mode
-def dockerComposeLteMonolithicV1                = 'dockers/docker-compose/oai-v1/lte-all-in-one'
-def dockerComposeLteMonolithicV2                = 'dockers/docker-compose/oai-v2/lte-all-in-one'
-def dockerComposeLteMonolithicFlexranV1         = 'dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran'
-def dockerComposeLteMonolithicFlexranV2         = 'dockers/docker-compose/oai-v2/lte-all-in-one-with-flexran'
-// disaggregated mode
-def dockerComposeLteDisaggregatedV1             = 'dockers/docker-compose/oai-v1/lte'
-def dockerComposeLteDisaggregatedV2             = 'dockers/docker-compose/oai-v2/lte'
-def dockerComposeLteDisaggregatedFlexranV1      = 'dockers/docker-compose/oai-v1/lte-with-flexran'
-def dockerComposeLteDisaggregatedFlexranV2      = 'dockers/docker-compose/oai-v2/lte-with-flexran'
 // Name of docker image for the concerned snap. it is the same as the snap name but without hyphen (-)
 def dockerEntityName = ''
 String[] str
@@ -71,7 +61,6 @@ pipeline {
         DOCKER_REGISTRY         = "${dockerRegistery}"
         DOCKER_ENTITY_NAME         = "${dockerEntityName}"  
         
-        SNAP_REFRESH_DATE   = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
         // The following are for building kube5G
         KUBE5G_RDIR_DOCKER_HOOK = "dockers/docker-hook/cmd/hook"
         KUBE5G_RDIR_DOCKER_BUILD = "dockers/docker-build/build"
@@ -111,6 +100,7 @@ pipeline {
                     ENUM_STEP = 1
                     echo "STEP#$ENUM_STAGE.$ENUM_STEP: Tag the docker image"
                     try {
+                        // tag the image tested with ci/cd to the tag to be published
                         sh 'docker tag ${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} ${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}'
                         // SOLUTION END
                     } catch (err) {
