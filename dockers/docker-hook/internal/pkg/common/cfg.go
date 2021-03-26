@@ -85,6 +85,12 @@ type CfgOaiEnb struct {
 		Default     string `yaml:"default"`
 		Description string `yaml:"description"`
 	} `yaml:"eutra_band"`
+
+	NidCellMbsfn struct {
+		Default     string `yaml:"default"`
+		Description string `yaml:"description"`
+	} `yaml:"Nid_cell_mbsfn"`
+
 	DownlinkFrequency struct {
 		Default     string `yaml:"default"`
 		Description string `yaml:"description"`

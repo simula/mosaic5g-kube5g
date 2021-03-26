@@ -45,10 +45,10 @@ import (
 	"time"
 )
 
-func changeParamTxGain(c *common.CfgGlobal, OaiObj Oai, enbConf string) int {
-	sedCommand := "s/tx_gain =.[^;]*/tx_gain = " + c.OaiEnb[0].TxGain + "/g"
-	OaiObj.Logger.Print("Replace TxGain")
-	OaiObj.Logger.Print(sedCommand)
+func changeParamNidCellMbsfn(c *common.CfgGlobal, OaiObj Oai, enbConf string) int {
+	sedCommand := "s:Nid_cell_mbsfn.*;:Nid_cell_mbsfn                                         = " + c.OaiEnb[0].NidCellMbsfn.Default + ";:g"
+	// OaiObj.Logger.Print("Replace TxGain")
+	// OaiObj.Logger.Print(sedCommand)
 	retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 	return retStatus.Exit
 }
@@ -142,10 +142,10 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	}
 
 	// Replace Tx_Gain
-	status := changeParamTxGain(c, OaiObj, enbConf)
+	status := changeParamNidCellMbsfn(c, OaiObj, enbConf)
 	if status != 0 {
 		if status != 0 {
-			return errors.New("Set Tx_gain in " + enbConf + " failed")
+			return errors.New("Set NidCellMbsfn in " + enbConf + " failed")
 		}
 	}
 
