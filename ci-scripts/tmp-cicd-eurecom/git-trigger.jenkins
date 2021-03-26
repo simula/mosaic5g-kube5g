@@ -1,0 +1,226 @@
+/*
+#!/bin/groovy
+*/
+
+// TODO: Add the parameters for ease of edit and access
+def pipelineContext = [:] // Parameters will go here
+
+// Name of the snap to build; oai-ran, oai-hss, oai-mme, flexran, etc.
+def snapName = "" // params.snapName
+// This is related to oai-cn versions: v1 and v2
+def oaiSnapVersion = "v1" // params.oaiSnapVersion
+
+// snapcraft channel to which the snap will be pushed for testing it later. This channel is ONLY for testing (i.e., private channel)
+def snapChannelCicd = "beta/ci"// snapChannelCicd
+// snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
+def snapChannel = "stable/ci" // params.snapChannel
+
+
+def dockerImageTagCicdV1 = 'v1-1.0-cicd'
+def dockerImageTagCicdV2 = 'v2-1.0-cicd'
+def dockerRegisteryCicd = 'localhost:5000'
+
+def dockerImageTagV1 = 'v1-1.0-'
+def dockerImageTagV2 = 'v2-1.0-'
+def dockerRegistery = 'localhost:5000'
+// def dockerRegistery = 'mosaic5gecosys'
+
+// Credentials
+def gitlabCredentials   = 'mosaic5g_jenkins'
+
+// def nodeExecutor = params.nodeExecutor
+def nodeExecutor = 'cigarier'//params.nodeExecutor
+
+
+def ENUM_STAGE = 0
+pipeline {
+    agent {
+        node {
+            label nodeExecutor
+        }
+    }
+
+    environment {
+        SNAP_NAME = "${snapName}"
+        SNAP_VERSION = "${oaiSnapVersion}"
+        // For CICD
+        SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
+        DOCKER_IMAGE_TAG_V1_CICD= "${dockerImageTagCicdV1}"
+        DOCKER_IMAGE_TAG_V2_CICD= "${dockerImageTagCicdV2}"
+        DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        // For stabel channels: snap and docker
+        SNAP_CHANNEL            = "${snapChannel}"
+        DOCKER_IMAGE_TAG_V1     = "${dockerImageTagV1}${currentBuild.number}"
+        DOCKER_IMAGE_TAG_V2     = "${dockerImageTagV2}${currentBuild.number}"
+        DOCKER_REGISTRY         = "${dockerRegistery}"  
+    }
+
+    stages {
+        // // Clone the project from git: Source Control Management (SCM)
+        // stage('clone-scm') {
+        //     steps {
+        //         checkout scm
+        //     }
+        // } 
+
+        // Clone the project from git: Pipeline Scritp
+        stage('clone-local') {
+            steps {
+                script{
+                    try{
+                        git credentialsId: "${gitlabCredentials}",
+                            url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
+                            branch: "develop"
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
+
+        // Trigget pipeline for FlexRAN
+        stage('trigger-flexran') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/flexran/**"
+                }
+            }
+            steps{
+                echo "TTrigger CICD for FlexRAN"
+                build job:'mosaic5g-ci' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'flexran'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v1'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V1_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V1], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                ], wait: false
+            }
+
+        }
+        // 
+        // Trigget pipeline for oai-ran
+        stage('trigger-oairan') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-ran/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-ran'
+                build job:'mosaic5g-ci' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-ran'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v1'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V1_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V1], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-hss
+        stage('trigger-oaihss') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-hss/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-hss'
+                build job:'mosaic5g-ci' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-hss'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v2'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-mme
+        stage('trigger-oaimme') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-mme/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-mme'
+                build job:'mosaic5g-ci' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-mme'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v2'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                ], wait: false
+
+            }
+        }
+        //
+        // Trigget pipeline for oai-spgwc
+        stage('trigger-oaispgwc') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-spgwc/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-spgwc'
+                build job:'mosaic5g-ci' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-spgwc'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v2'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-spgwu
+        stage('trigger-oaispgwu') {
+            when { 
+                allOf {
+                    // branch 'develop'
+                    changeset "snaps/oai-spgwu/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-spgwu'
+                build job:'mosaic5g-ci' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-spgwu'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v2'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                ], wait: false
+
+            }
+        }
+        // 
+    }
+}
