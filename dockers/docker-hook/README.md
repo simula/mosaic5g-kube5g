@@ -80,3 +80,11 @@ In order to generate the hook that is used to create docker images:
 
 At this stage, you can now start building the containers for mosaic5G snaps. To do so, please check the project that exists in ```$HOME/mosaic5g/kube5g/dockers/docker-build```, which is available [here](https://gitlab.eurecom.fr/mosaic5g/kube5g/-/tree/develop/dockers/docker-build) in [https://gitlab.eurecom.fr](https://gitlab.eurecom.fr)
 
+## Testing with ```docker-hook```
+
+First we need to install ```testing``` package. After that:
+    ```bash
+    $ cd $HOME/go/src/mosaic5g/docker-hook/internal/oai/
+    $ go test
+    ``` 
+Now, you should see the tests PASSED or FAILED.
