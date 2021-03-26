@@ -83,8 +83,8 @@ At this stage, you can now start building the containers for mosaic5G snaps. To 
 ## Testing with ```docker-hook```
 
 First we need to install ```testing``` package. After that:
-    ```bash
-    $ cd $HOME/go/src/mosaic5g/docker-hook/internal/oai/
-    $ go test
-    ``` 
+```bash
+$ cd $HOME/go/src/mosaic5g/docker-hook/internal/oai/
+$ go test
+``` 
 Now, you should see the tests PASSED or FAILED.
