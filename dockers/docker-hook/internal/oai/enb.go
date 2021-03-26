@@ -45,6 +45,14 @@ import (
 	"time"
 )
 
+func changeParamTxGain(c *common.CfgGlobal, OaiObj Oai, enbConf string) int {
+	sedCommand := "s/tx_gain =.[^;]*/tx_gain = " + c.OaiEnb[0].TxGain + "/g"
+	OaiObj.Logger.Print("Replace TxGain")
+	OaiObj.Logger.Print(sedCommand)
+	retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
+	return retStatus.Exit
+}
+
 func startENB(OaiObj Oai, buildSnap bool) error {
 	var msg string = ""
 	// get the configuration
@@ -131,6 +139,14 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	retStatus = util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 	if retStatus.Exit != 0 {
 		return errors.New("Set MNC in " + enbConf + " failed")
+	}
+
+	// Replace Tx_Gain
+	status := changeParamTxGain(c, OaiObj, enbConf)
+	if status != 0 {
+		if status != 0 {
+			return errors.New("Set Tx_gain in " + enbConf + " failed")
+		}
 	}
 
 	//eutra_band
