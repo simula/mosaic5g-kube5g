@@ -84,7 +84,12 @@ pipeline {
                             '''
                         )
                     } catch (err) {
-                        throw(err)
+                        // throw(err)
+                        echo err.getMessage()
+                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                            echo err.getMessage()
+                            sh "exit 1"
+                        }
                     }
                 }
             }
@@ -128,5 +133,23 @@ pipeline {
         }
 
 
+    }
+    post {
+        always {
+            echo 'Sending Email'
+            emailext attachLog: true, compressLog: false,
+                subject: "Kubernex pipeline ${currentBuild.fullDisplayName}: ${currentBuild.result}",
+                to: "arouk.osama@gmail.com",
+                replyTo: "arouk@eurecom.fr",
+                body: "Find attached the build's log. You can check your pipeline at ${env.BUILD_URL}\n"
+        }
+        cleanup {
+            // clean up the workspace
+            deleteDir()
+            // remove the tmp directory
+            dir("${workspace}@tmp") {
+                deleteDir()
+            }
+        }
     }
 }

@@ -55,12 +55,12 @@ pipeline {
         // For stabel channels: snap and docker
         SNAP_CHANNEL            = "${snapChannel}"
         DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
-        DOCKER_REGISTRY         = "${dockerRegistery}"  
+        DOCKER_REGISTRY         = "${dockerRegistery}"
     }
 
     // Define the stages
     stages {
-        
+
         // // Clone the project from git: Source Control Management (SCM)
         // stage('clone-scm') {
         //     steps {
@@ -90,7 +90,7 @@ pipeline {
         }
         
         // Build the snap
-        stage('snap-build-push') {
+        stage('snap-build') {
             steps {                
                 script{
                     ENUM_STAGE = ENUM_STAGE + 1
@@ -133,7 +133,6 @@ pipeline {
                         because it is risky that the snap can be pushed while it is not working properly, and there is no 
                         a way to remove the the snap version after pushing it to snapcraft. 
                         */
-
                         /* 
                         //
                         ENUM_STEP = ENUM_STEP + 1
@@ -178,7 +177,8 @@ pipeline {
                     }
                     // 
                     ENUM_STEP = ENUM_STEP + 1
-                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Install the snap ${SNAP_NAME} from ${SNAP_CHANNEL_CICD} channel"
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Install the snap ${SNAP_NAME} locally"
+                    // echo "STEP#$ENUM_STAGE.$ENUM_STEP: Install the snap ${SNAP_NAME} from ${SNAP_CHANNEL_CICD} channel"
                     try {
                         /*
                         Installing from snapcraft is replaced by the next step, which is installing the built snap directly,
@@ -218,7 +218,7 @@ pipeline {
                         snap_exec("${SNAP_NAME}", "check")
                     } catch (err) {
                         echo err.getMessage()
-                        sh "Failed of checking/testing the snap ${SNAP_NAME}"
+                        sh "Failed of checking the snap ${SNAP_NAME}"
                         throw(err)
                     }
                     // 
@@ -226,25 +226,20 @@ pipeline {
                     echo "STEP#$ENUM_STAGE.$ENUM_STEP: Clean up the installation of ${SNAP_NAME}"
                     try {
                         snap_action("$SNAP_NAME", "remove")
-                    } catch (err) {
-                        echo err.getMessage()
+                    } catch (err) {                        
                         error("Failed to remove the snap ${SNAP_NAME}")
-                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            echo err.getMessage()
-                            sh "exit 1"
-                        }
+                        throw(err)
+                        // echo err.getMessage()
+                        // catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        //     echo err.getMessage()
+                        //     sh "exit 1"
+                        // }
                     }
-                    // // 
-                    // if ("${STEP_FAILURE}" == "1"){
-                    //     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    //         echo "One or more steps of the stage #$ENUM_STAGE were failed"
-                    //         sh "exit 1"
-                    //     }
-                    // }
+                    //
                 }
             }
         }
-                // Clean the machine from any previously deployed snaps of dockers
+        // Clean the machine from any previously deployed snaps of dockers
         stage('snap-push-tmp-channel') {
             //
             steps{
@@ -278,18 +273,18 @@ pipeline {
         success {
             // prepare the parameters to trigger the next pipeline
             echo 'Trigger mosaic5g-cd-deployment'
-            // build job:'mosaic5g-cd-deployment' , 
-            //         parameters:[
-            //             [$class: 'StringParameterValue', name: 'snapName', value: env.SNAP_NAME],
-            //             [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.SNAP_VERSION], 
-            //             [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
-            //             [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
-            //             [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
-            //             [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
-            //             [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
-            //             [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
-            // ], wait: false
-            // 
+            build job:'mosaic5g-cd-deployment' , 
+                    parameters:[
+                        [$class: 'StringParameterValue', name: 'snapName', value: env.SNAP_NAME],
+                        [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.SNAP_VERSION], 
+                        [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                        [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
+                        [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                        [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                        [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
+                        [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+            ], wait: false
+            
             // /* clean up the workspace */
             // deleteDir()
             // /* clean up the tmp directory */
@@ -297,14 +292,22 @@ pipeline {
             //     deleteDir()
             // }
         }
-        // cleanup {
-        //     // clean up our workspace
-        //     deleteDir()
-        //     // remove the tmp directory
-        //     dir("${workspace}@tmp") {
-        //         deleteDir()
-        //     }
-        // }
+        failure{
+            echo 'Sending Email'
+            emailext attachLog: true, compressLog: false,
+                subject: "Kubernex pipeline ${currentBuild.fullDisplayName}: ${currentBuild.result}",
+                to: "arouk.osama@gmail.com",
+                replyTo: "arouk@eurecom.fr",
+                body: "Find attached the build's log. You can check your pipeline at ${env.BUILD_URL}\n"
+        }
+        cleanup {
+            // clean up the workspace
+            deleteDir()
+            // remove the tmp directory
+            dir("${workspace}@tmp") {
+                deleteDir()
+            }
+        }
     }
 }
 

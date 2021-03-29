@@ -218,7 +218,7 @@ pipeline {
     //
     post {
         cleanup {
-            // clean up our workspace
+            // clean up the workspace
             deleteDir()
             // remove the tmp directory
             dir("${workspace}@tmp") {
