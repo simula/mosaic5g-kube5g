@@ -69,6 +69,40 @@ func Test_naive_changeParamTxGain(t *testing.T) {
 	enb_path := "enb_sample.conf"
 	status := changeParamNidCellMbsfn(c, oai, enb_path)
 	if status != 0 {
+		t.Error(status)
+		t.Error("Test failed")
+	} else {
+		fmt.Printf("test passed")
+	}
+}
+
+func Test_naive_changeParamPuschProcThreads(t *testing.T) {
+
+	logPath := "./hook.log"
+	confPath := "./conf.yaml"
+	usersPath := "./users.json"
+	flexranStatsPath := "./flexran_stats.json"
+
+	instance_c := common.CfgGlobal{}
+	c := &instance_c
+	c.OaiGnb = []common.CfgOaiGnb{
+		common.CfgOaiGnb{
+			PuschProcThreads: "10",
+		},
+	}
+
+	// fmt.Printf("Len : %#v \n", len(c.OaiEnb))
+	// fmt.Printf("Value : %#v \n", c.OaiEnb[0].TxGain.Default)
+	oai := Oai{}
+
+	err := oai.Init(logPath, confPath, usersPath, flexranStatsPath)
+	if err != nil {
+		t.Error("oai created failed")
+		return
+	}
+	gnb_path := "gnb.band261.tm1.32PRB.usrpn300.conf.txt"
+	status := replaceExistingPuschProcThreads(c, oai, gnb_path)
+	if status != 0 {
 		t.Error("Test failed")
 	} else {
 		fmt.Printf("test passed")
