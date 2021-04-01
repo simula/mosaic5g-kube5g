@@ -46,6 +46,9 @@ import (
 	"time"
 )
 
+// replaceExistingPuschProcThreads changes the parameter pusch_proc_threads to the value defined inside yaml only if this parameter
+// exists in the currrent conf file. Confirmed this function tested with the examples.
+// TODO: what if this parameter is not in conf file but in the yaml file, how do we proceed?
 func replaceExistingPuschProcThreads(c *common.CfgGlobal, OaiObj Oai, gnbConf string) int {
 	sedCommand := "s:pusch_proc_threads.*;:pusch_proc_threads     = " + c.OaiGnb[0].PuschProcThreads + ";:g"
 	retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, gnbConf)
