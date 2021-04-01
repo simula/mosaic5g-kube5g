@@ -46,6 +46,12 @@ import (
 	"time"
 )
 
+func replaceExistingPuschProcThreads(c *common.CfgGlobal, OaiObj Oai, gnbConf string) int {
+	sedCommand := "s:pusch_proc_threads.*;:pusch_proc_threads     = " + c.OaiGnb[0].PuschProcThreads + ";:g"
+	retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, gnbConf)
+	return retStatus.Exit
+}
+
 func startGNB(OaiObj Oai, buildSnap bool) error {
 	var msg string = ""
 	// get the configuration
@@ -167,6 +173,9 @@ func startGNB(OaiObj Oai, buildSnap bool) error {
 	// max_rxgain
 	sedCommand = "s:max_rxgain.*;:max_rxgain     = " + c.OaiGnb[0].MaxRxGain.Default + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, gnbConf)
+
+	// pusch_proc_threads
+	replaceExistingPuschProcThreads(c, OaiObj, gnbConf)
 
 	// Get the IP address of oai-mme
 	mmeServiceName := OaiObj.Conf.OaiGnb[0].MmeService.Name
