@@ -8,7 +8,7 @@ def pipelineContext = [:] // Parameters will go here
 // Name of the snap to build; oai-ran, oai-hss, oai-mme, flexran, etc.
 def snapName = "" // params.snapName
 // This is related to oai-cn versions: v1 and v2
-def oaiSnapVersion = "v1" // params.oaiSnapVersion
+// def oaiSnapVersion = "v1" // params.oaiSnapVersion
 
 // snapcraft channel to which the snap will be pushed for testing it later. This channel is ONLY for testing (i.e., private channel)
 def snapChannelCicd = "beta/ci"// snapChannelCicd
@@ -35,7 +35,7 @@ pipeline {
 
     environment {
         SNAP_NAME = "${snapName}"
-        SNAP_VERSION = "${oaiSnapVersion}"
+        // OAI_SNAP_VERSION = "${oaiSnapVersion}"
         // For CICD
         SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
         DOCKER_IMAGE_TAG_V1_CICD= "${dockerImageTagV1Cicd}"

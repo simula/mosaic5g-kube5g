@@ -62,7 +62,7 @@ pipeline {
 
     environment {
         SNAP_NAME = "${snapName}"
-        SNAP_VERSION = "${oaiSnapVersion}"
+        OAI_SNAP_VERSION = "${oaiSnapVersion}"
         // For CICD
         SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
         DOCKER_IMAGE_TAG_CICD= "${dockerImageTagCicd}"
@@ -880,7 +880,7 @@ pipeline {
             echo 'Trigger mosaic5g-publish'
             build job:'mosaic5g-publish' , parameters:[
                 [$class: 'StringParameterValue', name: 'snapName', value: env.SNAP_NAME],
-                [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.SNAP_VERSION], 
+                [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.OAI_SNAP_VERSION], 
                 [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                 [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
                 [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
