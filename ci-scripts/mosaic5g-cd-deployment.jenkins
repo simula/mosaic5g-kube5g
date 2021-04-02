@@ -16,11 +16,13 @@ def oaiSnapVersion = params.oaiSnapVersion
 def snapChannelCicd = params.snapChannelCicd
 def dockerImageTagCicd = params.dockerImageTagCicd
 def dockerRegisteryCicd = params.dockerRegisteryCicd
+def dockerRegisteryTypeCicd = params.dockerRegisteryTypeCicd
 
 // snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
 def snapChannel = params.snapChannel
 def dockerImageTag = params.dockerImageTag
 def dockerRegistery = params.dockerRegistery
+def dockerRegisteryType = params.dockerRegisteryType
 
 // Credentials
 def gitlabCredentials   = 'mosaic5g_jenkins'
@@ -65,10 +67,12 @@ pipeline {
         SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
         DOCKER_IMAGE_TAG_CICD= "${dockerImageTagCicd}"
         DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        DOCKER_REGISTRY_TYPE_CICD    = "${dockerRegisteryTypeCicd}"
         // For stabel channels: snap and docker
         SNAP_CHANNEL            = "${snapChannel}"
         DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
         DOCKER_REGISTRY         = "${dockerRegistery}"  
+        DOCKER_REGISTRY_TYPE = "${dockerRegisteryType}"  
         DOCKER_ENTITY_NAME = "${dockerEntityName}"  
         
         // The following are for building kube5G
@@ -228,21 +232,25 @@ pipeline {
                     ENUM_STAGE = ENUM_STAGE + 1
                     echo "STAGE#$ENUM_STAGE: push the docker image tagged as ${DOCKER_IMAGE_TAG_CICD} to docker-hub"
                     try {
-                        //Local Registry
-                        sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
-                        sh 'docker tag mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} localhost:5000/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}'
-                        docker.withRegistry('https://localhost:5000/v1/') {
-                                docker.image("localhost:5000/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push("${DOCKER_IMAGE_TAG_CICD}")
-                                // docker.image("localhost:5000/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push('latest')
+                        // tag the created images with the defined registry
+                        sh 'docker tag mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} ${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}'
+                        if (env.DOCKER_REGISTRY_TYPE_CICD) == "docker"{
+                            //Remote Registry
+                            sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                            docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
+                                    docker.image("${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push("${DOCKER_IMAGE_TAG_CICD}")
+                                    docker.image("${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push()
+                            }
+                        }else{
+                            //Local Registry
+                            sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                            docker.withRegistry('https://${DOCKER_REGISTRY_CICD}/v1/') {
+                                    docker.image("${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push("${DOCKER_IMAGE_TAG_CICD}")
+                                    // docker.image("${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push('latest')
+                            }
                         }
-                        //Remote Registry
-                        // sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
-                        // docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
-                        //         docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push("${DOCKER_IMAGE_TAG_CICD}")
-                        //         docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push()
-                        // }
                     } catch (err) {
-                        echo "Erro pushing the docker image mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} to dockerhub, exit..."
+                        echo "Erro pushing the docker image ${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} to dockerhub, exit..."
                         throw(err)
                     }
                 }
@@ -876,10 +884,12 @@ pipeline {
                 [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                 [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
                 [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
                 [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
                 [$class: 'StringParameterValue', name: 'dockerEntityName', value: env.DOCKER_ENTITY_NAME],
                 [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
-                [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY],
+                [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
             ], wait: false
         }
         failure{

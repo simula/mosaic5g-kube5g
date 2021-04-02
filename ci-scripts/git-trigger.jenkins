@@ -16,14 +16,15 @@ def snapChannelCicd = "beta/ci"// snapChannelCicd
 def snapChannel = "stable/ci" // params.snapChannel
 
 
-def dockerImageTagCicdV1 = 'v1-1.0-cicd'
-def dockerImageTagCicdV2 = 'v2-1.0-cicd'
-def dockerRegisteryCicd = 'localhost:5000'
+def dockerImageTagV1Cicd = 'v1-1.0-cicd'
+def dockerImageTagV2Cicd = 'v2-1.0-cicd'
+def dockerRegisteryCicd = 'localhost:5000' // mosaic5gecosys
+def dockerRegisteryTypeCicd = 'local' // local or docker
 
 def dockerImageTagV1 = 'v1-1.0-'
 def dockerImageTagV2 = 'v2-1.0-'
-def dockerRegistery = 'localhost:5000'
-// def dockerRegistery = 'mosaic5gecosys'
+def dockerRegistery = 'localhost:5000' // mosaic5gecosys
+def dockerRegisteryType = 'local' // local or docker
 
 // Credentials
 def gitlabCredentials   = 'mosaic5g_jenkins'
@@ -37,14 +38,16 @@ pipeline {
         SNAP_VERSION = "${oaiSnapVersion}"
         // For CICD
         SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
-        DOCKER_IMAGE_TAG_V1_CICD= "${dockerImageTagCicdV1}"
-        DOCKER_IMAGE_TAG_V2_CICD= "${dockerImageTagCicdV2}"
+        DOCKER_IMAGE_TAG_V1_CICD= "${dockerImageTagV1Cicd}"
+        DOCKER_IMAGE_TAG_V2_CICD= "${dockerImageTagV2Cicd}"
         DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        DOCKER_REGISTRY_TYPE_CICD    = "${dockerRegisteryTypeCicd}"
         // For stabel channels: snap and docker
         SNAP_CHANNEL            = "${snapChannel}"
         DOCKER_IMAGE_TAG_V1     = "${dockerImageTagV1}${currentBuild.number}"
         DOCKER_IMAGE_TAG_V2     = "${dockerImageTagV2}${currentBuild.number}"
-        DOCKER_REGISTRY         = "${dockerRegistery}"  
+        DOCKER_REGISTRY         = "${dockerRegistery}" 
+        DOCKER_REGISTRY_TYPE         = "${dockerRegisteryType}" 
     }
 
     stages {
@@ -86,9 +89,10 @@ pipeline {
                     [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                     [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V1_CICD],
                     [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
                     [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
                     [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V1], 
-                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
                 ], wait: false
             }
 
@@ -110,9 +114,11 @@ pipeline {
                     [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                     [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V1_CICD],
                     [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
                     [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
                     [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V1], 
-                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
                 ], wait: false
 
             }
@@ -134,9 +140,11 @@ pipeline {
                     [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                     [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
                     [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
                     [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
                     [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
-                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
                 ], wait: false
 
             }
@@ -158,9 +166,11 @@ pipeline {
                     [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                     [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
                     [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
                     [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
                     [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
-                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
                 ], wait: false
 
             }
@@ -182,9 +192,11 @@ pipeline {
                     [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                     [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
                     [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
                     [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
                     [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
-                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
                 ], wait: false
 
             }
@@ -206,9 +218,12 @@ pipeline {
                     [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                     [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
                     [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
                     [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
                     [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
-                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+                    
                 ], wait: false
 
             }

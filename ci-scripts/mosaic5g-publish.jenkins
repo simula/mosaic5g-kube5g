@@ -16,11 +16,13 @@ def oaiSnapVersion = params.oaiSnapVersion
 def snapChannelCicd = params.snapChannelCicd
 def dockerImageTagCicd = params.dockerImageTagCicd
 def dockerRegisteryCicd = params.dockerRegisteryCicd
+def dockerRegisteryTypeCicd = params.dockerRegisteryTypeCicd
 
 // snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
 def snapChannel = params.snapChannel
 def dockerImageTag = params.dockerImageTag
 def dockerRegistery = params.dockerRegistery
+def dockerRegisteryType = params.dockerRegisteryType
 
 // Credentials
 def gitlabCredentials   = 'mosaic5g_jenkins'
@@ -55,11 +57,14 @@ pipeline {
         SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
         DOCKER_IMAGE_TAG_CICD= "${dockerImageTagCicd}"
         DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        DOCKER_REGISTRY_TYPE_CICD    = "${dockerRegisteryTypeCicd}"
         // For stabel channels: snap and docker
         SNAP_CHANNEL            = "${snapChannel}"
         DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
         DOCKER_REGISTRY         = "${dockerRegistery}"
+        DOCKER_REGISTRY_TYPE         = "${dockerRegisteryType}" 
         DOCKER_ENTITY_NAME         = "${dockerEntityName}"  
+        
         
         // The following are for building kube5G
         KUBE5G_RDIR_DOCKER_HOOK = "dockers/docker-hook/cmd/hook"
@@ -113,18 +118,22 @@ pipeline {
                     }
 
                     try {
-                        //Local Registry
-                        sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
-                        dockerImage = docker.image('${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}')
-                        docker.withRegistry('https://${DOCKER_REGISTRY}/v1/') {
-                                dockerImage.push()
+                        if (env.DOCKER_REGISTRY_TYPE_CICD) == "docker"{
+                            //Remote Registry
+                            sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                            docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
+                                    docker.image("${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push("${DOCKER_IMAGE_TAG}")
+                                    docker.image("${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push()
+                            }
+                        }else{
+                            //Local Registry
+                            sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                            dockerImage = docker.image('${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}')
+                            docker.withRegistry('https://${DOCKER_REGISTRY}/v1/') {
+                                    dockerImage.push()
+                            }
                         }
-                        //Remote Registry
-                        // sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
-                        // docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
-                        //         docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push("${DOCKER_IMAGE_TAG}")
-                        //         docker.image("mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG}").push()
-                        // }
+
                     } catch (err) {
                         throw(err)
                     }

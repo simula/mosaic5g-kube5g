@@ -17,11 +17,13 @@ def oaiSnapVersion = params.oaiSnapVersion
 def snapChannelCicd = params.snapChannelCicd
 def dockerImageTagCicd = params.dockerImageTagCicd
 def dockerRegisteryCicd = params.dockerRegisteryCicd
+def dockerRegisteryTypeCicd = params.dockerRegisteryTypeCicd
 
 // snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
 def snapChannel = params.snapChannel
 def dockerImageTag = params.dockerImageTag
 def dockerRegistery = params.dockerRegistery
+def dockerRegisteryType = params.dockerRegisteryType
 
 // Credentials
 def gitlabCredentials   = 'mosaic5g_jenkins'
@@ -52,10 +54,12 @@ pipeline {
         SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
         DOCKER_IMAGE_TAG_CICD= "${dockerImageTagCicd}"
         DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        DOCKER_REGISTRY_TYPE_CICD    = "${dockerRegisteryTypeCicd}"
         // For stabel channels: snap and docker
         SNAP_CHANNEL            = "${snapChannel}"
         DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
         DOCKER_REGISTRY         = "${dockerRegistery}"
+        DOCKER_REGISTRY_TYPE         = "${dockerRegisteryType}"
     }
 
     // Define the stages
@@ -195,6 +199,8 @@ pipeline {
                                     version=$(grep -m1 version: snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
                                     snap_name=${SNAP_NAME}"_"$version"_multi.snap"
                                     sudo snap install $snap_name --dangerous
+                                    # put a copy to temp folder in case it is needed for manual test
+                                    cp $snap_name /home/jenkins/tmp-snaps
                                 '''
                             )
                         }
@@ -280,17 +286,19 @@ pipeline {
                         [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
                         [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
                         [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                        [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
                         [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
                         [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
-                        [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY]
+                        [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY],
+                        [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
             ], wait: false
             
-            // /* clean up the workspace */
-            // deleteDir()
-            // /* clean up the tmp directory */
-            // dir("${workspace}@tmp") {
-            //     deleteDir()
-            // }
+            /* clean up the workspace */
+            deleteDir()
+            /* clean up the tmp directory */
+            dir("${workspace}@tmp") {
+                deleteDir()
+            }
         }
         failure{
             echo 'Sending Email'
@@ -300,14 +308,14 @@ pipeline {
                 replyTo: "arouk@eurecom.fr",
                 body: "Find attached the build's log. You can check your pipeline at ${env.BUILD_URL}\n"
         }
-        cleanup {
-            // clean up the workspace
-            deleteDir()
-            // remove the tmp directory
-            dir("${workspace}@tmp") {
-                deleteDir()
-            }
-        }
+        // cleanup {
+        //     // clean up the workspace
+        //     deleteDir()
+        //     // remove the tmp directory
+        //     dir("${workspace}@tmp") {
+        //         deleteDir()
+        //     }
+        // }
     }
 }
 
