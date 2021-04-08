@@ -50,9 +50,23 @@ import (
 // exists in the currrent conf file. Confirmed this function tested with the examples.
 // TODO: what if this parameter is not in conf file but in the yaml file, how do we proceed?
 func replaceExistingPuschProcThreads(c *common.CfgGlobal, OaiObj Oai, gnbConf string) int {
-	sedCommand := "s:pusch_proc_threads.*;:pusch_proc_threads     = " + c.OaiGnb[0].PuschProcThreads + ";:g"
-	retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, gnbConf)
-	return retStatus.Exit
+	// check if text exists in the file
+	// naming to self-explain variable
+	notFoundParameter := util.RunCmd(OaiObj.Logger, "grep", "-Fxq", "pusch_proc_threads", gnbConf)
+	if notFoundParameter.Exit == 1 {
+		// we only need to handle the case when we don't find the parameter in config file
+		// insert the parameter to the "right" place.
+		// normally,it is better to have a better interface that allows to insert the parameter
+		// under the struct L1s of conf file. But since we don't have it at this moment,
+		// we will do this by assume that the order of parameters inside the L1s struct doesn't matter.
+		sedCommand := "/L1s.*{/a pusch_proc_threads     = " + c.OaiGnb[0].PuschProcThreads + ";"
+		retStatus := util.RunCmd(OaiObj.Logger, "sed", "", sedCommand, gnbConf)
+		return retStatus.Exit
+	} else {
+		sedCommand := "s:pusch_proc_threads.*;:pusch_proc_threads     = " + c.OaiGnb[0].PuschProcThreads + ";:g"
+		retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, gnbConf)
+		return retStatus.Exit
+	}
 }
 
 func startGNB(OaiObj Oai, buildSnap bool) error {
