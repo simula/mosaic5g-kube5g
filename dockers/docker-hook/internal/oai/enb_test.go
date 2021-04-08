@@ -108,3 +108,36 @@ func Test_naive_changeParamPuschProcThreads(t *testing.T) {
 		fmt.Printf("test passed")
 	}
 }
+
+func Test_naive_NoParamPuschProcThreads(t *testing.T) {
+
+	logPath := "./hook.log"
+	confPath := "./conf.yaml"
+	usersPath := "./users.json"
+	flexranStatsPath := "./flexran_stats.json"
+
+	instance_c := common.CfgGlobal{}
+	c := &instance_c
+	c.OaiGnb = []common.CfgOaiGnb{
+		common.CfgOaiGnb{
+			PuschProcThreads: "10",
+		},
+	}
+
+	// fmt.Printf("Len : %#v \n", len(c.OaiEnb))
+	// fmt.Printf("Value : %#v \n", c.OaiEnb[0].TxGain.Default)
+	oai := Oai{}
+
+	err := oai.Init(logPath, confPath, usersPath, flexranStatsPath)
+	if err != nil {
+		t.Error("oai created failed")
+		return
+	}
+	gnb_path := "gnb_conf_without_parameter.txt"
+	status := replaceExistingPuschProcThreads(c, oai, gnb_path)
+	if status != 0 {
+		t.Error("Test failed")
+	} else {
+		fmt.Printf("test passed")
+	}
+}
