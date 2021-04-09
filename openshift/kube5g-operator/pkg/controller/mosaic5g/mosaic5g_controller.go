@@ -1099,7 +1099,7 @@ func (r *ReconcileMosaic5g) Reconcile(request reconcile.Request) (reconcile.Resu
 					if !reflect.DeepEqual(currentconfYaml.OaiCn.V1, newconfYaml.OaiCn.V1) {
 						// Re-deploy the CN service and deployment
 						err = r.client.Delete(context.TODO(), coreNetworkDeploymentV1)
-						err = r.client.Delete(context.TODO(), coreNetworkDeploymentV1)
+						err = r.client.Delete(context.TODO(), coreNetworkServiceV1)
 						// oai-ran
 						err = r.client.Delete(context.TODO(), ranDeployment)
 						err = r.client.Delete(context.TODO(), ranService)

@@ -65,7 +65,7 @@ func (me *Oai) Init(logPath string, confPath string, usersPath string, flexranSt
 		return err
 	}
 	me.Logger.Print("Configs: ", me.Conf)
-	fmt.Println("Configs: ", *me.Conf)
+	fmt.Println("Configs: ", me.Conf)
 
 	// bash -c 'echo "nameserver 8.8.8.8" >> /etc/resolv.conf'
 	retStatus := util.RunCmd(me.Logger, "/bin/bash", "-c", `echo "nameserver 8.8.8.8" >> /etc/resolv.conf`)

@@ -105,6 +105,12 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 		time.Sleep(1 * time.Second)
 	}
 
+	// sudo snap get oai-ran conf.usrpdev=B
+	retStatus = util.RunCmd(OaiObj.Logger, "snap", "set", "oai-ran", "conf.usrpdev=B")
+	if retStatus.Exit != 0 {
+		return errors.New(`Setting conf.usrpdev=B failed`)
+	}
+
 	retStatus = util.RunCmd(OaiObj.Logger, strings.Join([]string{snapBinaryPath, cmdNodeFunction + "-conf-get"}, "/"))
 
 	OaiObj.Logger.Print("confFileName=" + confFileName)
