@@ -1,0 +1,376 @@
+/*
+#!/bin/groovy
+###############################################################################
+Licensed to the Mosaic5G under one or more contributor license
+agreements. See the NOTICE file distributed with this
+work for additional information regarding copyright ownership.
+The Mosaic5G licenses this file to You under the
+Apache License, Version 2.0  (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+ 
+   	http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-------------------------------------------------------------------------------
+  For more information about the Mosaic5G:
+  	contact@mosaic-5g.io
+###############################################################################
+file    kube5g-ci-build.jenkins
+brief   This peline is for ci phase to build and test the snaps of mosaic5g. If successfull, 
+        this pipeline will also push the snap to temporary channel, and trigger the next 
+        pipeline, which is for cd phase
+authors - Osama Arouk (C) - 2021 osama.arouk@eurecom.fr
+        - 
+*/
+
+
+// Name of the snap to build; oai-ran, oai-hss, oai-mme, flexran, etc.
+def snapName = params.snapName
+/*
+oaiSnapVersion is related to the snap versions (v1 and v2)
+Note that oai-ran, flexran, and ll-mec are considered as v1
+TODO Drop the support of v1, as it is not updated anymore. This needs to be done also in Kube5G
+*/
+def oaiSnapVersion = params.oaiSnapVersion
+
+// snapcraft channel to which the snap will be pushed for testing it later. This channel is ONLY for testing (i.e., private channel)
+def snapChannelCicd = params.snapChannelCicd
+def dockerImageTagCicd = params.dockerImageTagCicd
+def dockerRegisteryCicd = params.dockerRegisteryCicd
+def dockerRegisteryTypeCicd = params.dockerRegisteryTypeCicd
+
+// snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
+def snapChannel = params.snapChannel
+def dockerImageTag = params.dockerImageTag
+def dockerRegistery = params.dockerRegistery
+def dockerRegisteryType = params.dockerRegisteryType
+
+// Credentials
+def gitlabCredentials   = 'mosaic5g_jenkins'
+
+// def nodeExecutor = params.nodeExecutor
+def nodeExecutor = 'cigarier'//params.nodeExecutor
+
+
+// Define counter for the stages and steps
+def ENUM_STAGE  = 1
+def ENUM_STEP   = 1
+
+// binary value to define whether a step failed
+def STEP_FAILURE   = 0
+
+pipeline {
+    // Here we define the node that will run this script using the labels assigned to them previously
+    agent {
+        node {
+            label nodeExecutor
+        }
+    }
+    
+    environment {
+        SNAP_NAME = "${snapName}"
+        OAI_SNAP_VERSION = "${oaiSnapVersion}"
+        // For CICD
+        SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
+        DOCKER_IMAGE_TAG_CICD= "${dockerImageTagCicd}"
+        DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        DOCKER_REGISTRY_TYPE_CICD    = "${dockerRegisteryTypeCicd}"
+        // For stabel channels: snap and docker
+        SNAP_CHANNEL            = "${snapChannel}"
+        DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
+        DOCKER_REGISTRY         = "${dockerRegistery}"
+        DOCKER_REGISTRY_TYPE         = "${dockerRegisteryType}"
+    }
+
+    // Define the stages
+    stages {
+
+        // Clone the project from git: Source Control Management (SCM)
+        stage('clone-scm') {
+            steps {
+                script { 
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: cloning from git: SCM mode"
+                }
+                checkout scm
+            }
+        } 
+
+        // // Clone the project from git: Pipeline Scritp
+        // stage('clone-local') {
+        //     steps {
+        //         script{
+        //             ENUM_STAGE = ENUM_STAGE + 1
+        //             echo "STAGE#$ENUM_STAGE: cloning from git: Pipeline Scritp mode"
+        //             try{
+        //                 git credentialsId: "${gitlabCredentials}",
+        //                 url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
+        //                 branch: "develop"
+        //             } catch (err) {
+        //                 throw(err)
+        //             }
+        //         }
+        //     }
+        // }
+        
+        // Build the snap
+        stage('snap-build') {
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Build the snap"
+                    dir("snaps"){
+                        // 
+                        ENUM_STEP = 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: building the snap within docker container"
+                        try {
+                            sh(
+                                label: '',
+                                script: '''
+                                    export STORE=$WORKSPACE
+                                    ./build-final.sh -n ${SNAP_NAME} -c all
+                                '''
+                            )
+                        } catch (err) {
+                            throw(err)
+                        }
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Change the ownership of the build snap"
+                        try {
+                            sh(
+                                label: '',
+                                script: '''
+                                    version=$(grep -m1 version: ${SNAP_NAME}/snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
+                                    snap_name=${SNAP_NAME}"_"$version"_multi.snap"
+                                    sudo chown -R $USER:$USER ${SNAP_NAME}/$snap_name
+                                    # The following step is needed since there are some folders generated when building
+                                    #   snap owned by roon and not the current user, especially for oai-ran
+                                    sudo chown --changes --recursive $USER:$USER ${SNAP_NAME}/*
+                                '''
+                            )
+                        } catch (err) {
+                            throw(err)
+                        }
+                        /*
+                        pushing the snap to remporary channel is moved after the unitary test of the snap, 
+                        because it is risky that the snap can be pushed while it is not working properly, and there is no 
+                        a way to remove the the snap version after pushing it to snapcraft. 
+                        */
+                    }
+                }
+            }
+        }
+
+        // Clean the machine from any previously deployed snaps of dockers
+        stage('snap-test') {
+            steps {                
+                script{
+                    STEP_FAILURE = 0
+
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Clean the machine from any previously deployed snaps"
+                    // 
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Remove the older version if present"
+                    try {
+                        snap_action("$SNAP_NAME", "remove")
+                    } catch (err) {
+                        throw(error)
+                    }
+                    // 
+                    ENUM_STEP = ENUM_STEP + 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Install the snap ${SNAP_NAME} locally"
+                    // echo "STEP#$ENUM_STAGE.$ENUM_STEP: Install the snap ${SNAP_NAME} from ${SNAP_CHANNEL_CICD} channel"
+                    try {
+                        /*
+                        Installing from snapcraft is replaced by the next step, which is installing the built snap directly,
+                        since the step of pushing the snap to snapcraft is moved after performing the unitary test 
+                        */
+                        // snap_action("$SNAP_NAME", "install", "${SNAP_CHANNEL_CICD}")
+                        // install snap locally, before pushing it to snapcraft
+                        dir("snaps/${SNAP_NAME}"){    
+                           sh(
+                                label: '',
+                                script: '''
+                                    version=$(grep -m1 version: snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
+                                    snap_name=${SNAP_NAME}"_"$version"_multi.snap"
+                                    echp "copying the built snap ${snap_name} to the temp folder /home/jenkins/tmp-snaps in case it is needed for manual test"
+                                    cp $snap_name /home/jenkins/tmp-snaps
+                                    sudo snap install $snap_name --dangerous
+                                '''
+                            )
+                        }
+
+                    } catch (err) {
+                        throw(error)
+                    }
+                    
+                    // 
+                    try {
+                        // Enable the plugs of the snap
+                        snap_enable_plugs("${SNAP_NAME}")
+                    } catch (err) {
+                        throw(error)
+                    }
+                    
+                    // 
+                    ENUM_STEP = ENUM_STEP + 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform snap chek for ${SNAP_NAME} "
+                    try {
+                        snap_exec("${SNAP_NAME}", "check")
+                    } catch (err) {
+                        echo err.getMessage()
+                        sh "Failed of checking the snap ${SNAP_NAME}"
+                        throw(err)
+                    }
+                    // 
+                    ENUM_STEP = ENUM_STEP + 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Clean up the installation of ${SNAP_NAME}"
+                    try {
+                        snap_action("$SNAP_NAME", "remove")
+                    } catch (err) {                        
+                        error("Failed to remove the snap ${SNAP_NAME}")
+                        throw(err)
+                    }
+                    //
+                }
+            }
+        }
+        // Clean the machine from any previously deployed snaps of dockers
+        stage('snap-push-tmp-channel') {
+            //
+            steps{
+                script{
+                    if(currentBuild.result == 'SUCCESS') {
+                        echo "Push the snap to the CICD channel ${env.SNAP_CHANNEL_CICD} on snapcraft"
+                        try {
+                            dir("snaps"){
+                                sh(
+                                    label: '',
+                                    script: '''
+                                        echo "pushing the snap ${env.SNAP_NAME} to the channel ${env.SNAP_CHANNEL_CICD}"
+                                        ./publish-final.sh -s ${env.SNAP_NAME} -c ${env.SNAP_CHANNEL_CICD}
+                                    '''
+                                )
+                            }
+
+                        } catch (err) {
+                            throw(err)
+                        }
+                    }else{
+                        echo "The snap ${env.SNAP_NAME} was not pushed to the CICD channel ${env.SNAP_CHANNEL_CICD}, due to earlier error"
+                    }
+                }
+            }
+            // 
+        }
+    }
+    post {
+        always{
+            echo 'Sending Email'
+            emailext attachLog: true, compressLog: false,
+                subject: "[Kube5G pipeline] ${currentBuild.fullDisplayName}: ${currentBuild.result}",
+                to: "mosaic.5gecosys@gmail.com",
+                replyTo: "kubernex@lists.eurecom.fr",
+                body: '''Hi,
+                
+                Find attached the build's log. You can check your pipeline at ${env.BUILD_URL}
+                
+                Regards
+                Kube5G team
+                '''
+        }
+        success {
+            // prepare the parameters to trigger the next pipeline
+            echo 'Trigger cd-deployment'
+            build job:'kube5g-cd-deployment' ,
+                    parameters:[
+                        [$class: 'StringParameterValue', name: 'snapName', value: env.SNAP_NAME],
+                        [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.OAI_SNAP_VERSION], 
+                        [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                        [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
+                        [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                        [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
+                        [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                        [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
+                        [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY],
+                        [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+            ], wait: false
+        }
+        cleanup {
+            // clean up the workspace
+            deleteDir()
+            // remove the tmp directory
+            dir("${workspace}@tmp") {
+                deleteDir()
+            }
+        }
+    }
+}
+
+
+
+def snap_action(String snapName, String action, String channel="edge", String devmode="") {
+    env.ACTION = action
+    env.CHANNEL = channel
+    env.DEVMODE = devmode
+    sh(
+        label: "action the snap ${snapName}",
+        script: '''
+            if [ "${ACTION}" != "remove" ]; then
+                if [ "${DEVMODE}" != "" ]; then
+                    sudo snap ${ACTION} ${snapName} --devmode --channel=${CHANNEL}
+                else
+                    sudo snap ${ACTION} ${snapName} --channel=${CHANNEL}
+                fi
+            else
+                if snap list --all | grep -q ${snapName}; then
+                    sudo snap ${ACTION} ${snapName}
+                fi
+            fi
+        '''
+    )
+}
+
+def snap_exec(String snapName, String action) {
+    env.ACTION = action
+    echo "Testing the snap $SNAP_NAME"
+    // sh(
+    //     label: "perform ${ACTION} on the snap ${snapName}",
+    //     script: '''
+    //         sudo $SNAP_NAME.${ACTION}
+    //     '''
+    // )
+    def statusCode =  sh label: "perform ${ACTION} on the snap ${snapName}", returnStatus: true, script: '''
+        sudo $SNAP_NAME.${ACTION} 
+    '''
+    // TODO the status code is 1 while the check is passed successfully, need to be checked with @Navid
+    echo "status code to perform ${ACTION} on the snap ${snapName} is ${statusCode}"
+}
+
+def snap_enable_plugs(String snapName) {
+    env.SNAP_NAME = snapName
+    env.FILE_NAME = "${snapName}/snap/snapcraft.yaml"
+    env.KEY_VAL = "['apps']['check']['plugs']"
+    echo "Enabling the plugs for the snap ${snapName}"
+    sh(
+        label: '',
+        script: '''
+        list_plugs=$(python3 -c "import yaml;print(*(yaml.safe_load(open('snaps/${FILE_NAME}'))${KEY_VAL}))")
+        echo "list_plugs=$list_plugs"
+        
+        for plug in ${list_plugs}; do
+            echo "enabling the plug $plug"
+            sudo snap connect $SNAP_NAME:$plug
+        done            
+        '''
+    )
+}
+
+

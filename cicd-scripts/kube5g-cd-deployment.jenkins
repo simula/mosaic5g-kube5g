@@ -1,0 +1,1016 @@
+/*
+#!/bin/groovy
+###############################################################################
+Licensed to the Mosaic5G under one or more contributor license
+agreements. See the NOTICE file distributed with this
+work for additional information regarding copyright ownership.
+The Mosaic5G licenses this file to You under the
+Apache License, Version 2.0  (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+ 
+   	http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-------------------------------------------------------------------------------
+  For more information about the Mosaic5G:
+  	contact@mosaic-5g.io
+###############################################################################
+file    kube5g-cd-deployment.jenkins
+brief   This peline is for cd phase to build docker images and test them in deployment ENV using docker-compose. 
+        If successfull, this pipeline will also create the temporary docker image (tagged with the tag defined by the cicd parameters) 
+        for the considered snap, and push it to temporary registry, and trigger the next pipeline, which is for publish the snaps and docker
+        images to the official channels.
+        TODO another stage, which is deploying in prod ENV (kubernetes), needs to be added before publishing the snaps and 
+        docker images to the official channels.
+authors - Osama Arouk (C) - 2021 osama.arouk@eurecom.fr
+        - 
+*/
+
+// Name of the snap to build; oai-ran, oai-hss, oai-mme, flexran, etc.
+def snapName = params.snapName
+// This is related to oai-cn versions: v1 and v2
+def oaiSnapVersion = params.oaiSnapVersion
+
+// snapcraft channel to which the snap will be pushed for testing it later. This channel is ONLY for testing (i.e., private channel)
+def snapChannelCicd = params.snapChannelCicd
+def dockerImageTagCicd = params.dockerImageTagCicd
+def dockerRegisteryCicd = params.dockerRegisteryCicd
+def dockerRegisteryTypeCicd = params.dockerRegisteryTypeCicd
+
+// snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
+def snapChannel = params.snapChannel
+def dockerImageTag = params.dockerImageTag
+def dockerRegistery = params.dockerRegistery
+def dockerRegisteryType = params.dockerRegisteryType
+
+// Credentials
+def gitlabCredentials   = 'mosaic5g_jenkins'
+
+// def nodeExecutor = params.nodeExecutor
+def nodeExecutor = 'cigarier'//params.nodeExecutor
+
+// monolithic mode
+def dockerComposeLteMonolithicV1                = 'dockers/docker-compose/oai-v1/lte-all-in-one'
+def dockerComposeLteMonolithicV2                = 'dockers/docker-compose/oai-v2/lte-all-in-one'
+def dockerComposeLteMonolithicFlexranV1         = 'dockers/docker-compose/oai-v1/lte-all-in-one-with-flexran'
+def dockerComposeLteMonolithicFlexranV2         = 'dockers/docker-compose/oai-v2/lte-all-in-one-with-flexran'
+// disaggregated mode
+def dockerComposeLteDisaggregatedV1             = 'dockers/docker-compose/oai-v1/lte'
+def dockerComposeLteDisaggregatedV2             = 'dockers/docker-compose/oai-v2/lte'
+def dockerComposeLteDisaggregatedFlexranV1      = 'dockers/docker-compose/oai-v1/lte-with-flexran'
+def dockerComposeLteDisaggregatedFlexranV2      = 'dockers/docker-compose/oai-v2/lte-with-flexran'
+// Name of docker image for the concerned snap. it is the same as the snap name but without hyphen (-)
+def dockerEntityName = ''
+String[] str
+str = (params.snapName).split('-')
+for ( String values : str ) {
+    dockerEntityName = dockerEntityName + values
+}
+
+// Define counter for the stages and steps
+def ENUM_STAGE  = 1
+def ENUM_STEP   = 1
+def EXIT_STAGE  = 0
+pipeline {
+    // Here we define the node that will run this script using the labels assigned to them previously
+    agent {
+        node {
+            label nodeExecutor
+        }
+    }
+
+    environment {
+        SNAP_NAME = "${snapName}"
+        OAI_SNAP_VERSION = "${oaiSnapVersion}"
+        // For CICD
+        SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
+        DOCKER_IMAGE_TAG_CICD= "${dockerImageTagCicd}"
+        DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        DOCKER_REGISTRY_TYPE_CICD    = "${dockerRegisteryTypeCicd}"
+        // For stabel channels: snap and docker
+        SNAP_CHANNEL            = "${snapChannel}"
+        DOCKER_IMAGE_TAG     = "${dockerImageTag}${currentBuild.number}"
+        DOCKER_REGISTRY         = "${dockerRegistery}"  
+        DOCKER_REGISTRY_TYPE = "${dockerRegisteryType}"  
+        DOCKER_ENTITY_NAME = "${dockerEntityName}"  
+        
+        // The following are for building kube5G
+        KUBE5G_RDIR_DOCKER_HOOK = "dockers/docker-hook/cmd/hook"
+        KUBE5G_RDIR_DOCKER_BUILD = "dockers/docker-build/build"
+    }
+
+    // Define the stages
+    stages {
+        
+        // Clone the project from git: Source Control Management (SCM)
+        stage('clone-scm') {
+            steps {
+                script { 
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: cloning from git: SCM mode"
+                }
+                checkout scm
+            }
+        } 
+
+        // // Clone the project from git: Pipeline Scritp
+        // stage('clone-local') {
+        //     steps {
+        //         script{
+        //             ENUM_STAGE = ENUM_STAGE + 1
+        //             echo "STAGE#$ENUM_STAGE: cloning from git: Pipeline Scritp mode"
+        //             try{
+        //                 git credentialsId: "${gitlabCredentials}",
+        //                 url: "git@gitlab.eurecom.fr:mosaic5g/kube5g.git",
+        //                 branch: "develop"
+        //             } catch (err) {
+        //                 throw(err)
+        //             }
+        //         }
+        //     }
+        // }
+        
+        // Configure Kube5G for CI/CD phase
+        stage('kube5g-configure') {
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Configure Kube5G for CI/CD phase"
+                    try{
+                        dir('common/config-manager'){                    
+                            // Update Kube5G configuration to proceed with ${SNAP_NAME} in CI/CD phase
+                            if ("${OAI_SNAP_VERSION}" == "v1"){
+                                sh(
+                                    label: '',
+                                    script: '''
+                                        ./conf-manager.py -s conf_short_default.yaml \
+                                                    -CSnapName=${SNAP_NAME} \
+                                                    -CSnapChannel=${SNAP_CHANNEL_CICD} \
+                                                    -CSnapDevmode=false \
+                                                    -CDockerRegistry=${DOCKER_REGISTRY_CICD} \
+                                                    -CDockerTagV1=${DOCKER_IMAGE_TAG_CICD}
+                                    '''
+                                )
+                            }else{
+                                sh(
+                                    label: '',
+                                    script: '''
+                                        ./conf-manager.py -s conf_short_default.yaml \
+                                                    -CSnapName=${SNAP_NAME} \
+                                                    -CSnapChannel=${SNAP_CHANNEL_CICD} \
+                                                    -CSnapDevmode=false \
+                                                    -CDockerRegistry=${DOCKER_REGISTRY_CICD} \
+                                                    -CDockerTagV2=${DOCKER_IMAGE_TAG_CICD}
+                                    '''
+                                )
+                            }
+                        }
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
+
+        // Clean the machine from any previously deployed snaps of dockers
+        stage('clean-environment') {
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Clean the machine from any previously deployed snaps of dockers"
+                }
+            }
+        }
+
+        //********************************************************** DOCKER BUILD **********************************************************//
+        // Compile docker hook
+        stage('compile-docker-hook') {
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Compile the docker hook before starting building the docker image for ${SNAP_NAME}"
+                    
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Compile the docker hook"
+                    try {
+                        docker.image('golang:1.14').inside('-it  -u root --name=dockerhook -v ${WORKSPACE}/dockers/docker-hook:/usr/src/mosaic5g/docker-hook -w /usr/src/mosaic5g/docker-hook/cmd/hook') { c ->
+                            sh 'cd /usr/src/mosaic5g/docker-hook/cmd/hook; go build -v'
+                        }
+                    } catch (err) {
+                        throw(err)
+                    }
+
+                    ENUM_STEP = ENUM_STEP + 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Change the ownership"
+                    try {
+                        sh(
+                            label: '',
+                            script: '''
+                                sudo chown -R $USER:$USER ${WORKSPACE}/${KUBE5G_RDIR_DOCKER_HOOK}/hook
+                            '''
+                        )
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
+
+        // Build the docker image from Dockerfile
+        stage('docker-build') {
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Build the docker image for ${SNAP_NAME} from Dockerfile"
+
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Copy the binary docker hook (compiled in the previous stage) to docker build"
+                    try {
+                        sh label: '', script: 'cp ${WORKSPACE}/${KUBE5G_RDIR_DOCKER_HOOK}/hook ${WORKSPACE}/${KUBE5G_RDIR_DOCKER_BUILD}/'
+                    } catch (err) {
+                        throw(err)
+                    }
+
+                    ENUM_STEP = ENUM_STEP + 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Remove the docker used for building if it is already running"
+                    try {
+                        sh label: '', script: 'docker rm --force build_base'
+                    } catch (err) {
+                        echo err.getMessage()
+                        echo "Ignoring; the docker container base is not running"
+                    }
+
+                    ENUM_STEP = ENUM_STEP + 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Start building the docker image for ${SNAP_NAME}"
+                    try {
+                        dir("${env.KUBE5G_RDIR_DOCKER_BUILD}"){
+                            sh label: '', script: './build.sh ${SNAP_NAME} ${DOCKER_IMAGE_TAG_CICD} ${OAI_SNAP_VERSION}'
+                        }
+                    } catch (err) {
+                        // remove the docker container used for building, before exit
+                        try {
+                            sh label: '', script: 'docker rm --force build_base'
+                        } catch (errSecond) {
+                            echo errSecond.getMessage()
+                            echo "Ignoring; the docker container base is not running"
+                        }
+                        throw(err)
+                    }
+                }
+            }
+
+        }
+        
+        // Push the docker image to docker-hub
+        stage('docker-Push') {
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: push the docker image tagged as ${DOCKER_IMAGE_TAG_CICD} to docker-hub"
+                    try {
+                        // tag the created images with the defined registry
+                        sh 'echo ${DOCKER_REGISTRY_CICD}'
+                        sh 'docker tag mosaic5gecosys/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} ${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}'
+                        if ("${DOCKER_REGISTRY_TYPE_CICD}" == "docker"){
+                            //Remote Registry
+                            sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                            docker.withRegistry('https://index.docker.io/v1/', "${dockerHubCredentials}") {
+                                    docker.image("${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push("${DOCKER_IMAGE_TAG_CICD}")
+                                    docker.image("${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push()
+                            }
+                        }else{
+                            //Local Registry
+                            sh 'echo "jenkins" | gnome-keyring-daemon -r -d --unlock'
+                            // docker.withRegistry('https://${DOCKER_REGISTRY_CICD}/v1/') {
+                            //         docker.image("${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push("${DOCKER_IMAGE_TAG_CICD}")
+                            //         // docker.image("${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}").push('latest')
+                            // }
+                            dockerImage = docker.image('${DOCKER_REGISTRY}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD}')
+                            docker.withRegistry('https://${DOCKER_REGISTRY}/v1/') {
+                                    dockerImage.push()
+                            }
+                        }
+                    } catch (err) {
+                        echo "Erro pushing the docker image ${DOCKER_REGISTRY_CICD}/${DOCKER_ENTITY_NAME}:${DOCKER_IMAGE_TAG_CICD} to dockerhub, exit..."
+                        throw(err)
+                    }
+                }
+            }
+        }
+
+        /*=========== Continuous deployment: lte network with monolithic RAN and CN, and flexran as controller:v1 ===========*/
+        // 
+        stage('docker-compose-monolithic-flexran-v1') {
+            when{
+                anyOf{
+                    expression{env.SNAP_NAME == 'flexran'}
+                    expression{env.SNAP_NAME == 'oai-ran'}
+                }
+            }
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Deploy docker compose for monolithic network (v1) with FlexRAN deployment"
+
+                    // 
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down if it is already up"
+                    try {
+                        docker_compose("${dockerComposeLteMonolithicFlexranV1}", "down")
+                    } catch (err) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            echo err.getMessage()
+                            sh "exit 1"
+                        }
+                    }
+
+                    try {
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        docker_compose("${dockerComposeLteMonolithicFlexranV1}", "up -d")
+                        //
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Test the network deployement with FlexRAN"
+                        try {
+                            deploymentTestMonoRanCnFlexran("${DOCKER_ENTITY_NAME}")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+                        //
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform ${SNAP_NAME} unit test script"
+                        dir('ci-scripts/unit-tests/flexran/4G'){
+                            try {
+                                sh(
+                                    label: '',
+                                    script: '''
+                                        chmod 777 unit-flexran.sh
+                                        sleep 10
+                                        ./unit-flexran.sh
+                                    '''
+                                )
+                            } catch (err) {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    echo err.getMessage()
+                                }
+                            }
+                        }                    
+                        // 
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform ${SNAP_NAME} check inside the container"
+                        try {
+                            docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+                        // 
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down"
+                        try {
+                            docker_compose("${dockerComposeLteMonolithicFlexranV1}", "down")
+                        } catch (err) {
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                        }
+                        // 
+                    } catch (err) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                        }
+                    }
+                }
+            }
+        }
+        /*=========== Continuous deployment: lte network with monolithic RAN and CN, and flexran as controller:v2 ===========*/
+        // 
+        stage('docker-compose-monolithic-flexran-v2') {
+            when{
+                anyOf{
+                    expression{env.SNAP_NAME == 'flexran'}
+                    expression{env.SNAP_NAME == 'oai-ran'}
+                }
+            }
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Deploy docker compose for monolithic network (v2) with FlexRAN deployment"
+
+                    // 
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down if it is already up"
+                    try {
+                        docker_compose("${dockerComposeLteMonolithicFlexranV2}", "down")
+                    } catch (err) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            echo err.getMessage()
+                            sh "exit 1"
+                        }
+                    }
+
+
+                    try {
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        docker_compose("${dockerComposeLteMonolithicFlexranV2}", "up -d")
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Test the network deployement with FlexRAN"
+                        try {
+                            deploymentTestMonoRanCnFlexran("${DOCKER_ENTITY_NAME}")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+                        // 
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform ${SNAP_NAME} unit test script"
+                        dir('ci-scripts/unit-tests/flexran/4G'){
+                            try {
+                                sh(
+                                    label: '',
+                                    script: '''
+                                        chmod 777 unit-flexran.sh
+                                        sleep 10
+                                        ./unit-flexran.sh
+                                    '''
+                                )
+                            } catch (err) {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    echo err.getMessage()
+                                }
+                            }
+                        }
+                        // 
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform ${SNAP_NAME} check"
+                        try {
+                            docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+                        // 
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down"
+                        try {
+                            docker_compose("${dockerComposeLteMonolithicFlexranV2}", "down")
+                        } catch (err) {
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                        }
+                        // 
+                    } catch (err) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                        }
+                    }
+                }
+            }
+        }
+        /*=========== Continuous deployment: lte network with monolithic RAN and CN:v1 ===========*/
+        // 
+        stage('docker-compose-monolithic-v1') {
+            when{
+                anyOf{
+                    expression{env.SNAP_NAME == 'oai-ran'}
+                    expression{env.SNAP_NAME == 'oai-cn'}
+                }
+            }
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Deploy docker compose for monolithic network (v1) deployment"
+
+                    // 
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down if it is already up"
+                    try {
+                        docker_compose("${dockerComposeLteMonolithicV1}", "down")
+                    } catch (err) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            echo err.getMessage()
+                        }
+                    }
+
+                    try {
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        docker_compose("${dockerComposeLteMonolithicV1}", "up -d")
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        try {
+                            docker_compose("${dockerComposeLteMonolithicV1}", "up -d")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Test the network deployement"
+                        try {
+                            deploymentTestMonoRanCn("${DOCKER_ENTITY_NAME}")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+                        
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform ${SNAP_NAME} check"
+                        try {
+                            docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down"
+                        try {
+                            docker_compose("${dockerComposeLteMonolithicV1}", "down")
+                        } catch (err) {
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                        }
+                        // 
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
+        /*=========== Continuous deployment: lte network with monolithic RAN and CN:v2 ===========*/
+        // 
+        stage('docker-compose-monolithic-v2') {
+            when{
+                anyOf{
+                    expression{env.SNAP_NAME == 'oai-ran'}
+                    expression{env.SNAP_NAME == 'oai-cn'}
+                }
+            }
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Deploy docker compose for monolithic network (v2) deployment"
+
+                    // 
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down if it is already up"
+                    try {
+                        docker_compose("${dockerComposeLteMonolithicV2}", "down")
+                    } catch (err) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            echo err.getMessage()
+                        }
+                    }
+
+                    try {
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        docker_compose("${dockerComposeLteMonolithicV2}", "up -d")
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        try {
+                            docker_compose("${dockerComposeLteMonolithicV2}", "up -d")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Test the network deployement"
+                        try {
+                            deploymentTestMonoRanCn("${DOCKER_ENTITY_NAME}")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                                echo err.getMessage()
+                            }
+                        }
+                        
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform ${SNAP_NAME} check"
+                        try {
+                            docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down"
+                        try {
+                            docker_compose("${dockerComposeLteMonolithicV2}", "down")
+                        } catch (err) {
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                        }
+                        // 
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
+        /*=========== Continuous deployment: lte network with monolithic RAN and disaggregated CN:v1 ===========*/
+        stage('docker-compose-monolithic-ran-disaggregated-cn-v1') {
+            when{
+                allOf{
+                    anyOf{
+                        expression{env.SNAP_NAME == 'oai-ran'}
+                        expression{env.SNAP_NAME == 'oai-hss'}
+                        expression{env.SNAP_NAME == 'oai-mme'}
+                        expression{env.SNAP_NAME == 'oai-spgw'}
+                    }
+                    expression{env.OAI_SNAP_VERSION == 'v1'}
+                }
+            }
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Deploy docker compose for network with monolithic ran disaggregated cn (v2) deployment"
+
+                    // 
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down if it is already up"
+                    try {
+                        docker_compose("${dockerComposeLteDisaggregatedV1}", "down")
+                    } catch (err) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            echo err.getMessage()
+                        }
+                    }
+
+                    try {
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        docker_compose("${dockerComposeLteDisaggregatedV1}", "up -d")
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        try {
+                            docker_compose("${dockerComposeLteDisaggregatedV1}", "up -d")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Test the network deployement"
+                        try {
+                            deploymentTestMonoRanDisaggregatedCnV1("${DOCKER_ENTITY_NAME}")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+                        
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform ${SNAP_NAME} check"
+                        try {
+                            docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down"
+                        try {
+                            docker_compose("${dockerComposeLteDisaggregatedV1}", "down")
+                        } catch (err) {
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                        }
+                    } catch (err) {
+                        // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                        throw(err)
+                    }
+                }
+            }
+        }
+        /*=========== Continuous deployment: lte network with monolithic RAN and disaggregated CN:v2 ===========*/
+        stage('docker-compose-monolithic-ran-disaggregated-cn-v2') {
+            when{
+                allOf{
+                    anyOf{
+                        expression{env.SNAP_NAME == 'oai-ran'}
+                        expression{env.SNAP_NAME == 'oai-hss'}
+                        expression{env.SNAP_NAME == 'oai-mme'}
+                        expression{env.SNAP_NAME == 'oai-spgwc'}
+                        expression{env.SNAP_NAME == 'oai-spgwu'}
+                    }
+                    expression{env.OAI_SNAP_VERSION == 'v2'}
+                }
+            }
+            steps {                
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: Deploy docker compose for network with monolithic ran disaggregated cn (v2) deployment"
+
+                    // 
+                    ENUM_STEP = 1
+                    echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down if it is already up"
+                    try {
+                        docker_compose("${dockerComposeLteDisaggregatedV2}", "down")
+                    } catch (err) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            echo err.getMessage()
+                        }
+                    }
+
+
+                    try {
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        docker_compose("${dockerComposeLteDisaggregatedV2}", "up -d")
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network up"
+                        try {
+                            docker_compose("${dockerComposeLteDisaggregatedV2}", "up -d")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                echo err.getMessage()
+                            }
+                        }
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Test the network deployement"
+                        try {
+                            deploymentTestMonoRanDisaggregatedCnV2("${DOCKER_ENTITY_NAME}")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                                echo err.getMessage()
+                            }
+                        }
+                        
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Perform ${SNAP_NAME} check"
+                        try {
+                            docker_exec("${DOCKER_ENTITY_NAME}", "${SNAP_NAME}.check")
+                        } catch (err) {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                                echo echo.getMessage()
+                            }
+                        }
+
+                        // 
+                        ENUM_STEP = ENUM_STEP + 1
+                        echo "STEP#$ENUM_STAGE.$ENUM_STEP: Bring the network down"
+                        try {
+                            docker_compose("${dockerComposeLteDisaggregatedV2}", "down")
+                        } catch (err) {
+                            // Stop the pipeline if 'docker-compose up' was successful while 'docker compose down' failed
+                            throw(err)
+                        }
+                        // 
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always{
+            echo 'Sending Email'
+            emailext attachLog: true, compressLog: false,
+                subject: "[Kube5G pipeline] ${currentBuild.fullDisplayName}: ${currentBuild.result}",
+                to: "mosaic.5gecosys@gmail.com",
+                replyTo: "kubernex@lists.eurecom.fr",
+                body: '''Hi,
+                
+                Find attached the build's log. You can check your pipeline at ${env.BUILD_URL}
+                
+                Regards
+                Kube5G team
+                '''
+        }
+        success {
+            echo 'Trigger kube5g-publish'
+            build job:'kube5g-publish' , parameters:[
+                [$class: 'StringParameterValue', name: 'snapName', value: env.SNAP_NAME],
+                [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: env.OAI_SNAP_VERSION], 
+                [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_CICD],
+                [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
+                [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                [$class: 'StringParameterValue', name: 'dockerEntityName', value: env.DOCKER_ENTITY_NAME],
+                [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG], 
+                [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY],
+                [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+            ], wait: false
+        }
+        cleanup {
+            // clean up the workspace
+            deleteDir()
+            // remove the tmp directory
+            dir("${workspace}@tmp") {
+                deleteDir()
+            }
+        }
+    }
+}
+
+
+
+
+// docker_exec
+def docker_exec(String DOCKER_ENTITY_NAME, String command) {
+    env.COMMAND = command
+    sh(
+        label: "Execute command ${COMMAND} inside dokcer ${DOCKER_ENTITY_NAME}",
+        script: '''
+            docker exec ${DOCKER_ENTITY_NAME} $COMMAND
+        '''
+    )
+}
+
+// docker_compose
+def docker_compose(String DIR, String action) {
+    env.ACTION = action
+    dir("${DIR}"){
+        echo "${ACTION} the docker-compose"
+        sh(
+            label: '${ACTION} the docker compose',
+            script: '''
+                docker-compose ${ACTION}
+            '''
+        )
+    }
+}
+
+
+// deploymentTestMonoRanCnFlexran
+def deploymentTestMonoRanCnFlexran(String DOCKER_ENTITY_NAME) {
+    // List and check the containers and snaps
+    echo "Listing the containers and snaps"
+
+    sh(
+        label: 'list the docker containers to see the deployed networks',
+        script: '''
+
+            # Sleep  for 10 seconds to make sure that the network is up
+            sleep 10
+            docker ps
+            docker network ls
+            
+            cmd="snap list"
+            cmd_info_cn="snap info oai-cn"
+            cmd_info_ran="snap info oai-ran"
+            cmd_info_flexran="snap info flexran"
+
+            docker exec oaicn $cmd
+            docker exec oaicn $cmd_info_cn
+
+            docker exec oairan $cmd
+            docker exec oairan $cmd_info_ran
+
+            docker exec flexran $cmd
+            docker exec flexran $cmd_info_flexran
+            
+            docker exec flexran flexran.start
+        '''
+    )   
+}
+
+// deploymentTestMonoRanCn
+def deploymentTestMonoRanCn(String DOCKER_ENTITY_NAME) {
+    echo "Listing the containers and snaps"
+    sh(
+        label: 'list the docker containers to see the deployed networks',
+        script: '''
+
+            # Sleep  for 10 seconds to make sure that the network is up
+            sleep 10
+            docker ps
+            docker network ls
+            
+            cmd="snap list"
+            cmd_info_cn="snap info oai-cn"
+            cmd_info_ran="snap info oai-ran"
+
+            docker exec oaicn $cmd
+            docker exec oaicn $cmd_info_cn
+
+            docker exec oairan $cmd
+            docker exec oairan $cmd_info_ran
+        '''
+    )   
+}
+
+
+// deploymentTestMonoRanDisaggregatedCnV1
+def deploymentTestMonoRanDisaggregatedCnV1(String DOCKER_ENTITY_NAME) {
+    echo "Listing the containers and snaps"
+    sh(
+        label: 'list the docker containers to see the deployed networks',
+        script: '''
+            # Sleep  for 10 seconds to make sure that the network is up
+            sleep 10
+            docker ps
+            docker network ls
+
+            cmd="snap list"
+            cmd_info_ran="snap info oai-ran"
+            cmd_info_hss="snap info oai-cn"
+            cmd_info_mme="snap info oai-cn"
+            cmd_info_spgw="snap info oai-cn"
+
+            docker exec oaihss $cmd
+            docker exec oaihss $cmd_info_hss
+
+            docker exec oaimme $cmd
+            docker exec oaimme $cmd_info_mme
+
+            docker exec oaispgw $cmd
+            docker exec oaispgw $cmd_info_spgw
+
+            docker exec oairan $cmd
+            docker exec oairan $cmd_info_ran
+        '''
+    )   
+}
+
+// deploymentTestMonoRanDisaggregatedCnV2
+def deploymentTestMonoRanDisaggregatedCnV2(String DOCKER_ENTITY_NAME) {
+    echo "Listing the containers and snaps"
+    sh(
+        label: 'list the docker containers to see the deployed networks',
+        script: '''
+            # Sleep  for 10 seconds to make sure that the network is up
+            sleep 10
+            docker ps
+            docker network ls
+
+            cmd="snap list"
+            cmd_info_ran="snap info oai-ran"
+            cmd_info_hss="snap info oai-hss"
+            cmd_info_mme="snap info oai-mme"
+            cmd_info_spgwc="snap info oai-spgwc"
+            cmd_info_spgwu="snap info oai-spgwu"
+
+            docker exec oaihss $cmd
+            docker exec oaihss $cmd_info_hss
+
+            docker exec oaimme $cmd
+            docker exec oaimme $cmd_info_mme
+
+            docker exec oaispgwc $cmd
+            docker exec oaispgwc $cmd_info_spgwc
+
+            docker exec oaispgwu $cmd
+            docker exec oaispgwu $cmd_info_spgwu
+
+            docker exec oairan $cmd
+            docker exec oairan $cmd_info_ran
+        '''
+    )   
+}

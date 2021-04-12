@@ -136,6 +136,13 @@ func installSnapCore(OaiObj Oai) {
 		fmt.Println(snapName + " is installed")
 	}
 
+	// Disable snap refresh
+	// SNAP_REFRESH_DATE   = 'date --date="BST 2099-12-21 00:00:00" +%Y-%m-%dT%H:%M:%S%:z; snap set system refresh.hold=$(date --date="BST 2100-01-01 00:00:00" +%Y-%m-%dT%H:%M:%S%:z)'
+	util.RunCmd(OaiObj.Logger, "snap", "set", "system", "refresh.hold=2099-12-31T23:00:00+00:00")
+	retStatus := util.RunCmd(OaiObj.Logger, "snap", "get", "system", "refresh.hold")
+	OaiObj.Logger.Print("snap refresh.hold is set to ", retStatus.Stdout[0])
+	fmt.Println("snap refresh hold is set to ", retStatus.Stdout[0])
+
 }
 
 // installOaicn : Install oai-cn snap

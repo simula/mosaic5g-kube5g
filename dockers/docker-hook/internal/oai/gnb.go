@@ -27,6 +27,7 @@
 	- Osama Arouk (arouk@eurecom.fr)
 	- Kevin Hsi-Ping Hsu (hsuh@eurecom.fr)
 	- Alireza Mohammadi
+	- Hung NGUYEN (ung.Nguyen@eurecom.fr)
 *-------------------------------------------------------------------------------
 */
 package oai
@@ -45,6 +46,50 @@ import (
 	"strings"
 	"time"
 )
+
+// ModifyInsertPuschProcThreads insert the parameter pusch_proc_threads if it does not exist in the config file of oai-gnb, otherwise,
+// it will modify its values
+func ModifyInsertPuschProcThreads(c *common.CfgGlobal, OaiObj Oai, gnbConf string) int {
+	// check if text exists in the file
+	// naming to self-explain variable
+	notFoundParameter := util.RunCmd(OaiObj.Logger, "grep", "-iq", "pusch_proc_threads", gnbConf)
+	var PuschProcThreadsVal string = c.OaiGnb[0].PuschProcThreads
+	if PuschProcThreadsVal == "" {
+		PuschProcThreadsVal = "8"
+	}
+	var msg string = ""
+	if notFoundParameter.Exit != 0 {
+		msg = "Inserting the parameter pusch_proc_threads to the config file of oai-gnb:" + gnbConf
+		fmt.Printf(msg)
+		OaiObj.Logger.Print(msg)
+		// we only need to handle the case when we don't find the parameter in config file
+		// insert the parameter to the "right" place.
+		// normally,it is better to have a better interface that allows to insert the parameter
+		// under the struct L1s of conf file. But since we don't have it at this moment,
+		// we will do this by assume that the order of parameters inside the L1s struct doesn't matter.
+		/*
+			// This needs SED 4.5 to work
+			sedCommand := "N;/L1s.*{/a \\ \\ \\ \\ \\ \\ \\ \\ pusch_proc_threads     = " + PuschProcThreadsVal + ";"
+		*/
+		sedCommand := `/tr_n_preference = \"local_mac\";/a \ \ \ \ \ \ \ \ pusch_proc_threads     = ` + PuschProcThreadsVal + ";"
+		retStatusNotFound := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, gnbConf)
+		if retStatusNotFound.Exit != 0 {
+			fmt.Println(retStatusNotFound.Complete)
+			fmt.Println(retStatusNotFound.Stderr)
+			OaiObj.Logger.Print(retStatusNotFound.Complete)
+			OaiObj.Logger.Print(retStatusNotFound.Stderr)
+
+		}
+		return retStatusNotFound.Exit
+	} else {
+		msg = "Modifying the value of the parameter pusch_proc_threads in the config file of oai-gnb: " + gnbConf
+		fmt.Printf(msg)
+		OaiObj.Logger.Print(msg)
+		sedCommand := "s:pusch_proc_threads.*;:pusch_proc_threads     = " + PuschProcThreadsVal + ";:g"
+		retStatus := util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, gnbConf)
+		return retStatus.Exit
+	}
+}
 
 func startGNB(OaiObj Oai, buildSnap bool) error {
 	var msg string = ""
@@ -172,6 +217,9 @@ func startGNB(OaiObj Oai, buildSnap bool) error {
 	// max_rxgain
 	sedCommand = "s:max_rxgain.*;:max_rxgain     = " + c.OaiGnb[0].MaxRxGain.Default + ";:g"
 	util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, gnbConf)
+
+	// pusch_proc_threads
+	ModifyInsertPuschProcThreads(c, OaiObj, gnbConf)
 
 	// Get the IP address of oai-mme
 	mmeServiceName := OaiObj.Conf.OaiGnb[0].MmeService.Name

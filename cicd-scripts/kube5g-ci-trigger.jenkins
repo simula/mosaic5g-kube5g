@@ -1,0 +1,267 @@
+/*
+#!/bin/groovy
+###############################################################################
+Licensed to the Mosaic5G under one or more contributor license
+agreements. See the NOTICE file distributed with this
+work for additional information regarding copyright ownership.
+The Mosaic5G licenses this file to You under the
+Apache License, Version 2.0  (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+ 
+   	http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-------------------------------------------------------------------------------
+  For more information about the Mosaic5G:
+  	contact@mosaic-5g.io
+###############################################################################
+file    kube5g-ci-trigger.jenkins
+brief   Trigger the kube5g-ci-build.jenkins
+authors - Osama Arouk (C) - 2021 osama.arouk@eurecom.fr
+        - 
+*/
+
+// snapcraft channel to which the snap will be pushed for testing it later. This channel is ONLY for testing (i.e., private channel)
+def snapChannelCicd = "beta/ci"// snapChannelCicd
+// snapcraft channel to which the finall version of snap will be pushed. This is the public channel (i.e., private channel)
+def snapChannel = "stable" // params.snapChannel
+
+
+def dockerImageTagV1Cicd = 'v1-1.0-cicd'
+def dockerImageTagV2Cicd = 'v2-1.0-cicd'
+def dockerRegisteryCicd = 'localhost:5000' // "localhost:5000" or "mosaic5gecosys"
+def dockerRegisteryTypeCicd = 'local' // local or docker
+
+def dockerImageTagV1 = 'v1-1.0-' // this tag will be concatenated with jenkins build number. E.g. if jenkins build number is 123, then the final tag is v1-1.0-123
+def dockerImageTagV2 = 'v2-1.0-' // this tag will be concatenated with jenkins build number. E.g. if jenkins build number is 123, then the final tag is v1-1.0-123
+def dockerRegistery = 'mosaic5gecosys' // "localhost:5000" or "mosaic5gecosys"
+def dockerRegisteryType = 'docker' // local or docker
+
+// Credentials
+def gitlabCredentials   = 'mosaic5g_jenkins'
+
+def ENUM_STAGE = 0
+pipeline {
+    agent any
+
+    environment {
+        // For CICD
+        SNAP_CHANNEL_CICD       = "${snapChannelCicd}"
+        DOCKER_IMAGE_TAG_V1_CICD= "${dockerImageTagV1Cicd}"
+        DOCKER_IMAGE_TAG_V2_CICD= "${dockerImageTagV2Cicd}"
+        DOCKER_REGISTRY_CICD    = "${dockerRegisteryCicd}"
+        DOCKER_REGISTRY_TYPE_CICD    = "${dockerRegisteryTypeCicd}"
+        // For stabel channels: snap and docker
+        SNAP_CHANNEL            = "${snapChannel}"
+        DOCKER_IMAGE_TAG_V1     = "${dockerImageTagV1}${currentBuild.number}"
+        DOCKER_IMAGE_TAG_V2     = "${dockerImageTagV2}${currentBuild.number}"
+        DOCKER_REGISTRY         = "${dockerRegistery}" 
+        DOCKER_REGISTRY_TYPE         = "${dockerRegisteryType}" 
+    }
+
+    stages {
+        // Clone the project from git: Source Control Management (SCM)
+        stage('clone-scm') {
+            steps {
+                checkout scm
+            }
+        } 
+
+        // // Clone the project from git: Pipeline Scritp
+        // // You can enable this if you want to test the pipelien using "Pipeline Scritp"
+        // stage('clone-local') {
+        //     steps {
+        //         script{
+        //             try{
+        //                 git credentialsId: "${gitlabCredentials}",
+        //                 url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
+        //                 branch: "develop"
+        //             } catch (err) {
+        //                 throw(err)
+        //             }
+        //         }
+        //     }
+        // }
+
+        // Trigget pipeline for FlexRAN
+        stage('trigger-flexran') {
+            when { 
+                allOf {
+                    changeset "snaps/flexran/**"
+                }
+            }
+            steps{
+                echo "TTrigger CICD for FlexRAN"
+                build job:'kube5g-ci-build' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'flexran'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v1'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V1_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V1], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+                ], wait: false
+            }
+
+        }
+        // 
+        // Trigget pipeline for oai-ran
+        stage('trigger-oairan') {
+            when { 
+                allOf {
+                    changeset "snaps/oai-ran/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-ran'
+                build job:'kube5g-ci-build' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-ran'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v1'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V1_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V1], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-hss
+        stage('trigger-oaihss') {
+            when { 
+                allOf {
+                    changeset "snaps/oai-hss/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-hss'
+                build job:'kube5g-ci-build' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-hss'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v2'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-mme
+        stage('trigger-oaimme') {
+            when { 
+                allOf {
+                    changeset "snaps/oai-mme/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-mme'
+                build job:'kube5g-ci-build' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-mme'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v2'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+                ], wait: false
+
+            }
+        }
+        //
+        // Trigget pipeline for oai-spgwc
+        stage('trigger-oaispgwc') {
+            when { 
+                allOf {
+                    changeset "snaps/oai-spgwc/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-spgwc'
+                build job:'kube5g-ci-build' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-spgwc'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v2'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+                ], wait: false
+
+            }
+        }
+        // 
+        // Trigget pipeline for oai-spgwu
+        stage('trigger-oaispgwu') {
+            when { 
+                allOf {
+                    changeset "snaps/oai-spgwu/**"
+                }
+            }
+            steps{
+                echo 'Trriget CICD for oai-spgwu'
+                build job:'kube5g-ci-build' , parameters:[
+                    [$class: 'StringParameterValue', name: 'snapName', value: 'oai-spgwu'],
+                    [$class: 'StringParameterValue', name: 'oaiSnapVersion', value: 'v2'], 
+                    [$class: 'StringParameterValue', name: 'snapChannelCicd', value: env.SNAP_CHANNEL_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerImageTagCicd', value: env.DOCKER_IMAGE_TAG_V2_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryCicd', value: env.DOCKER_REGISTRY_CICD],
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryTypeCicd', value: env.DOCKER_REGISTRY_TYPE_CICD],
+                    [$class: 'StringParameterValue', name: 'snapChannel', value: env.SNAP_CHANNEL],
+                    [$class: 'StringParameterValue', name: 'dockerImageTag', value: env.DOCKER_IMAGE_TAG_V2], 
+                    [$class: 'StringParameterValue', name: 'dockerRegistery', value: env.DOCKER_REGISTRY], 
+                    [$class: 'StringParameterValue', name: 'dockerRegisteryType', value: env.DOCKER_REGISTRY_TYPE]
+                    
+                ], wait: false
+
+            }
+        }
+        // 
+    }
+    //
+    post {
+        always{
+            echo 'Sending Email'
+            emailext attachLog: true, compressLog: false,
+                subject: "[Kube5G pipeline] ${currentBuild.fullDisplayName}: ${currentBuild.result}",
+                to: "mosaic.5gecosys@gmail.com",
+                replyTo: "kubernex@lists.eurecom.fr",
+                body: '''Hi,
+                
+                Find attached the build's log. You can check your pipeline at ${env.BUILD_URL}
+                
+                Regards
+                Kube5G team
+                '''
+        }
+        cleanup {
+            // clean up the workspace
+            deleteDir()
+            // remove the tmp directory
+            dir("${workspace}@tmp") {
+                deleteDir()
+            }
+        }
+    } 
+}

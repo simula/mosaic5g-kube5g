@@ -27,6 +27,7 @@
 		- Osama Arouk (arouk@eurecom.fr)
 		- Kevin Hsi-Ping Hsu (hsuh@eurecom.fr)
 		- Alireza Mohammadi (alireza.mohamamdi@eurecom.fr)
+		- Hung NGUYEN (ung.Nguyen@eurecom.fr)
 *-------------------------------------------------------------------------------
 */
 
@@ -155,6 +156,7 @@ type CfgOaiGnb struct {
 	SsbSubcarrierOffset     string `yaml:"ssb_SubcarrierOffset"`
 	PdschAntennaPorts       string `yaml:"pdsch_AntennaPorts"`
 	PuschTargetSNRx10       string `yaml:"pusch_TargetSNRx10"`
+	PuschProcThreads        string `yaml:"pusch_proc_threads"`
 	PucchTargetSNRx10       string `yaml:"pucch_TargetSNRx10"`
 	ServingCellConfigCommon []struct {
 		AbsoluteFrequencySSB             string `yaml:"absoluteFrequencySSB"`
