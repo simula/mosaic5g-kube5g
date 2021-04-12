@@ -254,8 +254,8 @@ pipeline {
                                 sh(
                                     label: '',
                                     script: '''
-                                        echo "pushing the snap ${env.SNAP_NAME} to the channel ${env.SNAP_CHANNEL_CICD}"
-                                        ./publish-final.sh -s ${env.SNAP_NAME} -c ${env.SNAP_CHANNEL_CICD}
+                                        echo "pushing the snap ${SNAP_NAME} to the channel ${SNAP_CHANNEL_CICD}"
+                                        ./publish-final.sh -s ${SNAP_NAME} -c ${SNAP_CHANNEL_CICD}
                                     '''
                                 )
                             }
