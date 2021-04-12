@@ -104,6 +104,13 @@ spec:
       max_rxgain:
         description: "defines the maximum Rx gain"  
         default: "110"
+      x2_config:
+        description: The X2 interface configuration for the NSA mode.
+        enable_x2: "yes"
+        t_reloc_prep: "1000"
+        tx2_reloc_overall: "2000"
+        t_dc_prep: "1000"
+        t_dc_overall: "2000"
   
   flexran:
     - flexranSize: 1

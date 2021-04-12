@@ -1060,9 +1060,7 @@ if __name__ == "__main__":
                         required=False, default='{}'.format(cicd_default_snap_channel), 
                         help="Define the channel that will be used to install the snap"
                             "Possible options: {}(default), edge/ci, etc.".format(cicd_default_snap_channel))
-    parser.add_argument('-CSnapDevmode', '--cicd-snap-devmode', metavar='[option]', action='store', type=bool,
-                        required=False, default=False, 
-                        help="Define whether the snaps will be installed in devmode (True) or not (False)")
+    parser.add_argument('-CSnapDevmode', '--cicd-snap-devmode', required=False, action='store_true')
 
     parser.add_argument('-CDockerRegistry', '--cicd-docker-reg', metavar='[option]', action='store', type=str,
                         required=False, default='{}'.format(cicd_default_docker_registry), 

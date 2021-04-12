@@ -151,7 +151,6 @@ pipeline {
                                         ./conf-manager.py -s conf_short_default.yaml \
                                                     -CSnapName=${SNAP_NAME} \
                                                     -CSnapChannel=${SNAP_CHANNEL_CICD} \
-                                                    -CSnapDevmode=false \
                                                     -CDockerRegistry=${DOCKER_REGISTRY_CICD} \
                                                     -CDockerTagV1=${DOCKER_IMAGE_TAG_CICD}
                                     '''
@@ -163,7 +162,6 @@ pipeline {
                                         ./conf-manager.py -s conf_short_default.yaml \
                                                     -CSnapName=${SNAP_NAME} \
                                                     -CSnapChannel=${SNAP_CHANNEL_CICD} \
-                                                    -CSnapDevmode=false \
                                                     -CDockerRegistry=${DOCKER_REGISTRY_CICD} \
                                                     -CDockerTagV2=${DOCKER_IMAGE_TAG_CICD}
                                     '''

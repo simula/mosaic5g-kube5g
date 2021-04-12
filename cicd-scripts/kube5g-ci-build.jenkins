@@ -247,7 +247,7 @@ pipeline {
             //
             steps{
                 script{
-                    if(currentBuild.result == 'SUCCESS') {
+                    if (currentBuild.result == null || currentBuild.result == 'SUCCESS') {
                         echo "Push the snap to the CICD channel ${env.SNAP_CHANNEL_CICD} on snapcraft"
                         try {
                             dir("snaps"){
