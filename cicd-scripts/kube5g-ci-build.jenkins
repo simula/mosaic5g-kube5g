@@ -200,7 +200,7 @@ pipeline {
                                 script: '''
                                     version=$(grep -m1 version: snap/snapcraft.yaml | cut -f2 -d: | tr -d "'" | tr -d " ")
                                     snap_name=${SNAP_NAME}"_"$version"_multi.snap"
-                                    echp "copying the built snap ${snap_name} to the temp folder /home/jenkins/tmp-snaps in case it is needed for manual test"
+                                    echo "copying the built snap ${snap_name} to the temp folder /home/jenkins/tmp-snaps in case it is needed for manual test"
                                     cp $snap_name /home/jenkins/tmp-snaps
                                     sudo snap install $snap_name --dangerous
                                 '''
