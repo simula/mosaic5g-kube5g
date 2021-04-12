@@ -65,28 +65,28 @@ pipeline {
     }
 
     stages {
-        // Clone the project from git: Source Control Management (SCM)
-        stage('clone-scm') {
-            steps {
-                checkout scm
-            }
-        } 
-
-        // // Clone the project from git: Pipeline Scritp
-        // // You can enable this if you want to test the pipelien using "Pipeline Scritp"
-        // stage('clone-local') {
+        // // Clone the project from git: Source Control Management (SCM)
+        // stage('clone-scm') {
         //     steps {
-        //         script{
-        //             try{
-        //                 git credentialsId: "${gitlabCredentials}",
-        //                 url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
-        //                 branch: "develop"
-        //             } catch (err) {
-        //                 throw(err)
-        //             }
-        //         }
+        //         checkout scm
         //     }
-        // }
+        // } 
+
+        // Clone the project from git: Pipeline Scritp
+        // You can enable this if you want to test the pipelien using "Pipeline Scritp"
+        stage('clone-local') {
+            steps {
+                script{
+                    try{
+                        git credentialsId: "${gitlabCredentials}",
+                        url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
+                        branch: "develop"
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
 
         // Trigget pipeline for FlexRAN
         stage('trigger-flexran') {

@@ -90,33 +90,33 @@ pipeline {
     // Define the stages
     stages {
 
-        // Clone the project from git: Source Control Management (SCM)
-        stage('clone-scm') {
-            steps {
-                script { 
-                    ENUM_STAGE = ENUM_STAGE + 1
-                    echo "STAGE#$ENUM_STAGE: cloning from git: SCM mode"
-                }
-                checkout scm
-            }
-        } 
-
-        // // Clone the project from git: Pipeline Scritp
-        // stage('clone-local') {
+        // // Clone the project from git: Source Control Management (SCM)
+        // stage('clone-scm') {
         //     steps {
-        //         script{
+        //         script { 
         //             ENUM_STAGE = ENUM_STAGE + 1
-        //             echo "STAGE#$ENUM_STAGE: cloning from git: Pipeline Scritp mode"
-        //             try{
-        //                 git credentialsId: "${gitlabCredentials}",
-        //                 url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
-        //                 branch: "develop"
-        //             } catch (err) {
-        //                 throw(err)
-        //             }
+        //             echo "STAGE#$ENUM_STAGE: cloning from git: SCM mode"
         //         }
+        //         checkout scm
         //     }
-        // }
+        // } 
+
+        // Clone the project from git: Pipeline Scritp
+        stage('clone-local') {
+            steps {
+                script{
+                    ENUM_STAGE = ENUM_STAGE + 1
+                    echo "STAGE#$ENUM_STAGE: cloning from git: Pipeline Scritp mode"
+                    try{
+                        git credentialsId: "${gitlabCredentials}",
+                        url: "git@gitlab.eurecom.fr:mosaic5g/store.git",
+                        branch: "develop"
+                    } catch (err) {
+                        throw(err)
+                    }
+                }
+            }
+        }
         
         // Build the snap
         stage('snap-build') {
