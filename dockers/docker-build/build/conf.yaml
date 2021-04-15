@@ -1,5 +1,6 @@
 oaiEnb:
-- mcc: "208"
+- nodeFunction: "enbsim"
+  mcc: "208"
   mnc: "95"
   mmeService:
     description: |
