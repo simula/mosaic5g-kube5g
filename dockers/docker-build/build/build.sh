@@ -36,7 +36,7 @@ DIR=""
 DOCKER_HOOK_DIR="$HOME/go/src/mosaic5g/docker-hook/cmd/hook" # source-code of docker-hook, if you would like to build the docker-hook
 
 # List of supported snaps
-declare -a snap_list=("oai-ran oai-cn oai-hss oai-mme oai-spgw oai-spgwc oai-spgwu flexran")
+declare -a snap_list=("oai-ran oai-cn oai-hss oai-mme oai-spgw oai-spgwc oai-spgwu flexran oai-sim")
 declare -a snap_version_list=("v1 v2")
 
 
