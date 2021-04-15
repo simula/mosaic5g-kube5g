@@ -36,7 +36,7 @@ DIR=""
 DOCKER_HOOK_DIR="$HOME/go/src/mosaic5g/docker-hook/cmd/hook" # source-code of docker-hook, if you would like to build the docker-hook
 
 # List of supported snaps
-declare -a snap_list=("oai-ran oai-cn oai-hss oai-mme oai-spgw oai-spgwc oai-spgwu flexran oai-sim")
+declare -a snap_list=("oai-ran oai-cn oai-hss oai-mme oai-spgw oai-spgwc oai-spgwu flexran oai-sim oai-enb-sim")
 declare -a snap_version_list=("v1 v2")
 
 
@@ -103,7 +103,7 @@ build_target(){
             fi
         elif [ "${SNAP_VERSION}" = "v2" ] ; then
             
-            if [ "${1}" = "oai-hss" ] || [ "${1}" = "oai-mme" ] || [ "${1}" = "oai-spgwc" ] || [ "${1}" = "oai-spgwu" ] || [ "${1}" = "oai-ran" ] || [ "${1}" = "oai-enb-sim" ] ; then
+            if [ "${1}" = "oai-hss" ] || [ "${1}" = "oai-mme" ] || [ "${1}" = "oai-spgwc" ] || [ "${1}" = "oai-spgwu" ] || [ "${1}" = "oai-ran" ] || [ "${1}" = "oai-sim" ] ; then
                 echo "Waiting for snap ${1} to be installed..."
                 contains "${LIST}" "${1}"
             elif [ "${1}" = "oai-cn" ] ; then
@@ -230,7 +230,7 @@ main() {
         oai-enb-sim)
             DIR="oai-enb-sim"
             TARGET_NAME="oaienbsim"
-            build_target ${1}
+            build_target "oai-sim"
         ;;
         oai-gnb)
             DIR="oai-gnb"
