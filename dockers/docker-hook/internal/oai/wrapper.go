@@ -225,9 +225,13 @@ func InstallRanGnb(OaiObj Oai) {
 //StartENB is a wrapper for configuring and starting OAI RAN services as 4G eNB
 func StartENB(OaiObj Oai, buildSnap bool) {
 	nodeFunction := OaiObj.Conf.OaiEnb[0].NodeFunction
-	if nodeFunction == "enb" {
+	if nodeFunction == "enb" || nodeFunction == "enb-sim" || nodeFunction == "enbsim" {
 		OaiObj.Logger.Print("Starting 4G RAN")
 		fmt.Println("Starting 4G RAN")
+		if nodeFunction != "enb" {
+			OaiObj.Logger.Print("Starting a simulation")
+			fmt.Println("Starting a simulation")
+		}
 		startENB(OaiObj, buildSnap)
 		OaiObj.Logger.Print("4G RAN is started")
 		fmt.Println("4G RAN is started")

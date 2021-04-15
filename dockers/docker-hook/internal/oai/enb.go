@@ -63,7 +63,15 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	if nodeFunction == "" {
 		nodeFunction = "enb"
 	}
-	cmdNodeFunction := "oai-ran." + nodeFunction
+
+	// adapt the command according to the input from yaml file.
+	cmdNodeFunction := ""
+	if nodeFunction == "enb" {
+		cmdNodeFunction = "oai-ran." + nodeFunction
+	} else if nodeFunction == "enb-sim" || nodeFunction == "enbsim" {
+		cmdNodeFunction = "oai-sim.enb"
+	}
+
 	OaiObj.Logger.Print("getting the config file of " + nodeFunction)
 	retStatus := util.RunCmd(OaiObj.Logger, cmdNodeFunction+"-conf-get")
 	confFileName := ""
@@ -109,7 +117,8 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 				break
 			}
 		}
-		OaiObj.Logger.Print("Stop oai-enb failed, try again later")
+		// adapt the name of package
+		OaiObj.Logger.Print("Stop " + cmdNodeFunction + " failed, try again later")
 		time.Sleep(1 * time.Second)
 	}
 

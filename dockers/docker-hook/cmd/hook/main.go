@@ -65,6 +65,11 @@ func main() {
 	installSPGWC := flag.Bool("installSPGWC", false, "a bool to indicate whether to install the snap oai-spgwc, if it is true")
 	installSPGWU := flag.Bool("installSPGWU", false, "a bool to indicate whether to install the snap oai-spgwu, if it is true")
 	installFlexRAN := flag.Bool("installFlexRAN", false, "a bool to indicate whether to install the snap flexran, if it is true")
+	//TODO: add the options for enb-sim, ue-sim
+	//TODO: need to check if we need different options for enb-sim/ue-sim
+	// maybe if enb-sim/ue-sim are inside a single snap, we might need only one option: SIM
+	// installUESim := flag.Bool("installUESim", false, "a bool to indicate whether to install the snap ue-sim")
+	installENBSim := flag.Bool("installENBSim", false, "a bool to indicate whether to install the snap enb-sim")
 	installMEC := flag.Bool("installMEC", false, "a bool to indicate whether to install the snap ll-mec, if it is true")
 	buildImage := flag.Bool("build", false, "a bool value to define that the current setup is to build the docker image.")
 	var snapVersion string
@@ -97,16 +102,34 @@ func main() {
 
 		OaiObj.Logger.Print("CN is started: exit")
 		fmt.Println("CN is started: exit")
-	} else if *installRanEnb {
-		OaiObj.Logger.Print("Installing RAN eNB")
-		fmt.Println("Installing RAN eNB")
-
+	} else if *installRanEnb || *installENBSim {
+		// this if is ugly
+		if *installRanEnb {
+			OaiObj.Logger.Print("Installing RAN eNB")
+			fmt.Println("Installing RAN eNB")
+		} else {
+			OaiObj.Logger.Print("Installing RAN eNB Sim")
+			fmt.Println("Installing RAN eNB Sim")
+		}
 		oai.InstallRAN(OaiObj)
-
-		OaiObj.Logger.Print("Starting RAN eNB")
-		fmt.Println("Starting RAN eNB")
-
+		if *installRanEnb {
+			OaiObj.Logger.Print("Starting RAN eNB")
+			fmt.Println("Starting RAN eNB")
+		} else {
+			OaiObj.Logger.Print("Starting RAN eNB Sim")
+			fmt.Println("Starting RAN eNB Sim")
+		}
 		oai.StartENB(OaiObj, buildSnap)
+		/*}else if *installUESim {
+		OaiObj.Logger.Print("Installing UE-Sim")
+		fmt.Println("Installing UE-Sim")
+
+		oai.InstallUESim(OaiObj)
+
+		OaiObj.Logger.Print("Starting UE-Sim")
+		fmt.Println("Starting UE-Sim")
+
+		oai.StartUESim(OaiObj, buildSnap) */
 	} else if *installRanGnb {
 		OaiObj.Logger.Print("Installing RAN gNB")
 		fmt.Println("Installing RAN gNB")
