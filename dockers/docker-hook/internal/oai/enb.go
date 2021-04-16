@@ -46,6 +46,10 @@ import (
 )
 
 func changeParamNidCellMbsfn(c *common.CfgGlobal, OaiObj Oai, enbConf string) int {
+	// if user doesn't set the value for this parameter, we do nothing here.
+	if c.OaiEnb[0].NidCellMbsfn.Default == "" {
+		return 0 // success
+	}
 	sedCommand := "s:Nid_cell_mbsfn.*;:Nid_cell_mbsfn                                         = " + c.OaiEnb[0].NidCellMbsfn.Default + ";:g"
 	// OaiObj.Logger.Print("Replace TxGain")
 	// OaiObj.Logger.Print(sedCommand)
@@ -310,7 +314,12 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 	mmeServiceName := OaiObj.Conf.OaiEnb[0].MmeService.Name
 	mmeIPV4Customized := OaiObj.Conf.OaiEnb[0].MmeService.IPV4
 	mmeSnapVersion := OaiObj.Conf.OaiEnb[0].MmeService.SnapVersion
-	if buildSnap == false {
+
+	OaiObj.Logger.Println("mme Name: " + mmeServiceName)
+	OaiObj.Logger.Println("mme IPv4: " + mmeIPV4Customized)
+	OaiObj.Logger.Println("mme Name: " + mmeSnapVersion)
+
+	if !buildSnap {
 
 		if c.OaiEnb[0].Usrp.N3xx.Enabled {
 			firstAdd := c.OaiEnb[0].Usrp.N3xx.SdrAddrs.Addr
@@ -482,7 +491,7 @@ func startENB(OaiObj Oai, buildSnap bool) error {
 		fmt.Println("mmeIPV4Customized = ", mmeIPV4Customized)
 		fmt.Println("mmeIP = ", mmeIP)
 
-		sedCommand = "175s:\".*;:\"" + mmeIP + "\";:g"
+		sedCommand = "179s:\".*;:\"" + mmeIP + "\";:g" //"175s:\".*;:\"" + mmeIP + "\";:g"
 		util.RunCmd(OaiObj.Logger, "sed", "-i", sedCommand, enbConf)
 
 		//
