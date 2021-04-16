@@ -1,5 +1,6 @@
 oaiEnb:
-- mcc: "208"
+- nodeFunction: "enbsim"
+  mcc: "208"
   mnc: "95"
   mmeService:
     description: |
@@ -28,7 +29,7 @@ oaiEnb:
     description: |
       Define the version of the snap to be used. The field (refresh), if true, it will get the lates version of snap. 
       Otherwise, the current version (supposing that it is already installed) will be kept
-    name: "oai-ran"
+    name: "oai-sim"
     channel: "edge"
     devmode: true
     refresh: false
